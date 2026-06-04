@@ -1,0 +1,59 @@
+# =========================
+# OS FILES
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / EDITORS
+# =========================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# =========================
+# LOG FILES
+# =========================
+*.log
+logs/
+
+# =========================
+# DATABASE (IMPORTANT)
+# =========================
+database/schema.sql
+*.sql
+*.db
+
+# =========================
+# CONFIG FILES (SECURITY)
+# =========================
+.env
+.env.*
+config/database.php
+
+# =========================
+# PHP DEPENDENCIES
+# =========================
+vendor/
+
+# =========================
+# CACHE / TEMP
+# =========================
+cache/
+tmp/
+temp/
+
+# =========================
+# NODE / JS (if AdminLTE tools used)
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# COMPILED ASSETS (optional)
+# =========================
+dist/
+build/
