@@ -1,6 +1,6 @@
    
    $(document).ready(function () {
-  $(".app-main").load("pages/enroll_form.php");
+    //$(".app-main").load("pages/dashboard.html");
     const SELECTOR_SIDEBAR_WRAPPER = '.sidebar-wrapper';
       const Default = {
         scrollbarTheme: 'os-theme-light',
