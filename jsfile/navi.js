@@ -19,4 +19,8 @@ $(document).ready(function () {
 			$("#app-main").empty();
 			$("#app-main").load("pages/students.html");			
         });
+        $('#admin_enroll').click(function () {
+            $("#app-main").empty();
+			$("#app-main").load("pages/enrollmentform.html");
+        });
 });
