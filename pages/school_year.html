@@ -1,0 +1,105 @@
+<!-- ============================= -->
+<!-- BEGIN SCHOOL YEAR MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title">School Year Management</h3>
+
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnAdd">
+                <i class="fas fa-plus"></i> Add School Year
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="schoolYearModal">
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="schoolYearForm">
+
+                    <!-- MODAL HEADER -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">School Year</h4>
+                    </div>
+
+                    <!-- MODAL BODY -->
+                    <div class="modal-body">
+
+                        <input type="hidden" id="schoolyear_id" name="schoolyear_id">
+
+                        <div class="form-group">
+                            <label for="schoolyear_name">School Year Name</label>
+                            <input type="text" class="form-control" id="schoolyear_name" name="schoolyear_name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="year_start">Year Start</label>
+                            <input type="number" class="form-control" id="year_start" name="year_start" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="year_end">Year End</label>
+                            <input type="number" class="form-control" id="year_end" name="year_end" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select class="form-control" id="status" name="status">
+                                <option value="1">Active</option>
+                                <option value="0">Inactive</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <!-- MODAL FOOTER -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Save
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ============================= -->
+    <!-- END MODAL -->
+    <!-- ============================= -->
+
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <table id="schoolYearTable" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>School Year</th>
+                    <th>Year Start</th>
+                    <th>Year End</th>
+                    <th>Status</th>
+                    <th width="50">Actions</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END SCHOOL YEAR MANAGEMENT -->
+<!-- ============================= -->
+
+<script src="jsfile/school_year.js"></script>

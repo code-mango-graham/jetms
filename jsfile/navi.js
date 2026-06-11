@@ -23,4 +23,9 @@ $(document).ready(function () {
             $("#app-main").empty();
 			$("#app-main").load("pages/enrollmentform.html");
         });
+        $('#admin_settings').click(function () {
+            $("#app-main").empty();
+			$("#app-main").load("pages/settings.html");
+        });
 });
+
