@@ -4,18 +4,31 @@ $(document).ready(function () {
         $("#school_year").on("click", function()
 		{
           //  alert("Dashboard");
-            $("#school_year").addClass("active");
-            $("#curriculum").removeClass("active");
+            setActiveMenu("#school_year");
 			$("#content_settings").empty();
 			$("#content_settings").load("pages/school_year.html");			
         });
         $("#curriculum").on("click", function()
 		{
           //  alert("Dashboard");
-            $("#curriculum").addClass("active");
-            $("#school_year").removeClass("active");
+            setActiveMenu("#curriculum");
 			$("#content_settings").empty();
 			$("#content_settings").load("pages/curriculum.html");			
         });
+        $("#departments").on("click", function()
+		{
+          //  alert("Dashboard");
+            setActiveMenu("#departments");
+			$("#content_settings").empty();
+			$("#content_settings").load("pages/department.html");			
+        });
+
+        function setActiveMenu(activeId) {
+
+        $("#school_year").removeClass("active");
+        $("#curriculum").removeClass("active");
+        $("#departments").removeClass("active");
+        $(activeId).addClass("active");
+        }
 });
 

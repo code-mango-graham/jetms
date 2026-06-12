@@ -1,0 +1,83 @@
+<!-- ============================= -->
+<!-- BEGIN DEPARTMENT MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title">Departments/Offices Management</h3>
+
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnAdd">
+                <i class="fas fa-plus"></i> Add Department/Office
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="departmentModal">
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="departmentForm">
+
+                    <!-- MODAL HEADER -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">Department/Office</h4>
+                    </div>
+
+                    <!-- MODAL BODY -->
+                    <div class="modal-body">
+
+                        <input type="hidden" id="department_id" name="department_id">
+
+                        <div class="form-group">
+                            <label for="department_name">Department/Office Name</label>
+                            <input type="text" class="form-control" id="department_name" name="department_name" required>
+                        </div>
+                    </div>
+
+                    <!-- MODAL FOOTER -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Save
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ============================= -->
+    <!-- END MODAL -->
+    <!-- ============================= -->
+
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <table id="departmentTable" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Department/Office</th>
+                    <th width="150">Actions</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END SCHOOL YEAR MANAGEMENT -->
+<!-- ============================= -->
+
+<script src="jsfile/department.js"></script>

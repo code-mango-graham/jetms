@@ -1,16 +1,16 @@
 <!-- ============================= -->
-<!-- BEGIN SCHOOL YEAR MANAGEMENT -->
+<!-- BEGIN CURRICULUM MANAGEMENT -->
 <!-- ============================= -->
 
 <div class="card">
 
     <!-- CARD HEADER -->
     <div class="card-header">
-        <h3 class="card-title">School Year Management</h3>
+        <h3 class="card-title">Curriculum Management</h3>
 
         <div class="card-tools">
             <button class="btn btn-primary btn-sm" id="btnAdd">
-                <i class="fas fa-plus"></i> Add School Year
+                <i class="fas fa-plus"></i> Add Curriculum
             </button>
         </div>
     </div>
@@ -18,36 +18,31 @@
     <!-- ============================= -->
     <!-- BEGIN MODAL -->
     <!-- ============================= -->
-    <div class="modal fade" id="schoolYearModal">
+    <div class="modal fade" id="curriculumModal">
 
         <div class="modal-dialog">
             <div class="modal-content">
 
-                <form id="schoolYearForm">
+                <form id="curriculumForm">
 
                     <!-- MODAL HEADER -->
                     <div class="modal-header">
-                        <h4 class="modal-title">School Year</h4>
+                        <h4 class="modal-title">Curriculum</h4>
                     </div>
 
                     <!-- MODAL BODY -->
                     <div class="modal-body">
 
-                        <input type="hidden" id="schoolyear_id" name="schoolyear_id">
+                        <input type="hidden" id="curriculum_id" name="curriculum_id">
 
                         <div class="form-group">
-                            <label for="schoolyear_name">School Year Name</label>
-                            <input type="text" class="form-control" id="schoolyear_name" name="schoolyear_name" required>
+                            <label for="curriculum_name">Curriculum Name</label>
+                            <input type="text" class="form-control" id="curriculum_name" name="curriculum_name" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="year_start">Year Start</label>
-                            <input type="number" class="form-control" id="year_start" name="year_start" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="year_end">Year End</label>
-                            <input type="number" class="form-control" id="year_end" name="year_end" required>
+                            <label for="description">Description</label>
+                            <input type="text" class="form-control" id="description" name="description" required>
                         </div>
 
                         <div class="form-group">
@@ -83,14 +78,13 @@
 
     <!-- TABLE CARD BODY -->
     <div class="card-body">
-        <table id="schoolYearTable" class="table table-bordered table-hover">
+        <table id="curriculumTable" class="table table-bordered table-hover">
             <thead>
                 <tr>
-                    <th>School Year</th>
-                    <th>Year Start</th>
-                    <th>Year End</th>
+                    <th>Curriculum Name</th>
+                    <th>Description</th>
                     <th>Status</th>
-                    <th width="100">Actions</th>
+                    <th width="150">Actions</th>
                 </tr>
             </thead>
         </table>
@@ -99,7 +93,7 @@
 </div>
 
 <!-- ============================= -->
-<!-- END SCHOOL YEAR MANAGEMENT -->
+<!-- END CURRICULUM MANAGEMENT -->
 <!-- ============================= -->
 
-<script src="jsfile/school_year.js"></script>
+<script src="jsfile/curriculum.js"></script>
