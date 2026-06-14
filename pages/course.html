@@ -1,0 +1,83 @@
+<!-- ============================= -->
+<!-- BEGIN COURSE MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title">Courses Management</h3>
+
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnAdd">
+                <i class="fas fa-plus"></i> Add Course
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="courseModal">
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="courseForm">
+
+                    <!-- MODAL HEADER -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">Course</h4>
+                    </div>
+
+                    <!-- MODAL BODY -->
+                    <div class="modal-body">
+
+                        <input type="hidden" id="course_id" name="course_id">
+
+                        <div class="form-group">
+                            <label for="course_name">Course Name</label>
+                            <input type="text" class="form-control" id="course_name" name="course_name" required>
+                        </div>
+                    </div>
+
+                    <!-- MODAL FOOTER -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Save
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ============================= -->
+    <!-- END MODAL -->
+    <!-- ============================= -->
+
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <table id="courseTable" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Course</th>
+                    <th width="150">Actions</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END COURSE MANAGEMENT -->
+<!-- ============================= -->
+
+<script src="jsfile/courses.js"></script>
