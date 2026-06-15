@@ -22,12 +22,20 @@ $(document).ready(function () {
 			$("#content_settings").empty();
 			$("#content_settings").load("pages/department.html");			
         });
+        $("#grade").on("click", function()
+		{
+          //  alert("Dashboard");
+            setActiveMenu("#grade");
+			$("#content_settings").empty();
+			$("#content_settings").load("pages/level.html");			
+        });
 
         function setActiveMenu(activeId) {
 
         $("#school_year").removeClass("active");
         $("#curriculum").removeClass("active");
         $("#departments").removeClass("active");
+        $("#grade").removeClass("active");
         $(activeId).addClass("active");
         }
 });

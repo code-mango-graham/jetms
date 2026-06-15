@@ -99,17 +99,17 @@ $('#schoolYearForm').submit(function(e){
             $('#schoolYearModal').modal('hide');
             document.activeElement.blur(); 
             $('#schoolYearTable').DataTable().ajax.reload(null, false);
-                   Swal.fire({
-    toast: true,
-    position: 'top-end',
-    icon: 'success',
-    title: 'Saved Successfully',
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true
-});
+                Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Saved Successfully',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
 
-                }
+            }
             });
 
         });
