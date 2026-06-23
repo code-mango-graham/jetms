@@ -75,10 +75,10 @@ $(document).ready(function () {
                     className: 'text-center',
                     render: function (data) {
                         return `
-                            <button class="btn btn-info btn-sm btnEdit"
-                                    data-id="${data.level_id}">
-                                <i class="bi bi-pencil"></i>
-                            </button>
+                            <div class="btn-group btn-group-sm">
+                            <a class="btn btn-info btnEdit" data-id="${data.level_id}" title = "Edit"><i class="bi bi-pencil"></i></a>
+                            <a class="btn btn-light btnGradedata" data-id="${data.level_id}" data-name="${data.level_name}" title = "View Level Data"><i class="bi bi-journal-bookmark"></i></a>
+                            </div>
                         `;
                     }
                 }
@@ -161,12 +161,19 @@ $('#levelForm').submit(function (e) {
             }
         });
     });
-
-
-    /* =========================
-       START APP (CORRECT ORDER)
-    ========================= */
-    loadActiveCurriculum(function () {
+/* =========================*/
+       
+$(document).on('click', '.btnGradedata', function () {
+    let level_id = $(this).data('id');
+    let level_name = $(this).data('name');
+    $('#content_level').empty();
+    $('#content_level').load('pages/subjects.html', function () {
+        $('#activeLevelId').val(level_id);
+        $('#activeLevel').text(level_name);
+    });
+});
+/* ========================= */
+loadActiveCurriculum(function () {
         initTable();
     });
 

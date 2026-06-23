@@ -1,0 +1,57 @@
+<!-- ============================= -->
+<!-- BEGIN SUBJECT MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title fs-5">Editing: <b><span id="activeLevel"></span></b></h3>
+        <input type="hidden" class="form-control" id="activeLevelId" name ="activeLevel" value="">
+        <div class="card-tools">
+            <button class="btn btn-info btn-sm" id="btnAdd">
+                <i class="fas fa-plus"></i> Add Subject
+            </button>
+        </div>
+    </div>
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <div class="row">
+            <!-- SECTIONS/CLASSES TABLE -->
+            <div class="col-md-6">
+                <h5 class="mb-3">Sections/Classes</h5>
+                <table id="sectionsTable" class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Section Name</th>
+                            <th>Level</th>
+                            <th width="100">Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+
+            <!-- SUBJECTS TABLE -->
+            <div class="col-md-6">
+                <h5 class="mb-3">Subjects</h5>
+                <table id="subjectTable" class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>Subject Name</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th width="100">Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END SUBJECT MANAGEMENT -->
+<!-- ============================= -->
+
+<script src="jsfile/subject.js"></script>
