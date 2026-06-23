@@ -1,0 +1,43 @@
+CREATE TABLE tbl_schoolyear (
+    schoolyear_id INT AUTO_INCREMENT PRIMARY KEY,
+    year_start YEAR NOT NULL,
+    year_end YEAR NOT NULL,
+    schoolyear_name VARCHAR(50) NOT NULL,
+    status TINYINT(1) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+)
+ENGINE=MyISAM
+ ---------------------------
+ CREATE TABLE tbl_department (
+    department_id INT AUTO_INCREMENT PRIMARY KEY,
+    department_name VARCHAR(100) NOT NULL,
+    description TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+)
+ENGINE=MyISAM
+--------------------------
+CREATE TABLE tbl_curriculum (
+    curriculum_id INT AUTO_INCREMENT PRIMARY KEY,
+    curriculum_name VARCHAR(100) NOT NULL,
+    description TEXT NULL,
+    status TINYINT(1) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+)
+ENGINE=MyISAM
+-------------------------
+CREATE TABLE tbl_level (
+    level_id INT AUTO_INCREMENT PRIMARY KEY,
+    curriculum_id INT NOT NULL,
+    level_name VARCHAR(100) NOT NULL,
+    level_type VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+)
+ENGINE=MyISAM
