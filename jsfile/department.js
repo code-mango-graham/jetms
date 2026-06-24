@@ -11,14 +11,14 @@ let table = $('#departmentTable').DataTable({
                 type: 'POST'
             },
             columns: [
-                { data: 'department_name', className: 'text-center' },
+                { data: 'department_name' },
                 {
                     data: null,
                     className: 'text-center',
                     render: function(data){
 
                         return `
-                            <button class="btn btn-info btn-sm btnEditdep"
+                            <button class="btn btn-outline-info btn-sm btnEditdep"
                                     data-id="${data.department_id}">
                                 <i class="bi bi-pencil"></i>
                             </button>

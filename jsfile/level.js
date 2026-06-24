@@ -58,7 +58,7 @@ $(document).ready(function () {
 
                         switch (parseInt(data)) {
                             case 1:
-                                return "Kindergarten";
+                                return "Kindergarden";
                             case 2:
                                 return "Primary Education";
                             case 3:
@@ -76,8 +76,8 @@ $(document).ready(function () {
                     render: function (data) {
                         return `
                             <div class="btn-group btn-group-sm">
-                            <a class="btn btn-info btnEdit" data-id="${data.level_id}" title = "Edit"><i class="bi bi-pencil"></i></a>
-                            <a class="btn btn-light btnGradedata" data-id="${data.level_id}" data-name="${data.level_name}" title = "View Level Data"><i class="bi bi-journal-bookmark"></i></a>
+                            <a class="btn btn-outline-info btnEdit" data-id="${data.level_id}" title = "Edit"><i class="bi bi-pencil"></i></a>
+                            <a class="btn btn-outline-secondary btnGradedata" data-id="${data.level_id}" data-name="${data.level_name}" title = "View Level Data"><i class="bi bi-journal-bookmark"></i></a>
                             </div>
                         `;
                     }
@@ -85,6 +85,11 @@ $(document).ready(function () {
             ]
         });
     }
+
+/* ========================= */
+loadActiveCurriculum(function () {
+        initTable();
+    });
 
 
     /* =========================
@@ -171,10 +176,10 @@ $(document).on('click', '.btnGradedata', function () {
         $('#activeLevelId').val(level_id);
         $('#activeLevel').text(level_name);
     });
+     $('html, body').animate({
+        scrollTop: $('#content_level').offset().top
+    }, 100);
 });
-/* ========================= */
-loadActiveCurriculum(function () {
-        initTable();
-    });
+
 
 });

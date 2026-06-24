@@ -2,50 +2,106 @@
 <!-- BEGIN SUBJECT MANAGEMENT -->
 <!-- ============================= -->
 
-<div class="card">
+<div class="card card-secondary">
 
     <!-- CARD HEADER -->
     <div class="card-header">
-        <h3 class="card-title fs-5">Editing: <b><span id="activeLevel"></span></b></h3>
-        <input type="hidden" class="form-control" id="activeLevelId" name ="activeLevel" value="">
-        <div class="card-tools">
-            <button class="btn btn-info btn-sm" id="btnAdd">
-                <i class="fas fa-plus"></i> Add Subject
-            </button>
+        <h3 class="card-title fs-5">EDITING: <b><span id="activeLevel"></span></b></h3>
+        <input type="text" class="form-control" id="activeLevelId" name ="activeLevelId" value="">
+        <div class="card-tools">  
+        <button type="button" class="btn btn-tool" id="btnclosecard" name="btnclosecard">
+            <i class="bi bi-x-lg"></i>
+        </button>
         </div>
     </div>
+
+     <!-- ============================= -->
+    <!-- BEGIN SECTION MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="sectionModal">
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="sectionForm">
+
+                    <!-- MODAL HEADER -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">Section</h4>
+                    </div>
+
+                    <!-- MODAL BODY -->
+                    <div class="modal-body">
+
+                        <input type="hidden" id="section_id" name="section_id">
+                        
+                        <div class="form-group">
+                            <label for="section_name">Section Name</label>
+                            <input type="text" class="form-control" id="section_name" name="section_name" required>
+                        </div>
+
+                    </div>
+
+                    <!-- MODAL FOOTER -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Save
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ============================= -->
+    <!-- END SECTION MODAL -->
+    <!-- ============================= -->
     <!-- TABLE CARD BODY -->
     <div class="card-body">
         <div class="row">
-            <!-- SECTIONS/CLASSES TABLE -->
-            <div class="col-md-6">
-                <h5 class="mb-3">Sections/Classes</h5>
-                <table id="sectionsTable" class="table table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Section Name</th>
-                            <th>Level</th>
-                            <th width="100">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
+                <!-- SECTIONS/CLASSES TABLE -->
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Sections/Classes1</h5>
+                        <button class="btn btn-outline-secondary btn-sm" id="btnAddSection">
+                           Add Section
+                        </button>
+                    </div>
+                    <table id="sectionsTable" class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>SECTION NAME</th>
+                                <th width="100">ACTIONS</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
 
-            <!-- SUBJECTS TABLE -->
-            <div class="col-md-6">
-                <h5 class="mb-3">Subjects</h5>
-                <table id="subjectTable" class="table table-bordered table-hover">
-                    <thead>
-                        <tr>
-                            <th>Subject Name</th>
-                            <th>Description</th>
-                            <th>Status</th>
-                            <th width="100">Actions</th>
-                        </tr>
-                    </thead>
-                </table>
+                <!-- SUBJECTS TABLE -->
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Subjects</h5>
+                        <button class="btn btn-outline-secondary btn-sm" id="btnAddSubject">
+                            Add Subject
+                        </button>
+                    </div>
+                    <table id="subjectTable" class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>SUBJECT NAME</th>
+                                <th>SUBJECT CODE</th>
+                                <th width="100">ACTIONS</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
             </div>
-        </div>
     </div>
 
 </div>

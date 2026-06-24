@@ -12,8 +12,8 @@ let table = $('#curriculumTable').DataTable({
             },
             order: [[0, 'desc']],
             columns: [
-                { data: 'curriculum_name', className: 'text-center' },
-                { data: 'description', className: 'text-center' },
+                { data: 'curriculum_name' },
+                { data: 'description' },
                 {
                     data: 'status',
                     className: 'text-center',
@@ -23,7 +23,7 @@ let table = $('#curriculumTable').DataTable({
                             return '<span class="badge text-bg-success">Active</span>';
                         }
 
-                        return '<span class="badge text-bg-secondary">Inactive</span>';
+                        return '<span class="badge text-bg-light">Inactive</span>';
                     }
                 },
                 {
@@ -32,7 +32,7 @@ let table = $('#curriculumTable').DataTable({
                     render: function(data){
 
                         return `
-                            <button class="btn btn-info btn-sm btnEditcur"
+                            <button class="btn btn-outline-info btn-sm btnEditcur"
                                     data-id="${data.curriculum_id}">
                                 <i class="bi bi-pencil"></i>
                             </button>

@@ -24,7 +24,7 @@ let table = $('#schoolYearTable').DataTable({
                             return '<span class="badge text-bg-success">Active</span>';
                         }
 
-                        return '<span class="badge text-bg-secondary">Inactive</span>';
+                        return '<span class="badge text-bg-light">Inactive</span>';
                     }
                 },
                 {
@@ -33,7 +33,7 @@ let table = $('#schoolYearTable').DataTable({
                     render: function(data){
 
                         return `
-                            <button class="btn btn-info btn-sm btnEdit"
+                            <button class="btn btn-outline-info btn-sm btnEdit"
                                     data-id="${data.schoolyear_id}">
                                 <i class="bi bi-pencil"></i>
                             </button>

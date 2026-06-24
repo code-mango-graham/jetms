@@ -31,12 +31,12 @@ $(document).ready(function () {
         });
 
         function setActiveMenu(activeId) {
-
-        $("#school_year").removeClass("active");
-        $("#curriculum").removeClass("active");
-        $("#departments").removeClass("active");
-        $("#grade").removeClass("active");
-        $(activeId).addClass("active");
+            $("#school_year").removeClass("active");
+            $("#curriculum").removeClass("active");
+            $("#departments").removeClass("active");
+            $("#grade").removeClass("active");
+            $("#content_level").empty();
+            $(activeId).addClass("active");
         }
 });
 
