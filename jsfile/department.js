@@ -1,4 +1,10 @@
 $(document).ready(function () {
+
+    // Unbind previous handlers to prevent duplicates when page is reloaded
+    $(document).off('click', '#btnAdddepartment');
+    $(document).off('submit', '#departmentForm');
+    $(document).off('click', '.btnEditdep');
+
 let table = $('#departmentTable').DataTable({
             processing: true,
             responsive: true,
@@ -18,7 +24,7 @@ let table = $('#departmentTable').DataTable({
                     render: function(data){
 
                         return `
-                            <button class="btn btn-outline-info btn-sm btnEditdep"
+                            <button class="btn btn-outline-secondary btn-sm btnEditdep"
                                     data-id="${data.department_id}">
                                 <i class="bi bi-pencil"></i>
                             </button>

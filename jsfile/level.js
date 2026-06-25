@@ -2,6 +2,11 @@ $(document).ready(function () {
 
     let table;
 
+    // Unbind previous handlers to prevent duplicates when page is reloaded
+    $(document).off('click', '#btnAddLevel');
+    $(document).off('submit', '#levelForm');
+    $(document).off('click', '.btnEditlevel');
+
     /* =========================
        LOAD ACTIVE CURRICULUM
     ========================= */
@@ -31,6 +36,10 @@ $(document).ready(function () {
     ========================= */
     function initTable() {
 
+    if ($.fn.DataTable.isDataTable('#levelTable')) {
+        return;
+    }
+
         table = $('#levelTable').DataTable({
             processing: true,
             responsive: true,
@@ -58,7 +67,7 @@ $(document).ready(function () {
 
                         switch (parseInt(data)) {
                             case 1:
-                                return "Kindergarden";
+                                return "Kindergarten";
                             case 2:
                                 return "Primary Education";
                             case 3:
@@ -76,7 +85,7 @@ $(document).ready(function () {
                     render: function (data) {
                         return `
                             <div class="btn-group btn-group-sm">
-                            <a class="btn btn-outline-info btnEdit" data-id="${data.level_id}" title = "Edit"><i class="bi bi-pencil"></i></a>
+                            <a class="btn btn-outline-secondary btnEdit" data-id="${data.level_id}" title = "Edit"><i class="bi bi-pencil"></i></a>
                             <a class="btn btn-outline-secondary btnGradedata" data-id="${data.level_id}" data-name="${data.level_name}" title = "View Level Data"><i class="bi bi-journal-bookmark"></i></a>
                             </div>
                         `;
@@ -180,6 +189,7 @@ $(document).on('click', '.btnGradedata', function () {
         scrollTop: $('#content_level').offset().top
     }, 100);
 });
+
 
 
 });

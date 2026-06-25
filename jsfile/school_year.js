@@ -1,4 +1,10 @@
 $(document).ready(function () {
+
+    // Unbind previous handlers to prevent duplicates when page is reloaded
+    $(document).off('click', '#btnAddSy');
+    $(document).off('submit', '#syForm');
+    $(document).off('click', '.btnEditsy');
+
 let table = $('#schoolYearTable').DataTable({
             processing: true,
             responsive: true,
@@ -33,7 +39,7 @@ let table = $('#schoolYearTable').DataTable({
                     render: function(data){
 
                         return `
-                            <button class="btn btn-outline-info btn-sm btnEdit"
+                            <button class="btn btn-outline-secondary btn-sm btnEdit"
                                     data-id="${data.schoolyear_id}">
                                 <i class="bi bi-pencil"></i>
                             </button>

@@ -3,58 +3,66 @@ CREATE TABLE tbl_schoolyear (
     year_start YEAR NOT NULL,
     year_end YEAR NOT NULL,
     schoolyear_name VARCHAR(50) NOT NULL,
-    status TINYINT(1) NOT NULL,
+    status TINYINT(1) NOT NULL DEFAULT 1,
+    schoolyear_remarks TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP
-)
-ENGINE=MyISAM
- ---------------------------
- CREATE TABLE tbl_department (
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE tbl_department (
     department_id INT AUTO_INCREMENT PRIMARY KEY,
     department_name VARCHAR(100) NOT NULL,
     description TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP
-)
-ENGINE=MyISAM
---------------------------
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 CREATE TABLE tbl_curriculum (
     curriculum_id INT AUTO_INCREMENT PRIMARY KEY,
     curriculum_name VARCHAR(100) NOT NULL,
     description TEXT NULL,
-    status TINYINT(1) NOT NULL,
+    status TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP
-)
-ENGINE=MyISAM
--------------------------
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
 CREATE TABLE tbl_level (
     level_id INT AUTO_INCREMENT PRIMARY KEY,
     curriculum_id INT NOT NULL,
     level_name VARCHAR(100) NOT NULL,
     level_type VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        ON UPDATE CURRENT_TIMESTAMP
-)
-ENGINE=MyISAM
-------------------------
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_level_curriculum
+        FOREIGN KEY (curriculum_id)
+        REFERENCES tbl_curriculum(curriculum_id)
+        ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE tbl_section (
     section_id INT AUTO_INCREMENT PRIMARY KEY,
     level_id INT NOT NULL,
     section_name VARCHAR(100) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=MyISAM
-------------------------
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_section_level
+        FOREIGN KEY (level_id)
+        REFERENCES tbl_level(level_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
 CREATE TABLE tbl_subject (
     subject_id INT AUTO_INCREMENT PRIMARY KEY,
     level_id INT NOT NULL,
     subject_code VARCHAR(20) NOT NULL,
     subject_name VARCHAR(100) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=MyISAM
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_subject_level
+        FOREIGN KEY (level_id)
+        REFERENCES tbl_level(level_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;

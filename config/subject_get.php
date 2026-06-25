@@ -1,12 +1,12 @@
 <?php
 include '../config.php';
 
-$id = $_POST['level_id'];
+$id = $_POST['subject_id'];
 
-$query = mysqli_query($conn,"
-SELECT *
-FROM tbl_level
-WHERE level_id = '$id'
+$query = mysqli_query($conn, "
+    SELECT *
+    FROM tbl_subject
+    WHERE subject_id = '$id'
 ");
 
 $data = mysqli_fetch_assoc($query);
@@ -16,7 +16,7 @@ if ($data) {
 } else {
     echo json_encode([
         "status" => "error",
-        "message" => "Level not found"
+        "message" => "Subject not found"
     ]);
 }
 ?>

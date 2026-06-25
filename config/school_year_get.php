@@ -9,5 +9,14 @@ FROM tbl_schoolyear
 WHERE schoolyear_id = '$id'
 ");
 
-echo json_encode(mysqli_fetch_assoc($query));
+$data = mysqli_fetch_assoc($query);
+
+if ($data) {
+    echo json_encode($data);
+} else {
+    echo json_encode([
+        "status" => "error",
+        "message" => "School year not found"
+    ]);
+}
 ?>

@@ -1,7 +1,14 @@
    
 $(document).ready(function () {
     
-        $("#school_year").on("click", function()
+    // Unbind previous handlers to prevent duplicates when page is reloaded
+    $(document).off('click', '#school_year');
+    $(document).off('click', '#curriculum');
+    $(document).off('click', '#departments');
+    $(document).off('click', '#grade');
+    $(document).off('click', '#subjects');
+
+    $("#school_year").on("click", function()
 		{
           //  alert("Dashboard");
             setActiveMenu("#school_year");
@@ -36,6 +43,14 @@ $(document).ready(function () {
             $("#departments").removeClass("active");
             $("#grade").removeClass("active");
             $("#content_level").empty();
+
+            if ($.fn.DataTable.isDataTable('#sectionsTable')) {
+              $('#sectionsTable').DataTable().destroy();
+            }
+
+            if ($.fn.DataTable.isDataTable('#subjectTable')) {
+              $('#subjectTable').DataTable().destroy();
+            }
             $(activeId).addClass("active");
         }
 });

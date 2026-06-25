@@ -1,5 +1,11 @@
    
    $(document).ready(function () {
+        
+        // Unbind previous handlers to prevent duplicates when page is reloaded
+        $(document).off('click', '#btnAddTeacher');
+        $(document).off('submit', '#teacherForm');
+        $(document).off('click', '.btnEditTeacher');
+
         var teachersTable = $('#teachersTable').DataTable({
             scrollX: true,
             language: {

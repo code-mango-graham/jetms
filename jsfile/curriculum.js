@@ -1,4 +1,10 @@
 $(document).ready(function () {
+
+    // Unbind previous handlers to prevent duplicates when page is reloaded
+    $(document).off('click', '#btnAddCurriculum');
+    $(document).off('submit', '#curriculumForm');
+    $(document).off('click', '.btnEditcurriculum');
+
 let table = $('#curriculumTable').DataTable({
             processing: true,
             responsive: true,
@@ -32,7 +38,7 @@ let table = $('#curriculumTable').DataTable({
                     render: function(data){
 
                         return `
-                            <button class="btn btn-outline-info btn-sm btnEditcur"
+                            <button class="btn btn-outline-secondary btn-sm btnEditcur"
                                     data-id="${data.curriculum_id}">
                                 <i class="bi bi-pencil"></i>
                             </button>

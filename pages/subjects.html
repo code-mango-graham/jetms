@@ -7,7 +7,7 @@
     <!-- CARD HEADER -->
     <div class="card-header">
         <h3 class="card-title fs-5">EDITING: <b><span id="activeLevel"></span></b></h3>
-        <input type="text" class="form-control" id="activeLevelId" name ="activeLevelId" value="">
+        <input type="hidden" class="form-control" id="activeLevelId" name ="activeLevelId" value="">
         <div class="card-tools">  
         <button type="button" class="btn btn-tool" id="btnclosecard" name="btnclosecard">
             <i class="bi bi-x-lg"></i>
@@ -68,12 +68,12 @@
                 <!-- SECTIONS/CLASSES TABLE -->
                 <div class="col-md-6">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Sections/Classes1</h5>
+                        <h5 class="mb-0">Sections/Classes</h5>
                         <button class="btn btn-outline-secondary btn-sm" id="btnAddSection">
                            Add Section
                         </button>
                     </div>
-                    <table id="sectionsTable" class="table table-bordered table-hover">
+                    <table id="sectionsTable" class="table table-bordered table-hover compact">
                         <thead>
                             <tr>
                                 <th>SECTION NAME</th>
@@ -91,7 +91,7 @@
                             Add Subject
                         </button>
                     </div>
-                    <table id="subjectTable" class="table table-bordered table-hover">
+                    <table id="subjectTable" class="table table-bordered table-hover compact">
                         <thead>
                             <tr>
                                 <th>SUBJECT NAME</th>
@@ -104,10 +104,62 @@
             </div>
     </div>
 
+    <!-- ============================= -->
+    <!-- BEGIN SUBJECT MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="subjectModal">
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="subjectForm">
+
+                    <!-- MODAL HEADER -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">Add Subject</h4>
+                    </div>
+
+                    <!-- MODAL BODY -->
+                    <div class="modal-body">
+
+                        <input type="hidden" id="subject_id" name="subject_id">
+                        
+                        <div class="form-group mb-3">
+                            <label for="subject_name">Subject Name</label>
+                            <input type="text" class="form-control" id="subject_name" name="subject_name" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="subject_code">Subject Code</label>
+                            <input type="text" class="form-control" id="subject_code" name="subject_code" required>
+                        </div>
+
+                    </div>
+
+                    <!-- MODAL FOOTER -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Save
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ============================= -->
+    <!-- END SUBJECT MODAL -->
+    <!-- ============================= -->
+
+    <script src="jsfile/subject.js"></script>
 </div>
 
 <!-- ============================= -->
 <!-- END SUBJECT MANAGEMENT -->
 <!-- ============================= -->
-
-<script src="jsfile/subject.js"></script>
