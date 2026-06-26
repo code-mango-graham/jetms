@@ -6,7 +6,7 @@ $(document).ready(function () {
     $(document).off('click', '#curriculum');
     $(document).off('click', '#departments');
     $(document).off('click', '#grade');
-    $(document).off('click', '#subjects');
+    $(document).off('click', '#positions');
 
     $("#school_year").on("click", function()
 		{
@@ -36,12 +36,20 @@ $(document).ready(function () {
 			$("#content_settings").empty();
 			$("#content_settings").load("pages/level.html");			
         });
+         $("#positions").on("click", function()
+		{
+          //  alert("Dashboard");
+            setActiveMenu("#positions");
+			$("#content_settings").empty();
+			$("#content_settings").load("pages/positions.html");			
+        });
 
         function setActiveMenu(activeId) {
             $("#school_year").removeClass("active");
             $("#curriculum").removeClass("active");
             $("#departments").removeClass("active");
             $("#grade").removeClass("active");
+            $("#positions").removeClass("active");
             $("#content_level").empty();
 
             if ($.fn.DataTable.isDataTable('#sectionsTable')) {

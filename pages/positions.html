@@ -1,0 +1,89 @@
+<!-- ============================= -->
+<!-- BEGIN POSITION MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">POSITION MANAGEMENT</h3>
+
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnAdd">
+                <B>Add Position</B>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="positionModal">
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="positionForm">
+
+                    <!-- MODAL HEADER -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">Position</h4>
+                    </div>
+
+                    <!-- MODAL BODY -->
+                    <div class="modal-body">
+
+                        <input type="hidden" id="position_id" name="position_id">
+
+                        <div class="form-group">
+                            <label for="position_title">Position Title</label>
+                            <input type="text" class="form-control" id="position_title" name="position_title" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- MODAL FOOTER -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Save
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ============================= -->
+    <!-- END MODAL -->
+    <!-- ============================= -->
+
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <table id="positionTable" class="table table-bordered table-hover compact">
+            <thead>
+                <tr>
+                    <th>POSITION TITLE</th>
+                    <th>DESCRIPTION</th>
+                    <th width="100">ACTIONS</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END POSITION MANAGEMENT -->
+<!-- ============================= -->
+
+<script src="jsfile/position.js"></script>

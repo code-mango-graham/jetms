@@ -66,3 +66,39 @@ CREATE TABLE tbl_subject (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE tbl_position (
+    position_id INT AUTO_INCREMENT PRIMARY KEY,
+    position_title VARCHAR(100) NOT NULL,
+    description TEXT,
+    department_id INT NOT NULL,
+    position_remarks TINYINT(1)  NOT NULL DEFAULT 1,
+
+    CONSTRAINT fk_position_department
+        FOREIGN KEY (department_id)
+        REFERENCES tbl_department(department_id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+) ENGINE=InnoDB;
+
+CREATE TABLE tbl_teacher (
+    teacher_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    middle_name VARCHAR(100),
+    last_name VARCHAR(100) NOT NULL,
+    extension_name VARCHAR(20),
+    nick_name VARCHAR(100),
+    gender ENUM('Male', 'Female', 'Other') NOT NULL,
+    birthday DATE NOT NULL,
+    phone_number VARCHAR(20),
+    email VARCHAR(100) UNIQUE,
+    position_id INT NOT NULL,
+    date_hired date,
+    teacher_remarks TINYINT(1) not null default 1,
+
+    CONSTRAINT fk_teacher_position
+        FOREIGN KEY (position_id)
+        REFERENCES tbl_position(position_id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT
+) ENGINE=InnoDB;
