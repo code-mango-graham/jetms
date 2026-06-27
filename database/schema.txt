@@ -94,3 +94,98 @@ CREATE TABLE tbl_teacher (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+-- =============================================
+-- MANUAL MIGRATION FOR SCHOOL YEAR ASSIGNMENTS
+-- =============================================
+
+ALTER TABLE tbl_schoolyear
+    ADD COLUMN curriculum_id INT NULL AFTER schoolyear_name,
+    ADD INDEX idx_schoolyear_curriculum_id (curriculum_id),
+    ADD CONSTRAINT fk_schoolyear_curriculum
+        FOREIGN KEY (curriculum_id)
+        REFERENCES tbl_curriculum(curriculum_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE;
+
+-- =============================================
+-- REFERENCE: ACTIVE CURRICULUM WHEN ADDING SCHOOL YEAR
+-- =============================================
+
+-- Get current active curriculum
+SELECT curriculum_id, curriculum_name
+FROM tbl_curriculum
+WHERE status = 1
+LIMIT 1;
+
+-- Insert school year linked to active curriculum
+INSERT INTO tbl_schoolyear (schoolyear_name, curriculum_id, year_start, year_end, status)
+SELECT 'SY 2026-2027', c.curriculum_id, 2026, 2027, 1
+FROM tbl_curriculum c
+WHERE c.status = 1
+LIMIT 1;
+
+-- Verify school year and curriculum reference
+SELECT
+    sy.schoolyear_id,
+    sy.schoolyear_name,
+    sy.year_start,
+    sy.year_end,
+    sy.status,
+    c.curriculum_name
+FROM tbl_schoolyear sy
+LEFT JOIN tbl_curriculum c ON c.curriculum_id = sy.curriculum_id
+ORDER BY sy.schoolyear_id DESC;
+
+CREATE TABLE tbl_schoolyear_section (
+    schoolyear_section_id INT AUTO_INCREMENT PRIMARY KEY,
+    schoolyear_id INT NOT NULL,
+    level_id INT NOT NULL,
+    section_name VARCHAR(100) NOT NULL,
+    section_remarks TINYINT(1) NOT NULL DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_sy_level_section (schoolyear_id, level_id, section_name),
+    KEY idx_sy_section_schoolyear (schoolyear_id),
+    KEY idx_sy_section_level (level_id),
+    CONSTRAINT fk_sy_section_schoolyear
+        FOREIGN KEY (schoolyear_id)
+        REFERENCES tbl_schoolyear(schoolyear_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_sy_section_level
+        FOREIGN KEY (level_id)
+        REFERENCES tbl_level(level_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE tbl_schoolyear_section_subject (
+    sy_section_subject_id INT AUTO_INCREMENT PRIMARY KEY,
+    schoolyear_section_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    teacher_id INT NULL,
+    schedule_info VARCHAR(255) NULL,
+    room_no VARCHAR(50) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_sy_section_subject (schoolyear_section_id, subject_id),
+    KEY idx_sy_subject_section (schoolyear_section_id),
+    KEY idx_sy_subject_subject (subject_id),
+    KEY idx_sy_subject_teacher (teacher_id),
+    CONSTRAINT fk_sy_subject_section
+        FOREIGN KEY (schoolyear_section_id)
+        REFERENCES tbl_schoolyear_section(schoolyear_section_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_sy_subject_subject
+        FOREIGN KEY (subject_id)
+        REFERENCES tbl_subject(subject_id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT fk_sy_subject_teacher
+        FOREIGN KEY (teacher_id)
+        REFERENCES tbl_teacher(teacher_id)
+        ON DELETE SET NULL
+        ON UPDATE CASCADE
+) ENGINE=InnoDB;

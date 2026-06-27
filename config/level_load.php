@@ -7,6 +7,7 @@ $query = mysqli_query($conn, "
     SELECT *
     FROM tbl_level
     WHERE curriculum_id = '$curriculum_id'
+    ORDER BY CAST(level_type AS UNSIGNED) ASC, level_name ASC
 ");
 
 $data = [];

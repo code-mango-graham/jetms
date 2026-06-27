@@ -1,11 +1,26 @@
    
 $(document).ready(function () {
+
+  function resetContentLayout() {
+    $('#content_settings')
+      .removeClass('col-md-6 col-lg-6')
+      .addClass('col-md-12');
+
+    $('#content_level')
+      .removeClass('col-md-6 col-lg-6')
+      .addClass('col-md-12 mt-3 d-none')
+      .empty();
+
+    $('#content_subject')
+      .removeClass('col-md-6 col-lg-6')
+      .addClass('col-md-12 mt-3 d-none')
+      .empty();
+  }
     
     // Unbind previous handlers to prevent duplicates when page is reloaded
     $(document).off('click', '#school_year');
     $(document).off('click', '#curriculum');
     $(document).off('click', '#departments');
-    $(document).off('click', '#grade');
     $(document).off('click', '#positions');
 
     $("#school_year").on("click", function()
@@ -29,13 +44,6 @@ $(document).ready(function () {
 			$("#content_settings").empty();
 			$("#content_settings").load("pages/department.html");			
         });
-        $("#grade").on("click", function()
-		{
-          //  alert("Dashboard");
-            setActiveMenu("#grade");
-			$("#content_settings").empty();
-			$("#content_settings").load("pages/level.html");			
-        });
          $("#positions").on("click", function()
 		{
           //  alert("Dashboard");
@@ -48,9 +56,8 @@ $(document).ready(function () {
             $("#school_year").removeClass("active");
             $("#curriculum").removeClass("active");
             $("#departments").removeClass("active");
-            $("#grade").removeClass("active");
             $("#positions").removeClass("active");
-            $("#content_level").empty();
+            resetContentLayout();
 
             if ($.fn.DataTable.isDataTable('#sectionsTable')) {
               $('#sectionsTable').DataTable().destroy();

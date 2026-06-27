@@ -1,107 +1,35 @@
-<!-- ============================= -->
-<!-- BEGIN SUBJECT MANAGEMENT -->
-<!-- ============================= -->
-
 <div class="card card-secondary">
-
-    <!-- CARD HEADER -->
     <div class="card-header">
-        <h3 class="card-title fs-5">EDITING: <b><span id="activeLevel"></span></b></h3>
-        <input type="hidden" class="form-control" id="activeLevelId" name ="activeLevelId" value="">
-        <div class="card-tools">  
-        <button type="button" class="btn btn-tool" id="btnclosecard" name="btnclosecard">
-            <i class="bi bi-x-lg"></i>
-        </button>
+        <h3 class="card-title fs-5">EDITING SUBJECTS</h3>
+        <input type="hidden" class="form-control" id="activeLevelId" name="activeLevelId" value="">
+        <div class="card-tools">
+            <button type="button" class="btn btn-tool" id="btnclosecard" name="btnclosecard">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
     </div>
 
-     <!-- ============================= -->
-    <!-- BEGIN SECTION MODAL -->
-    <!-- ============================= -->
-    <div class="modal fade" id="sectionModal">
-
-        <div class="modal-dialog">
-            <div class="modal-content">
-
-                <form id="sectionForm">
-
-                    <!-- MODAL HEADER -->
-                    <div class="modal-header">
-                        <h4 class="modal-title">Section</h4>
-                    </div>
-
-                    <!-- MODAL BODY -->
-                    <div class="modal-body">
-
-                        <input type="hidden" id="section_id" name="section_id">
-                        
-                        <div class="form-group">
-                            <label for="section_name">Section Name</label>
-                            <input type="text" class="form-control" id="section_name" name="section_name" required>
-                        </div>
-
-                    </div>
-
-                    <!-- MODAL FOOTER -->
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-success">
-                            Save
-                        </button>
-
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            Close
-                        </button>
-                    </div>
-
-                </form>
-
-            </div>
-        </div>
-
-    </div>
-    <!-- ============================= -->
-    <!-- END SECTION MODAL -->
-    <!-- ============================= -->
-    <!-- TABLE CARD BODY -->
     <div class="card-body">
-        <div class="row">
-                <!-- SECTIONS/CLASSES TABLE -->
-                <div class="col-md-6">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Sections/Classes</h5>
-                        <button class="btn btn-outline-secondary btn-sm" id="btnAddSection">
-                           Add Section
-                        </button>
-                    </div>
-                    <table id="sectionsTable" class="table table-bordered table-hover compact">
-                        <thead>
-                            <tr>
-                                <th>SECTION NAME</th>
-                                <th width="100">ACTIONS</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-
-                <!-- SUBJECTS TABLE -->
-                <div class="col-md-6">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="mb-0">Subjects</h5>
-                        <button class="btn btn-outline-secondary btn-sm" id="btnAddSubject">
-                            Add Subject
-                        </button>
-                    </div>
-                    <table id="subjectTable" class="table table-bordered table-hover compact">
-                        <thead>
-                            <tr>
-                                <th>SUBJECT NAME</th>
-                                <th>SUBJECT CODE</th>
-                                <th width="100">ACTIONS</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
+        <div class="alert alert-info py-2 d-flex justify-content-between align-items-center" role="alert">
+            <div>
+                <strong>Active Level:</strong>
+                <span id="activeLevel">Loading...</span>
             </div>
+            <button class="btn btn-outline-secondary btn-sm" id="btnAddSubject" type="button">
+                Add Subject
+            </button>
+        </div>
+        <div class="table-responsive" style="overflow-x:auto;">
+            <table id="subjectTable" class="table table-bordered table-hover compact nowrap w-100">
+                <thead>
+                    <tr>
+                        <th>SUBJECT NAME</th>
+                        <th>SUBJECT CODE</th>
+                        <th width="100">ACTIONS</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </div>
 
     <!-- ============================= -->
@@ -159,7 +87,3 @@
 
     <script src="jsfile/subject.js"></script>
 </div>
-
-<!-- ============================= -->
-<!-- END SUBJECT MANAGEMENT -->
-<!-- ============================= -->

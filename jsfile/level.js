@@ -2,10 +2,24 @@ $(document).ready(function () {
 
     let table;
 
+    function showLevelModal() {
+        const el = document.getElementById('levelModal');
+        if (!el) return;
+        bootstrap.Modal.getOrCreateInstance(el).show();
+    }
+
+    function hideLevelModal() {
+        const el = document.getElementById('levelModal');
+        if (!el) return;
+        bootstrap.Modal.getOrCreateInstance(el).hide();
+    }
+
     // Unbind previous handlers to prevent duplicates when page is reloaded
     $(document).off('click', '#btnAddLevel');
+    $(document).off('click', '#btnCloseLevel');
     $(document).off('submit', '#levelForm');
-    $(document).off('click', '.btnEditlevel');
+    $(document).off('click', '.btnEdit');
+    $(document).off('click', '.btnGradedata');
 
     /* =========================
        LOAD ACTIVE CURRICULUM
@@ -44,6 +58,7 @@ $(document).ready(function () {
             processing: true,
             responsive: true,
             scrollX: true,
+            order: [[1, 'asc'], [0, 'asc']],
             language: {
                 lengthMenu: "Show _MENU_ entries"
             },
@@ -63,7 +78,11 @@ $(document).ready(function () {
                 {
                     data: 'level_type',
                     className: 'text-center',
-                    render: function (data) {
+                    render: function (data, type) {
+
+                        if (type === 'sort' || type === 'type') {
+                            return parseInt(data, 10) || 0;
+                        }
 
                         switch (parseInt(data)) {
                             case 1:
@@ -96,19 +115,37 @@ $(document).ready(function () {
     }
 
 /* ========================= */
-loadActiveCurriculum(function () {
+if ($('#activeCurriculumId').val()) {
         initTable();
-    });
+    } else {
+        loadActiveCurriculum(function () {
+            initTable();
+        });
+    }
 
 
     /* =========================
        ADD BUTTON
     ========================= */
-$('#btnAdd').click(function () {
+$(document).on('click', '#btnAddLevel', function () {
         $('#levelForm')[0].reset();
         $('#level_id').val('');
-        $('.modal-title').text('Add New Level');
-        $('#levelModal').modal('show');
+    $('#levelModal .modal-title').text('Add New Level');
+    showLevelModal();
+    });
+
+$(document).on('click', '#btnCloseLevel', function () {
+        $('#content_subject')
+            .removeClass('col-md-6')
+            .addClass('col-md-12 mt-3 d-none')
+            .empty();
+
+        $('#content_level')
+            .removeClass('col-md-6')
+            .addClass('col-md-12 mt-3 d-none')
+            .empty();
+
+        $('html, body').animate({ scrollTop: 0 }, 100);
     });
 
 
@@ -129,8 +166,8 @@ $(document).on('click', '.btnEdit', function(){
                     $('#level_id').val(data.level_id);
                     $('#level_name').val(data.level_name);
                     $('#level_type').val(data.level_type);
-                    $('.modal-title').text('Edit Grade/level');
-                    $('#levelModal').modal('show');
+                    $('#levelModal .modal-title').text('Edit Grade/Level');
+                    showLevelModal();
                 }
             });
         });
@@ -138,7 +175,7 @@ $(document).on('click', '.btnEdit', function(){
     /* =========================
        SAVE FORM
     ========================= */
-$('#levelForm').submit(function (e) {
+$(document).on('submit', '#levelForm', function (e) {
         e.preventDefault();
        
         $.ajax({
@@ -159,7 +196,7 @@ $('#levelForm').submit(function (e) {
                     return;
                 }
 
-                $('#levelModal').modal('hide');
+                hideLevelModal();
                 document.activeElement.blur(); 
                 $('#levelTable').DataTable().ajax.reload(null, false);// FIXED TABLE
 
@@ -180,8 +217,17 @@ $('#levelForm').submit(function (e) {
 $(document).on('click', '.btnGradedata', function () {
     let level_id = $(this).data('id');
     let level_name = $(this).data('name');
-    $('#content_level').empty();
-    $('#content_level').load('pages/subjects.html', function () {
+
+    $('#content_level')
+        .removeClass('d-none col-md-12')
+        .addClass('col-md-6 mt-3');
+
+    $('#content_subject')
+        .removeClass('d-none col-md-12')
+        .addClass('col-md-6 mt-3');
+
+    $('#content_subject').empty();
+    $('#content_subject').load('pages/subjects.html', function () {
         $('#activeLevelId').val(level_id);
         $('#activeLevel').text(level_name);
     });

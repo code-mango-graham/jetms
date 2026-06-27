@@ -2,15 +2,15 @@
 <!-- BEGIN GRADE MANAGEMENT -->
 <!-- ============================= -->
 
-<div class="card card-primary card-outline">
+<div class="card card-secondary">
 
     <!-- CARD HEADER -->
     <div class="card-header">
-        <h3 class="card-title fs-3 fw-bold">LEVEL MANAGEMENT: <span id="activeCurriculum"></span>&nbsp;&nbsp;</h3>
-       <input type="hidden" id="activeCurriculumId" name ="activeCurriculumId" value="">
+        <h3 class="card-title fs-5">LEVEL MANAGEMENT</h3>
+        <input type="hidden" id="activeCurriculumId" name ="activeCurriculumId" value="">
         <div class="card-tools">
-            <button class="btn btn-primary btn-sm" id="btnAdd">
-                <B>Add Level</B>
+            <button type="button" class="btn btn-tool" id="btnCloseLevel" name="btnCloseLevel">
+                <i class="bi bi-x-lg"></i>
             </button>
         </div>
     </div>
@@ -74,12 +74,22 @@
 
     <!-- TABLE CARD BODY -->
     <div class="card-body">
-        <table id="levelTable" class="table table-bordered table-hover compact">
+        <div class="alert alert-info py-2 d-flex justify-content-between align-items-center" role="alert">
+            <div>
+                <strong>Active Curriculum:</strong>
+                <span id="activeCurriculum">Loading...</span>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm" id="btnAddLevel" type="button">
+                Add Level
+            </button>
+        </div>
+
+        <table id="levelTable" class="table table-bordered table-hover compact nowrap w-100">
             <thead>
                 <tr>
                     <th>GRADE/LEVEL</th>
                     <th>CATEGORY</th>
-                    <th width="150">ACTION</th>
+                    <th width="120">ACTION</th>
                 </tr>
             </thead>
         </table>

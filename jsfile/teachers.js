@@ -1,99 +1,175 @@
 $(document).ready(function () {
+    let teachersTable;
+
+    function showTeacherModal() {
+        const el = document.getElementById('teacherModal');
+        if (!el) return;
+        const modal = bootstrap.Modal.getOrCreateInstance(el);
+        modal.show();
+    }
+
+    function hideTeacherModal() {
+        const el = document.getElementById('teacherModal');
+        if (!el) return;
+        const modal = bootstrap.Modal.getOrCreateInstance(el);
+        modal.hide();
+    }
+    // Unbind previous handlers to prevent duplicates when page is reloaded
     $(document).off('click', '#btnAddTeacher');
     $(document).off('click', '#refreshTeachers');
     $(document).off('submit', '#teacherForm');
     $(document).off('click', '.btnEditTeacher');
     $(document).off('click', '.btnDeleteTeacher');
 
-    const teacherTable = $('#teachersTable').DataTable({
-        processing: true,
-        responsive: true,
-        scrollX: true,
-        language: {
-            lengthMenu: "Show _MENU_ entries"
-        },
-        ajax: {
-            url: 'config/teacher_load.php',
-            type: 'POST',
-            dataSrc: 'data'
-        },
-        columns: [
-            { data: 'last_name' },
-            { data: 'first_name' },
-            { data: 'middle_name', render: data => data || '' },
-            { data: 'extension_name', render: data => data || '' },
-            { data: 'nick_name', render: data => data || '' },
-            { data: 'gender' },
-            { data: 'birthday' },
-            { data: 'position_title', render: data => data || '' },
-            { data: 'department_name', render: data => data || '' },
-            { data: 'date_hired', render: data => data || '' },
-            {
-                data: null,
-                className: 'text-center',
-                orderable: false,
-                render: function (data) {
-                    return `
-                        <div class="btn-group btn-group-sm">
-                            <button type="button" class="btn btn-outline-secondary btnEditTeacher" data-id="${data.teacher_id}" title="Edit">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <button type="button" class="btn btn-outline-danger btnDeleteTeacher" data-id="${data.teacher_id}" title="Archive">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
-                    `;
-                }
-            }
-        ]
-    });
+    function formatDate(value) {
+        if (!value || value === '0000-00-00') {
+            return '';
+        }
 
-    function loadSelectOptions(selectedPositionId = '', selectedDepartmentId = '') {
-        $.ajax({
+        return value;
+    }
+
+    function loadPositions(selectedId) {
+        return $.ajax({
             url: 'config/position_load.php',
             type: 'POST',
             dataType: 'json',
             success: function (res) {
-                const positionSelect = $('#position_id');
-                positionSelect.empty().append('<option value="">-- Select Position --</option>');
+                let options = '<option value="">-- Select Position --</option>';
 
-                (res.data || []).forEach(function (item) {
-                    positionSelect.append(`<option value="${item.position_id}">${item.position_title}</option>`);
+                (res.data || []).forEach(function (row) {
+                    options += `<option value="${row.position_id}">${row.position_title}</option>`;
                 });
 
-                if (selectedPositionId !== '') {
-                    positionSelect.val(String(selectedPositionId));
+                $('#position_id').html(options);
+
+                if (selectedId) {
+                    $('#position_id').val(String(selectedId));
                 }
-                positionSelect.trigger('change');
-            }
-        });
 
-        $.ajax({
-            url: 'config/department_load.php',
-            type: 'POST',
-            dataType: 'json',
-            success: function (res) {
-                const departmentSelect = $('#department_id');
-                departmentSelect.empty().append('<option value="">-- Select Department --</option>');
-
-                (res.data || []).forEach(function (item) {
-                    departmentSelect.append(`<option value="${item.department_id}">${item.department_name}</option>`);
-                });
-
-                if (selectedDepartmentId !== '') {
-                    departmentSelect.val(String(selectedDepartmentId));
-                }
-                departmentSelect.trigger('change');
+                $('#position_id').trigger('change');
             }
         });
     }
 
-    $(document).on('click', '#btnAddTeacher', function () {
+    function loadDepartments(selectedId) {
+        return $.ajax({
+            url: 'config/department_load.php',
+            type: 'POST',
+            dataType: 'json',
+            success: function (res) {
+                let options = '<option value="">-- Select Department --</option>';
+
+                (res.data || []).forEach(function (row) {
+                    options += `<option value="${row.department_id}">${row.department_name}</option>`;
+                });
+
+                $('#department_id').html(options);
+
+                if (selectedId) {
+                    $('#department_id').val(String(selectedId));
+                }
+
+                $('#department_id').trigger('change');
+            }
+        });
+    }
+
+    function initTable() {
+        if ($.fn.DataTable.isDataTable('#teachersTable')) {
+            $('#teachersTable').DataTable().destroy();
+            $('#teachersTable tbody').empty();
+        }
+
+        teachersTable = $('#teachersTable').DataTable({
+            processing: true,
+            responsive: true,
+            scrollX: true,
+            language: {
+                lengthMenu: 'Show _MENU_ entries'
+            },
+            ajax: {
+                url: 'config/teacher_load.php',
+                type: 'POST',
+                dataSrc: 'data'
+            },
+            columns: [
+                { data: 'last_name' },
+                { data: 'first_name' },
+                { data: 'middle_name', defaultContent: '' },
+                { data: 'extension_name', defaultContent: '' },
+                { data: 'nick_name', defaultContent: '' },
+                { data: 'gender', defaultContent: '' },
+                {
+                    data: 'birthday',
+                    render: function (data) {
+                        return formatDate(data);
+                    }
+                },
+                { data: 'position_title', defaultContent: '' },
+                { data: 'department_name', defaultContent: '' },
+                {
+                    data: 'date_hired',
+                    render: function (data) {
+                        return formatDate(data);
+                    }
+                },
+                {
+                    data: null,
+                    className: 'text-center',
+                    orderable: false,
+                    render: function (data) {
+                        return `
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-secondary btnEditTeacher" data-id="${data.teacher_id}" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btnDeleteTeacher" data-id="${data.teacher_id}" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
+            ],
+            layout: {
+                topStart: [
+                    {
+                        buttons: [
+                            { extend: 'copy', text: 'Copy', className: 'btn btn-secondary btn-sm' },
+                            { extend: 'excel', text: 'Excel', className: 'btn btn-success btn-sm' },
+                            { extend: 'pdf', text: 'PDF', className: 'btn btn-danger btn-sm' },
+                            { extend: 'print', text: 'Print', className: 'btn btn-primary btn-sm' }
+                        ]
+                    },
+                    'pageLength'
+                ],
+                topEnd: 'search'
+            }
+        });
+    }
+
+    function resetTeacherForm() {
         $('#teacherForm')[0].reset();
         $('#teacher_id').val('');
-        $('#teacherModal .modal-title').text('Add Teacher / Staff');
-        loadSelectOptions();
-        $('#teacherModal').modal('show');
+        $('#gender').val('').trigger('change');
+        $('#position_id').val('').trigger('change');
+        $('#department_id').val('').trigger('change');
+    }
+
+    $(document).on('click', '#btnAddTeacher', function () {
+        resetTeacherForm();
+        $('.modal-title').text('Add Teacher / Staff');
+
+        $.when(loadPositions(), loadDepartments()).always(function () {
+            showTeacherModal();
+        });
+    });
+
+    $(document).on('click', '#refreshTeachers', function () {
+        if (teachersTable) {
+            teachersTable.ajax.reload(null, false);
+        }
     });
 
     $(document).on('click', '.btnEditTeacher', function () {
@@ -102,24 +178,39 @@ $(document).ready(function () {
         $.ajax({
             url: 'config/teacher_get.php',
             type: 'POST',
-            dataType: 'json',
             data: { teacher_id: teacher_id },
+            dataType: 'json',
             success: function (data) {
-                $('#teacher_id').val(data.teacher_id);
-                $('#first_name').val(data.first_name);
-                $('#middle_name').val(data.middle_name);
-                $('#last_name').val(data.last_name);
-                $('#extension_name').val(data.extension_name);
-                $('#nick_name').val(data.nick_name);
-                $('#gender').val(data.gender).trigger('change');
-                $('#birthday').val(data.birthday);
-                $('#phone_number').val(data.phone_number);
-                $('#email').val(data.email);
-                $('#date_hired').val(data.date_hired);
+                if (data.status === 'error') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: data.message,
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                    return;
+                }
 
-                $('#teacherModal .modal-title').text('Edit Teacher / Staff');
-                loadSelectOptions(data.position_id, data.department_id);
-                $('#teacherModal').modal('show');
+                resetTeacherForm();
+                $('#teacher_id').val(data.teacher_id || '');
+                $('#last_name').val(data.last_name || '');
+                $('#first_name').val(data.first_name || '');
+                $('#middle_name').val(data.middle_name || '');
+                $('#extension_name').val(data.extension_name || '');
+                $('#nick_name').val(data.nick_name || '');
+                $('#gender').val(data.gender || '').trigger('change');
+                $('#birthday').val(data.birthday || '');
+                $('#date_hired').val(data.date_hired || '');
+                $('#phone_number').val(data.phone_number || '');
+                $('#email').val(data.email || '');
+
+                $.when(
+                    loadPositions(data.position_id),
+                    loadDepartments(data.department_id)
+                ).always(function () {
+                    $('.modal-title').text('Edit Teacher / Staff');
+                    showTeacherModal();
+                });
             }
         });
     });
@@ -143,8 +234,13 @@ $(document).ready(function () {
                     return;
                 }
 
-                $('#teacherModal').modal('hide');
-                teacherTable.ajax.reload(null, false);
+                hideTeacherModal();
+                document.activeElement.blur();
+
+                if (teachersTable) {
+                    teachersTable.ajax.reload(null, false);
+                }
+
                 Swal.fire({
                     toast: true,
                     position: 'top-end',
@@ -162,11 +258,14 @@ $(document).ready(function () {
         const teacher_id = $(this).data('id');
 
         Swal.fire({
-            title: 'Archive this teacher?',
-            text: 'This will set teacher_remarks to 0.',
+            title: 'Delete Teacher?',
+            text: 'Are you sure you want to archive this teacher record?',
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Yes, archive it'
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Delete',
+            cancelButtonText: 'Cancel'
         }).then((result) => {
             if (!result.isConfirmed) {
                 return;
@@ -175,8 +274,8 @@ $(document).ready(function () {
             $.ajax({
                 url: 'config/teacher_delete.php',
                 type: 'POST',
-                dataType: 'json',
                 data: { teacher_id: teacher_id },
+                dataType: 'json',
                 success: function (res) {
                     if (res.status === 'error') {
                         Swal.fire({
@@ -188,12 +287,17 @@ $(document).ready(function () {
                         return;
                     }
 
-                    teacherTable.ajax.reload(null, false);
+                    document.activeElement.blur();
+
+                    if (teachersTable) {
+                        teachersTable.ajax.reload(null, false);
+                    }
+
                     Swal.fire({
                         toast: true,
                         position: 'top-end',
                         icon: 'success',
-                        title: res.message,
+                        title: 'Deleted Successfully',
                         showConfirmButton: false,
                         timer: 3000,
                         timerProgressBar: true
@@ -203,7 +307,7 @@ $(document).ready(function () {
         });
     });
 
-    $(document).on('click', '#refreshTeachers', function () {
-        teacherTable.ajax.reload(null, false);
-    });
+    initTable();
+    loadPositions();
+    loadDepartments();
 });
