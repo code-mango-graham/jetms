@@ -3,8 +3,16 @@ include '../config.php';
 
 header('Content-Type: application/json');
 
-$department_id   = $_POST['department_id'];
-$department_name = $_POST['department_name'];
+$department_id   = isset($_POST['department_id']) ? trim($_POST['department_id']) : '';
+$department_name = isset($_POST['department_name']) ? trim($_POST['department_name']) : '';
+
+if ($department_name === '') {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Department name is required"
+    ]);
+    exit;
+}
 
 
 // =======================
@@ -12,27 +20,21 @@ $department_name = $_POST['department_name'];
 // (SAFE FOR ADD + EDIT)
 // =======================
 
-if(empty($department_id)){
-
-    // INSERT
-    $check = mysqli_query($conn,"
-        SELECT *
-        FROM tbl_department
-        WHERE department_name = '$department_name'
-    ");
-
-}else{
-
-    // UPDATE (exclude current record)
-    $check = mysqli_query($conn,"
-        SELECT *
-        FROM tbl_department
-        WHERE department_name = '$department_name'
-        AND department_id != '$department_id'
-    ");
+if (empty($department_id)) {
+    // INSERT duplicate check
+    $check = mysqli_prepare($conn, "SELECT 1 FROM tbl_department WHERE department_name = ? LIMIT 1");
+    mysqli_stmt_bind_param($check, "s", $department_name);
+} else {
+    // UPDATE duplicate check (exclude current record)
+    $check = mysqli_prepare($conn, "SELECT 1 FROM tbl_department WHERE department_name = ? AND department_id != ? LIMIT 1");
+    mysqli_stmt_bind_param($check, "si", $department_name, $department_id);
 }
 
-if(mysqli_num_rows($check) > 0){
+mysqli_stmt_execute($check);
+mysqli_stmt_store_result($check);
+
+if (mysqli_stmt_num_rows($check) > 0) {
+    mysqli_stmt_close($check);
     echo json_encode([
         "status" => "error",
         "message" => "Department name already exists"
@@ -40,35 +42,33 @@ if(mysqli_num_rows($check) > 0){
     exit;
 }
 
+mysqli_stmt_close($check);
+
 
 // =======================
 // INSERT OR UPDATE
 // =======================
 
-if(empty($department_id)){
-
+if (empty($department_id)) {
     // INSERT
-    mysqli_query($conn,"
-        INSERT INTO tbl_department
-        (
-            department_name
-        )
-        VALUES
-        (
-            '$department_name'
-        )
-    ");
-
-}else{
-
+    $save = mysqli_prepare($conn, "INSERT INTO tbl_department (department_name) VALUES (?)");
+    mysqli_stmt_bind_param($save, "s", $department_name);
+} else {
     // UPDATE
-    mysqli_query($conn,"
-        UPDATE tbl_department
-        SET
-            department_name = '$department_name'
-        WHERE department_id = '$department_id'
-    ");
+    $save = mysqli_prepare($conn, "UPDATE tbl_department SET department_name = ? WHERE department_id = ?");
+    mysqli_stmt_bind_param($save, "si", $department_name, $department_id);
 }
+
+if (!mysqli_stmt_execute($save)) {
+    mysqli_stmt_close($save);
+    echo json_encode([
+        "status" => "error",
+        "message" => "Failed to save department"
+    ]);
+    exit;
+}
+
+mysqli_stmt_close($save);
 
 
 // =======================

@@ -73,12 +73,8 @@ CREATE TABLE tbl_position (
     description TEXT,
     department_id INT NOT NULL,
     position_remarks TINYINT(1)  NOT NULL DEFAULT 1,
-
-    CONSTRAINT fk_position_department
-        FOREIGN KEY (department_id)
-        REFERENCES tbl_department(department_id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE tbl_teacher (
@@ -93,12 +89,9 @@ CREATE TABLE tbl_teacher (
     phone_number VARCHAR(20),
     email VARCHAR(100) UNIQUE,
     position_id INT NOT NULL,
+    department_id INT NOT NULL,
     date_hired date,
     teacher_remarks TINYINT(1) not null default 1,
-
-    CONSTRAINT fk_teacher_position
-        FOREIGN KEY (position_id)
-        REFERENCES tbl_position(position_id)
-        ON UPDATE CASCADE
-        ON DELETE RESTRICT
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;

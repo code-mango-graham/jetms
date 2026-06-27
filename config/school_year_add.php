@@ -3,18 +3,26 @@ include '../config.php';
 
 header('Content-Type: application/json');
 
-$schoolyear_id   = $_POST['schoolyear_id'];
-$schoolyear_name = $_POST['schoolyear_name'];
-$year_start      = $_POST['year_start'];
-$year_end        = $_POST['year_end'];
-$status          = $_POST['status'];
+$schoolyear_id   = isset($_POST['schoolyear_id']) ? trim($_POST['schoolyear_id']) : '';
+$schoolyear_name = isset($_POST['schoolyear_name']) ? trim($_POST['schoolyear_name']) : '';
+$year_start      = isset($_POST['year_start']) ? (int) $_POST['year_start'] : 0;
+$year_end        = isset($_POST['year_end']) ? (int) $_POST['year_end'] : 0;
+$status          = isset($_POST['status']) ? (int) $_POST['status'] : 0;
+
+if ($schoolyear_name === '') {
+    echo json_encode([
+        "status" => "error",
+        "message" => "School Year name is required"
+    ]);
+    exit;
+}
 
 
 // =======================
 // VALIDATION
 // =======================
 
-if($year_end <= $year_start){
+if ($year_end <= $year_start) {
     echo json_encode([
         "status" => "error",
         "message" => "Year End must be greater than Year Start"
@@ -28,29 +36,21 @@ if($year_end <= $year_start){
 // (SAFE FOR ADD + EDIT)
 // =======================
 
-if(empty($schoolyear_id)){
-
-    // INSERT
-    $check = mysqli_query($conn,"
-        SELECT *
-        FROM tbl_schoolyear
-        WHERE year_start = '$year_start'
-        AND year_end = '$year_end'
-    ");
-
-}else{
-
-    // UPDATE (exclude current record)
-    $check = mysqli_query($conn,"
-        SELECT *
-        FROM tbl_schoolyear
-        WHERE year_start = '$year_start'
-        AND year_end = '$year_end'
-        AND schoolyear_id != '$schoolyear_id'
-    ");
+if (empty($schoolyear_id)) {
+    // INSERT duplicate check
+    $check = mysqli_prepare($conn, "SELECT 1 FROM tbl_schoolyear WHERE year_start = ? AND year_end = ? LIMIT 1");
+    mysqli_stmt_bind_param($check, "ii", $year_start, $year_end);
+} else {
+    // UPDATE duplicate check (exclude current record)
+    $check = mysqli_prepare($conn, "SELECT 1 FROM tbl_schoolyear WHERE year_start = ? AND year_end = ? AND schoolyear_id != ? LIMIT 1");
+    mysqli_stmt_bind_param($check, "iii", $year_start, $year_end, $schoolyear_id);
 }
 
-if(mysqli_num_rows($check) > 0){
+mysqli_stmt_execute($check);
+mysqli_stmt_store_result($check);
+
+if (mysqli_stmt_num_rows($check) > 0) {
+    mysqli_stmt_close($check);
     echo json_encode([
         "status" => "error",
         "message" => "School Year already exists"
@@ -58,12 +58,14 @@ if(mysqli_num_rows($check) > 0){
     exit;
 }
 
+mysqli_stmt_close($check);
+
 
 // =======================
 // ONLY ONE ACTIVE SCHOOL YEAR
 // =======================
 
-if($status == 1){
+if ($status === 1) {
     mysqli_query($conn,"
         UPDATE tbl_schoolyear
         SET status = 0
@@ -75,39 +77,26 @@ if($status == 1){
 // INSERT OR UPDATE
 // =======================
 
-if(empty($schoolyear_id)){
-
+if (empty($schoolyear_id)) {
     // INSERT
-    mysqli_query($conn,"
-        INSERT INTO tbl_schoolyear
-        (
-            schoolyear_name,
-            year_start,
-            year_end,
-            status
-        )
-        VALUES
-        (
-            '$schoolyear_name',
-            '$year_start',
-            '$year_end',
-            '$status'
-        )
-    ");
-
-}else{
-
+    $save = mysqli_prepare($conn, "INSERT INTO tbl_schoolyear (schoolyear_name, year_start, year_end, status) VALUES (?, ?, ?, ?)");
+    mysqli_stmt_bind_param($save, "siii", $schoolyear_name, $year_start, $year_end, $status);
+} else {
     // UPDATE
-    mysqli_query($conn,"
-        UPDATE tbl_schoolyear
-        SET
-            schoolyear_name = '$schoolyear_name',
-            year_start = '$year_start',
-            year_end = '$year_end',
-            status = '$status'
-        WHERE schoolyear_id = '$schoolyear_id'
-    ");
+    $save = mysqli_prepare($conn, "UPDATE tbl_schoolyear SET schoolyear_name = ?, year_start = ?, year_end = ?, status = ? WHERE schoolyear_id = ?");
+    mysqli_stmt_bind_param($save, "siiii", $schoolyear_name, $year_start, $year_end, $status, $schoolyear_id);
 }
+
+if (!mysqli_stmt_execute($save)) {
+    mysqli_stmt_close($save);
+    echo json_encode([
+        "status" => "error",
+        "message" => "Failed to save school year"
+    ]);
+    exit;
+}
+
+mysqli_stmt_close($save);
 
 
 // =======================

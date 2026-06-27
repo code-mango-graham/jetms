@@ -3,9 +3,17 @@ include '../config.php';
 
 header('Content-Type: application/json');
 
-$position_id    = $_POST['position_id'] ?? '';
-$position_title = $_POST['position_title'];
-$description    = $_POST['description'];
+$position_id    = isset($_POST['position_id']) ? trim($_POST['position_id']) : '';
+$position_title = isset($_POST['position_title']) ? trim($_POST['position_title']) : '';
+$description    = isset($_POST['description']) ? trim($_POST['description']) : '';
+
+if ($position_title === '') {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Position title is required"
+    ]);
+    exit;
+}
 
 
 // =======================
@@ -13,27 +21,21 @@ $description    = $_POST['description'];
 // (SAFE FOR ADD + EDIT)
 // =======================
 
-if(empty($position_id)){
-
-    // INSERT
-    $check = mysqli_query($conn,"
-        SELECT *
-        FROM tbl_position
-        WHERE position_title = '$position_title'
-    ");
-
-}else{
-
-    // UPDATE (exclude current record)
-    $check = mysqli_query($conn,"
-        SELECT *
-        FROM tbl_position
-        WHERE position_title = '$position_title'
-        AND position_id != '$position_id'
-    ");
+if (empty($position_id)) {
+    // INSERT duplicate check
+    $check = mysqli_prepare($conn, "SELECT 1 FROM tbl_position WHERE position_title = ? LIMIT 1");
+    mysqli_stmt_bind_param($check, "s", $position_title);
+} else {
+    // UPDATE duplicate check (exclude current record)
+    $check = mysqli_prepare($conn, "SELECT 1 FROM tbl_position WHERE position_title = ? AND position_id != ? LIMIT 1");
+    mysqli_stmt_bind_param($check, "si", $position_title, $position_id);
 }
 
-if(mysqli_num_rows($check) > 0){
+mysqli_stmt_execute($check);
+mysqli_stmt_store_result($check);
+
+if (mysqli_stmt_num_rows($check) > 0) {
+    mysqli_stmt_close($check);
     echo json_encode([
         "status" => "error",
         "message" => "Position title already exists"
@@ -41,38 +43,33 @@ if(mysqli_num_rows($check) > 0){
     exit;
 }
 
+mysqli_stmt_close($check);
+
 
 // =======================
 // INSERT OR UPDATE
 // =======================
 
-if(empty($position_id)){
-
+if (empty($position_id)) {
     // INSERT
-    mysqli_query($conn,"
-        INSERT INTO tbl_position
-        (
-            position_title,
-            description
-        )
-        VALUES
-        (
-            '$position_title',
-            '$description'
-        )
-    ");
-
-}else{
-
+    $save = mysqli_prepare($conn, "INSERT INTO tbl_position (position_title, description) VALUES (?, ?)");
+    mysqli_stmt_bind_param($save, "ss", $position_title, $description);
+} else {
     // UPDATE
-    mysqli_query($conn,"
-        UPDATE tbl_position
-        SET
-            position_title = '$position_title',
-            description = '$description'
-        WHERE position_id = '$position_id'
-    ");
+    $save = mysqli_prepare($conn, "UPDATE tbl_position SET position_title = ?, description = ? WHERE position_id = ?");
+    mysqli_stmt_bind_param($save, "ssi", $position_title, $description, $position_id);
 }
+
+if (!mysqli_stmt_execute($save)) {
+    mysqli_stmt_close($save);
+    echo json_encode([
+        "status" => "error",
+        "message" => "Failed to save position"
+    ]);
+    exit;
+}
+
+mysqli_stmt_close($save);
 
 
 // =======================
