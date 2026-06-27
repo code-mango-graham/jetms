@@ -52,7 +52,7 @@ mysqli_stmt_close($check);
 
 if (empty($position_id)) {
     // INSERT
-    $save = mysqli_prepare($conn, "INSERT INTO tbl_position (position_title, description) VALUES (?, ?)");
+    $save = mysqli_prepare($conn, "INSERT INTO tbl_position (position_title, description, position_remarks) VALUES (?, ?, 1)");
     mysqli_stmt_bind_param($save, "ss", $position_title, $description);
 } else {
     // UPDATE

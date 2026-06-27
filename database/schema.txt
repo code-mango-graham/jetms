@@ -71,7 +71,6 @@ CREATE TABLE tbl_position (
     position_id INT AUTO_INCREMENT PRIMARY KEY,
     position_title VARCHAR(100) NOT NULL,
     description TEXT,
-    department_id INT NOT NULL,
     position_remarks TINYINT(1)  NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

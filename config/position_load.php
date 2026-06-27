@@ -2,9 +2,12 @@
 
 include '../config.php';
 
+header('Content-Type: application/json');
+
 $query = mysqli_query($conn,"
-SELECT *
+SELECT position_id, position_title, description
 FROM tbl_position
+WHERE position_remarks = 1
 ORDER BY position_id ASC
 ");
 

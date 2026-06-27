@@ -3,38 +3,32 @@ include '../config.php';
 
 header('Content-Type: application/json');
 
-$position_id = $_POST['position_id'];
+$position_id = isset($_POST['position_id']) ? (int) $_POST['position_id'] : 0;
 
-// Check if position is used in tbl_teacher
-$check = mysqli_query($conn,"
-    SELECT *
-    FROM tbl_teacher
-    WHERE position_id = '$position_id'
-");
-
-if(mysqli_num_rows($check) > 0){
+if ($position_id <= 0) {
     echo json_encode([
         "status" => "error",
-        "message" => "Cannot delete this position. It is already assigned to teachers."
+        "message" => "Invalid position ID"
     ]);
     exit;
 }
 
-// DELETE
+// Archive instead of hard delete
 $result = mysqli_query($conn,"
-    DELETE FROM tbl_position
+    UPDATE tbl_position
+    SET position_remarks = 0
     WHERE position_id = '$position_id'
 ");
 
 if($result){
     echo json_encode([
         "status" => "success",
-        "message" => "Position deleted successfully"
+        "message" => "Position archived successfully"
     ]);
 }else{
     echo json_encode([
         "status" => "error",
-        "message" => "Error deleting position"
+        "message" => "Error archiving position"
     ]);
 }
 ?>
