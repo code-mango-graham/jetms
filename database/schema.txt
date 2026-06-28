@@ -112,31 +112,6 @@ ALTER TABLE tbl_schoolyear
 -- REFERENCE: ACTIVE CURRICULUM WHEN ADDING SCHOOL YEAR
 -- =============================================
 
--- Get current active curriculum
-SELECT curriculum_id, curriculum_name
-FROM tbl_curriculum
-WHERE status = 1
-LIMIT 1;
-
--- Insert school year linked to active curriculum
-INSERT INTO tbl_schoolyear (schoolyear_name, curriculum_id, year_start, year_end, status)
-SELECT 'SY 2026-2027', c.curriculum_id, 2026, 2027, 1
-FROM tbl_curriculum c
-WHERE c.status = 1
-LIMIT 1;
-
--- Verify school year and curriculum reference
-SELECT
-    sy.schoolyear_id,
-    sy.schoolyear_name,
-    sy.year_start,
-    sy.year_end,
-    sy.status,
-    c.curriculum_name
-FROM tbl_schoolyear sy
-LEFT JOIN tbl_curriculum c ON c.curriculum_id = sy.curriculum_id
-ORDER BY sy.schoolyear_id DESC;
-
 CREATE TABLE tbl_schoolyear_section (
     schoolyear_section_id INT AUTO_INCREMENT PRIMARY KEY,
     schoolyear_id INT NOT NULL,
