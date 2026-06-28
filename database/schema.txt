@@ -108,6 +108,15 @@ ALTER TABLE tbl_schoolyear
         ON DELETE SET NULL
         ON UPDATE CASCADE;
 
+          ALTER TABLE tbl_teacher 
+        ADD COLUMN department_id INT 
+        AFTER position_id,
+        ADD CONSTRAINT fk_teacher_department
+            FOREIGN KEY (department_id)
+            REFERENCES tbl_department(department_id)
+            ON UPDATE CASCADE
+            ON DELETE SET NULL
+
 -- =============================================
 -- REFERENCE: ACTIVE CURRICULUM WHEN ADDING SCHOOL YEAR
 -- =============================================

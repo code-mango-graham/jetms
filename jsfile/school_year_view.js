@@ -1,4 +1,22 @@
 window.initSchoolYearView = function (schoolyearId) {
+    console.log('initSchoolYearView called with ID:', schoolyearId);
+    
+    // Check if required elements exist
+    if (!$('#syLevelsTable').length) {
+        console.error('Required HTML elements not found!');
+        return;
+    }
+    
+    // Check if required libraries are available
+    if (typeof $ === 'undefined') {
+        console.error('jQuery is not available');
+        return;
+    }
+    if (typeof $.fn.DataTable === 'undefined') {
+        console.error('DataTables is not available');
+        return;
+    }
+    
     let levelsTable;
     let sectionsTable;
     let assignTable;
@@ -65,9 +83,11 @@ window.initSchoolYearView = function (schoolyearId) {
             dataType: 'json',
             success: function (res) {
                 teacherOptions = res.data || [];
+                console.log('Teachers loaded:', teacherOptions.length);
                 callback();
             },
-            error: function () {
+            error: function (xhr, status, error) {
+                console.error('Error loading teachers:', error);
                 teacherOptions = [];
                 callback();
             }
@@ -79,32 +99,39 @@ window.initSchoolYearView = function (schoolyearId) {
             $('#syLevelsTable').DataTable().destroy();
         }
 
-        levelsTable = $('#syLevelsTable').DataTable({
-            processing: true,
-            responsive: true,
-            scrollX: true,
-            paging: false,
-            searching: false,
-            info: false,
-            ajax: {
-                url: 'config/school_year_levels.php',
-                type: 'POST',
-                data: function () {
-                    return { schoolyear_id: $('#view_schoolyear_id').val() };
+        try {
+            levelsTable = $('#syLevelsTable').DataTable({
+                processing: true,
+                responsive: true,
+                scrollX: true,
+                paging: false,
+                searching: false,
+                info: false,
+                ajax: {
+                    url: 'config/school_year_levels.php',
+                    type: 'POST',
+                    data: function () {
+                        return { schoolyear_id: $('#view_schoolyear_id').val() };
+                    },
+                    dataSrc: function (json) {
+                        console.log('Levels loaded:', json);
+                        $('#view_schoolyear_name').text(json.schoolyear_name || '-');
+                        $('#view_curriculum_name').text(json.curriculum_name || 'Not linked');
+                        $('#view_curriculum_id').val(json.curriculum_id || '');
+                        console.log('Returning data:', json.data || []);
+                        return json.data || [];
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', status, error);
+                    }
                 },
-                dataSrc: function (json) {
-                    $('#view_schoolyear_name').text(json.schoolyear_name || '-');
-                    $('#view_curriculum_name').text(json.curriculum_name || 'Not linked');
-                    $('#view_curriculum_id').val(json.curriculum_id || '');
-                    return json.data || [];
-                }
-            },
             columns: [
-                { data: 'level_name' },
+                { data: 'level_name', render: function(data) { console.log('Rendering level_name:', data); return data; } },
                 {
                     data: 'level_type',
                     className: 'text-center',
                     render: function (data) {
+                        console.log('Rendering level_type:', data);
                         return levelTypeLabel(data);
                     }
                 },
@@ -113,6 +140,7 @@ window.initSchoolYearView = function (schoolyearId) {
                     className: 'text-center',
                     orderable: false,
                     render: function (row) {
+                        console.log('Rendering button for row:', row);
                         return `
                             <button class="btn btn-outline-primary btn-sm btnSelectSyLevel"
                                 data-id="${row.level_id}"
@@ -124,6 +152,9 @@ window.initSchoolYearView = function (schoolyearId) {
                 }
             ]
         });
+        } catch (e) {
+            console.error('Error initializing levels table:', e);
+        }
     }
 
     function initSectionsTable() {
@@ -248,6 +279,8 @@ window.initSchoolYearView = function (schoolyearId) {
     $('#view_level_id').val('');
     $('#view_schoolyear_section_id').val('');
     $('#view_active_path').text('Select level first');
+    $('#view_selected_level').text('Select a level');
+    $('#view_selected_section').text('Select a section');
     $('#btnAddSySection').prop('disabled', true);
 
     $(document).off('click', '#btnCloseSchoolYearView');
@@ -271,6 +304,8 @@ window.initSchoolYearView = function (schoolyearId) {
         $('#view_schoolyear_section_id').val('');
         $('#btnAddSySection').prop('disabled', false);
         $('#view_active_path').text(`${levelName} / Select section`);
+        $('#view_selected_level').text(levelName);
+        $('#view_selected_section').text('Select a section');
 
         if (sectionsTable) {
             sectionsTable.ajax.reload(null, false);
@@ -414,6 +449,7 @@ window.initSchoolYearView = function (schoolyearId) {
         const sectionName = $(this).data('name');
 
         $('#view_schoolyear_section_id').val(sectionId);
+        $('#view_selected_section').text(sectionName);
 
         const currentText = $('#view_active_path').text();
         const levelLabel = currentText.includes('/') ? currentText.split('/')[0].trim() : currentText;
@@ -477,8 +513,10 @@ window.initSchoolYearView = function (schoolyearId) {
     });
 
     loadTeachers(function () {
+        console.log('Starting table initialization...');
         initLevelsTable();
         initSectionsTable();
         initAssignTable();
+        console.log('Table initialization complete');
     });
 };

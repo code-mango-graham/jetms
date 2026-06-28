@@ -232,9 +232,18 @@ $(document).ready(function () {
         $('#content_level').empty();
         $('#content_level').load('pages/school_year_view.html', function () {
             $('#view_schoolyear_id').val(schoolyear_id);
-            if (typeof window.initSchoolYearView === 'function') {
-                window.initSchoolYearView(schoolyear_id);
-            }
+            
+            // Load the JavaScript file explicitly
+            $.getScript('jsfile/school_year_view.js', function() {
+                console.log('school_year_view.js loaded successfully');
+                if (typeof window.initSchoolYearView === 'function') {
+                    window.initSchoolYearView(schoolyear_id);
+                } else {
+                    console.error('initSchoolYearView still not found after loading script');
+                }
+            }).fail(function() {
+                console.error('Failed to load school_year_view.js');
+            });
         });
 
         $('html, body').animate({
