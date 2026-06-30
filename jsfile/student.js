@@ -49,6 +49,9 @@ $(document).ready(function () {
         if (!el) return;
         const modal = bootstrap.Modal.getOrCreateInstance(el);
         modal.show();
+        
+        // Load provinces when modal is shown
+        loadProvinces();
     }
 
     // Hide student modal
@@ -58,6 +61,115 @@ $(document).ready(function () {
         const modal = bootstrap.Modal.getOrCreateInstance(el);
         modal.hide();
     }
+
+    // Load provinces
+    function loadProvinces(selectedProvCode = '') {
+        $.ajax({
+            url: 'config/ref_province_load.php',
+            type: 'POST',
+            dataType: 'json',
+            success: function (res) {
+                let options = '<option value="">-- Select Province --</option>';
+                
+                if (res.data && res.data.length > 0) {
+                    res.data.forEach(function (row) {
+                        options += `<option value="${row.provCode}">${row.provDesc}</option>`;
+                    });
+                }
+                
+                $('#province').html(options);
+                
+                if (selectedProvCode) {
+                    $('#province').val(selectedProvCode);
+                    loadMunicipalities(selectedProvCode);
+                }
+            },
+            error: function (err) {
+                console.error('Error loading provinces:', err);
+            }
+        });
+    }
+
+    // Load municipalities by province code
+    function loadMunicipalities(provCode, selectedCitymunCode = '') {
+        if (!provCode) {
+            $('#municipality').html('<option value="">-- Select Municipality --</option>');
+            $('#barangay').html('<option value="">-- Select Barangay --</option>');
+            return;
+        }
+
+        $.ajax({
+            url: 'config/ref_citymun_load.php',
+            type: 'POST',
+            data: { prov_code: provCode },
+            dataType: 'json',
+            success: function (res) {
+                let options = '<option value="">-- Select Municipality --</option>';
+                
+                if (res.data && res.data.length > 0) {
+                    res.data.forEach(function (row) {
+                        options += `<option value="${row.citymunCode}">${row.citymunDesc}</option>`;
+                    });
+                }
+                
+                $('#municipality').html(options);
+                $('#barangay').html('<option value="">-- Select Barangay --</option>');
+                
+                if (selectedCitymunCode) {
+                    $('#municipality').val(selectedCitymunCode);
+                    loadBarangays(selectedCitymunCode);
+                }
+            },
+            error: function (err) {
+                console.error('Error loading municipalities:', err);
+            }
+        });
+    }
+
+    // Load barangays by municipality/city code
+    function loadBarangays(citymunCode, selectedBrgyCode = '') {
+        if (!citymunCode) {
+            $('#barangay').html('<option value="">-- Select Barangay --</option>');
+            return;
+        }
+
+        $.ajax({
+            url: 'config/ref_brgy_load.php',
+            type: 'POST',
+            data: { citymun_code: citymunCode },
+            dataType: 'json',
+            success: function (res) {
+                let options = '<option value="">-- Select Barangay --</option>';
+                
+                if (res.data && res.data.length > 0) {
+                    res.data.forEach(function (row) {
+                        options += `<option value="${row.brgyDesc}">${row.brgyDesc}</option>`;
+                    });
+                }
+                
+                $('#barangay').html(options);
+                
+                if (selectedBrgyCode) {
+                    $('#barangay').val(selectedBrgyCode);
+                }
+            },
+            error: function (err) {
+                console.error('Error loading barangays:', err);
+            }
+        });
+    }
+
+    // Handle province change
+    $(document).on('change', '#province', function () {
+        const provCode = $(this).val();
+        loadMunicipalities(provCode);
+    });
+
+    // Handle municipality change
+    $(document).on('change', '#municipality', function () {
+        const citymunCode = $(this).val();
+        loadBarangays(citymunCode);
+    });
 
     // Initialize DataTable
     function initTable() {
@@ -192,6 +304,25 @@ $(document).ready(function () {
                     $('#province').val(data.province);
                     $('#contact_cp_no').val(data.contact_cp_no);
                     $('#student_status').val(data.student_status);
+
+                    // Load province if not empty, then load municipalities and barangays
+                    if (data.province) {
+                        loadProvinces(data.province);
+                        
+                        // Wait for province to load, then load municipality
+                        setTimeout(() => {
+                            if (data.municipality) {
+                                loadMunicipalities(data.province, data.municipality);
+                            }
+                        }, 300);
+
+                        // After municipality loads, load barangay
+                        setTimeout(() => {
+                            if (data.barangay && data.municipality) {
+                                loadBarangays(data.municipality, data.barangay);
+                            }
+                        }, 600);
+                    }
 
                     $('#studentModalLabel').text('Edit Student');
                     showStudentModal();
