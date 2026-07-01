@@ -4,7 +4,6 @@ $(document).ready(function () {
     let studentsTable;
     let activeSchoolYearId;
     let activeSchoolYearName;
-
     // Unbind previous handlers to prevent duplicates when page is reloaded
     $(document).off('click', '#btnAddStudent');
     $(document).off('submit', '#studentForm');
@@ -50,6 +49,11 @@ $(document).ready(function () {
         const modal = bootstrap.Modal.getOrCreateInstance(el);
         modal.show();
         
+        // Initialize Select2 on modal elements
+        $('#studentModal .select2').select2({
+            dropdownParent: $('#studentModal')
+        });
+        
         // Load provinces when modal is shown
         loadProvinces();
     }
@@ -78,9 +82,10 @@ $(document).ready(function () {
                 }
                 
                 $('#province').html(options);
+                $('#province').trigger('change');
                 
                 if (selectedProvCode) {
-                    $('#province').val(selectedProvCode);
+                    $('#province').val(selectedProvCode).trigger('change');
                     loadMunicipalities(selectedProvCode);
                 }
             },
@@ -113,10 +118,12 @@ $(document).ready(function () {
                 }
                 
                 $('#municipality').html(options);
+                $('#municipality').trigger('change');
                 $('#barangay').html('<option value="">-- Select Barangay --</option>');
+                $('#barangay').trigger('change');
                 
                 if (selectedCitymunCode) {
-                    $('#municipality').val(selectedCitymunCode);
+                    $('#municipality').val(selectedCitymunCode).trigger('change');
                     loadBarangays(selectedCitymunCode);
                 }
             },
@@ -148,9 +155,10 @@ $(document).ready(function () {
                 }
                 
                 $('#barangay').html(options);
+                $('#barangay').trigger('change');
                 
                 if (selectedBrgyCode) {
-                    $('#barangay').val(selectedBrgyCode);
+                    $('#barangay').val(selectedBrgyCode).trigger('change');
                 }
             },
             error: function (err) {
@@ -264,8 +272,8 @@ $(document).ready(function () {
     // Add new student button click
     $(document).on('click', '#btnAddStudent', function () {
         $('#studentForm')[0].reset();
-        $('#studentId').val('');
-        $('#studentModalLabel').text('Add New Student');
+        $('#student_id').val('');
+        $('#studentModal .modal-title').text('Add New Student');
         showStudentModal();
     });
 
@@ -324,40 +332,71 @@ $(document).ready(function () {
                         }, 600);
                     }
 
-                    $('#studentModalLabel').text('Edit Student');
+                    $('#studentModal .modal-title').text('Edit Student');
                     showStudentModal();
                 }
             },
             error: function (err) {
-                alert('Error loading student data');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to load student data',
+                    timer: 3000,
+                    showConfirmButton: false
+                });
                 console.error(err);
             }
         });
     });
-
-    // Save student
-    $(document).on('click', '#btnSaveStudent', function () {
-        const studentId = $('#studentId').val();
-        const formData = $('#studentForm').serialize();
-        const url = studentId ? 'config/student_update.php' : 'config/student_add.php';
+   
+    $(document).on('submit', '#studentForm', function(e){
+        e.preventDefault();
+        
+        // Determine if adding new or updating existing student
+        const studentId = $('#student_id').val();
+        const endpoint = studentId ? 'config/student_update.php' : 'config/student_add.php';
 
         $.ajax({
-            url: url,
+            url: endpoint,
             type: 'POST',
-            data: formData,
+            data: $(this).serialize(),
             dataType: 'json',
-            success: function (res) {
-                if (res.success) {
-                    alert(res.message);
-                    hideStudentModal();
-                    studentsTable.ajax.reload();
-                } else {
-                    alert('Error: ' + res.message);
+            success: function(res){
+                console.log('Response:', res);
+
+                if(res.status !== 'success'){
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: res.message || 'Failed to save student',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                    return;
                 }
+
+                hideStudentModal();
+                document.activeElement.blur(); 
+                $('#studentsTable').DataTable().ajax.reload(null, false);
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: res.message || 'Saved Successfully',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
             },
-            error: function (err) {
-                alert('Error saving student');
-                console.error(err);
+            error: function(xhr, status, error){
+                console.error('AJAX Error:', error, xhr.responseText);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Failed to save student: ' + error,
+                    timer: 5000,
+                    showConfirmButton: true
+                });
             }
         });
     });

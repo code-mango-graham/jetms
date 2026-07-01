@@ -1,77 +1,85 @@
 <?php
 include '../config.php';
 
-$response = array('success' => false, 'message' => '');
+header('Content-Type: application/json');
 
-try {
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        throw new Exception('Invalid request method');
-    }
+$student_id = isset($_POST['student_id']) ? trim($_POST['student_id']) : '';
+$lrn = isset($_POST['lrn']) ? trim($_POST['lrn']) : '';
+$last_name = isset($_POST['last_name']) ? trim($_POST['last_name']) : '';
+$first_name = isset($_POST['first_name']) ? trim($_POST['first_name']) : '';
+$middle_name = isset($_POST['middle_name']) ? trim($_POST['middle_name']) : '';
+$extension_name = isset($_POST['extension_name']) ? trim($_POST['extension_name']) : '';
+$middle_initial = isset($_POST['middle_initial']) ? trim($_POST['middle_initial']) : '';
+$birthday = isset($_POST['birthday']) ? trim($_POST['birthday']) : '';
+$sex = isset($_POST['sex']) ? trim($_POST['sex']) : '';
+$cp_no = isset($_POST['cp_no']) ? trim($_POST['cp_no']) : '';
+$spoken_language = isset($_POST['spoken_language']) ? trim($_POST['spoken_language']) : '';
+$fb_name = isset($_POST['fb_name']) ? trim($_POST['fb_name']) : '';
+$esc_id_no = isset($_POST['esc_id_no']) ? trim($_POST['esc_id_no']) : '';
+$former_school = isset($_POST['former_school']) ? trim($_POST['former_school']) : '';
+$father_name = isset($_POST['father_name']) ? trim($_POST['father_name']) : '';
+$mother_name = isset($_POST['mother_name']) ? trim($_POST['mother_name']) : '';
+$contact_person = isset($_POST['contact_person']) ? trim($_POST['contact_person']) : '';
+$contact_fb_name = isset($_POST['contact_fb_name']) ? trim($_POST['contact_fb_name']) : '';
+$street_name = isset($_POST['street_name']) ? trim($_POST['street_name']) : '';
+$barangay = isset($_POST['barangay']) ? trim($_POST['barangay']) : '';
+$municipality = isset($_POST['municipality']) ? trim($_POST['municipality']) : '';
+$province = isset($_POST['province']) ? trim($_POST['province']) : '';
+$contact_cp_no = isset($_POST['contact_cp_no']) ? trim($_POST['contact_cp_no']) : '';
+$student_status = isset($_POST['student_status']) ? trim($_POST['student_status']) : 'active';
 
-    $student_id = $_POST['student_id'] ?? 0;
-    $last_name = $_POST['last_name'] ?? '';
-    $first_name = $_POST['first_name'] ?? '';
-    $middle_name = $_POST['middle_name'] ?? '';
-    $extension_name = $_POST['extension_name'] ?? '';
-    $middle_initial = $_POST['middle_initial'] ?? '';
-    $birthday = $_POST['birthday'] ?? '';
-    $sex = $_POST['sex'] ?? '';
-    $cp_no = $_POST['cp_no'] ?? '';
-    $spoken_language = $_POST['spoken_language'] ?? '';
-    $fb_name = $_POST['fb_name'] ?? '';
-    $esc_id_no = $_POST['esc_id_no'] ?? '';
-    $former_school = $_POST['former_school'] ?? '';
-    $father_name = $_POST['father_name'] ?? '';
-    $mother_name = $_POST['mother_name'] ?? '';
-    $contact_person = $_POST['contact_person'] ?? '';
-    $contact_fb_name = $_POST['contact_fb_name'] ?? '';
-    $street_name = $_POST['street_name'] ?? '';
-    $barangay = $_POST['barangay'] ?? '';
-    $municipality = $_POST['municipality'] ?? '';
-    $province = $_POST['province'] ?? '';
-    $contact_cp_no = $_POST['contact_cp_no'] ?? '';
-    $student_status = $_POST['student_status'] ?? 'active';
+// =======================
+// VALIDATION
+// =======================
 
-    if (empty($student_id) || empty($last_name) || empty($first_name)) {
-        throw new Exception('Student ID, last name and first name are required');
-    }
-
-    $sql = "UPDATE tbl_student SET
-        last_name = ?, first_name = ?, middle_name = ?, extension_name = ?,
-        middle_initial = ?, birthday = ?, sex = ?, cp_no = ?, spoken_language = ?,
-        fb_name = ?, esc_id_no = ?, former_school = ?, father_name = ?,
-        mother_name = ?, contact_person = ?, contact_fb_name = ?, street_name = ?,
-        barangay = ?, municipality = ?, province = ?, contact_cp_no = ?,
-        student_status = ?
-        WHERE student_id = ?";
-
-    $stmt = $conn->prepare($sql);
-    if (!$stmt) {
-        throw new Exception('Prepare failed: ' . $conn->error);
-    }
-
-    $stmt->bind_param(
-        "sssssssssssssssssssssi",
-        $last_name, $first_name, $middle_name, $extension_name,
-        $middle_initial, $birthday, $sex, $cp_no, $spoken_language,
-        $fb_name, $esc_id_no, $former_school, $father_name,
-        $mother_name, $contact_person, $contact_fb_name, $street_name,
-        $barangay, $municipality, $province, $contact_cp_no,
-        $student_status, $student_id
-    );
-
-    if ($stmt->execute()) {
-        $response['success'] = true;
-        $response['message'] = 'Student updated successfully';
-    } else {
-        throw new Exception('Execute failed: ' . $stmt->error);
-    }
-
-    $stmt->close();
-} catch (Exception $e) {
-    $response['message'] = $e->getMessage();
+if (empty($student_id) || $last_name === '' || $first_name === '') {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Student ID, last name and first name are required"
+    ]);
+    exit;
 }
 
-$conn->close();
-echo json_encode($response);
-?>
+
+// =======================
+// UPDATE
+// =======================
+
+$save = mysqli_prepare($conn, "UPDATE tbl_student SET
+    lrn = ?, last_name = ?, first_name = ?, middle_name = ?, extension_name = ?,
+    middle_initial = ?, birthday = ?, sex = ?, cp_no = ?, spoken_language = ?,
+    fb_name = ?, esc_id_no = ?, former_school = ?, father_name = ?,
+    mother_name = ?, contact_person = ?, contact_fb_name = ?, street_name = ?,
+    barangay = ?, municipality = ?, province = ?, contact_cp_no = ?,
+    student_status = ?
+    WHERE student_id = ?");
+mysqli_stmt_bind_param($save, "sssssssssssssssssssssssi",
+    $lrn, $last_name, $first_name, $middle_name, $extension_name,
+    $middle_initial, $birthday, $sex, $cp_no, $spoken_language,
+    $fb_name, $esc_id_no, $former_school, $father_name,
+    $mother_name, $contact_person, $contact_fb_name, $street_name,
+    $barangay, $municipality, $province, $contact_cp_no,
+    $student_status, $student_id
+);
+
+if (!mysqli_stmt_execute($save)) {
+    mysqli_stmt_close($save);
+    echo json_encode([
+        "status" => "error",
+        "message" => "Failed to update student"
+    ]);
+    exit;
+}
+
+mysqli_stmt_close($save);
+
+
+// =======================
+// RESPONSE
+// =======================
+
+echo json_encode([
+    "status" => "success",
+    "message" => "Student updated successfully",
+    "student_id" => $student_id
+]);
