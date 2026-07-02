@@ -199,38 +199,74 @@ $(document).ready(function () {
                 dataSrc: 'data'
             },
             columns: [
-                { data: 'lrn', defaultContent: '' },
-                { data: 'last_name' },
-                { data: 'first_name' },
+                { 
+                    data: 'lrn', 
+                    className: 'text-center', 
+                    defaultContent: '-',
+                    render: function(data) {
+                        return data && data.trim() ? data : '-';
+                    }
+                },
+                { 
+                    data: 'last_name',
+                    render: function(data) {
+                        return data && data.trim() ? data : '-';
+                    }
+                },
+                { 
+                    data: 'first_name',
+                    render: function(data) {
+                        return data && data.trim() ? data : '-';
+                    }
+                },
+                { 
+                    data: 'middle_name', 
+                    defaultContent: '-',
+                    render: function(data) {
+                        return data && data.trim() ? data : '-';
+                    }
+                },
+                { 
+                    data: 'extension_name', 
+                    defaultContent: '-',
+                    render: function(data) {
+                        return data && data.trim() ? data : '-';
+                    }
+                },
                 {
                     data: 'birthday',
                     render: function (data) {
-                        return data && data !== '0000-00-00' ? data : '';
+                        return data && data !== '0000-00-00' && data.trim() ? data : '-';
                     }
                 },
-                { data: 'sex', defaultContent: '' },
+                { 
+                    data: 'sex', 
+                    defaultContent: '-',
+                    render: function(data) {
+                        return data && data.trim() ? data : '-';
+                    }
+                },
                 {
                     data: 'student_status',
                     render: function (data) {
                         let badgeClass = 'bg-secondary';
                         switch (data) {
-                            case 'active':
-                            case 'enrolled':
+                            case 'New':
                                 badgeClass = 'bg-success';
                                 break;
-                            case 'inactive':
-                                badgeClass = 'bg-warning';
-                                break;
-                            case 'transferred':
+                            case 'Old':
                                 badgeClass = 'bg-info';
                                 break;
-                            case 'graduated':
+                            case 'Transferee':
+                                badgeClass = 'bg-warning';
+                                break;
+                            case 'Transferred':
                                 badgeClass = 'bg-primary';
                                 break;
-                            case 'archived':
-                                badgeClass = 'bg-dark';
+                            case 'Graduated':
+                                badgeClass = 'bg-purple';
                                 break;
-                            case 'deceased':
+                            case 'Deceased':
                                 badgeClass = 'bg-danger';
                                 break;
                         }
@@ -288,7 +324,7 @@ $(document).ready(function () {
             success: function (res) {
                 if (res.success && res.data) {
                     const data = res.data;
-                    $('#studentId').val(data.student_id);
+                    $('#student_id').val(data.student_id);
                     $('#lrn').val(data.lrn);
                     $('#last_name').val(data.last_name);
                     $('#first_name').val(data.first_name);
@@ -405,9 +441,9 @@ $(document).ready(function () {
     $(document).on('change', '#statusFilter', function () {
         const filterValue = $(this).val();
         if (filterValue === '') {
-            studentsTable.column(5).search('').draw();
+            studentsTable.column(7).search('').draw();
         } else {
-            studentsTable.column(5).search(filterValue).draw();
+            studentsTable.column(7).search(filterValue).draw();
         }
     });
 

@@ -1,37 +1,135 @@
 <div class="app-content-header">
-          <!--begin::Container-->
-          <div class="container-fluid">
-            <!--begin::Row-->
-            <div class="row">
-              <div class="col-sm-6">
-                <h3 class="mb-0">Enrollment Form</h3>
-              </div>
-              <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-end">
-                  <li class="breadcrumb-item"><a href="#">Home</a></li>
-                  <li class="breadcrumb-item active" aria-current="page">Enrollment Form</li>
-                </ol>
-              </div>
-            </div>
-            <!--end::Row-->
-          </div>
-          <!--end::Container-->
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0">Enrollment Form</h3>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-end">
+          <li class="breadcrumb-item"><a href="#">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Enrollment Form</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content px-4">
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Active School Year -->
+      <div class="col-12 mb-3">
+        <div class="alert alert-info" role="alert">
+          <strong>Active School Year:</strong> <span id="activeSchoolYear">Loading...</span>
         </div>
-        <!--end::App Content Header-->
-        <!--begin::App Content-->
-        <div class="app-content">
-          <!--begin::Container-->
-          <div class="container-fluid">
-            <!--begin::Row-->
-            <div class="row">
-              <div class="col-8">
-                       
-              </div>
-            <!--end::Col-->
-            </div>
-            <!--end::Row-->
+      </div>
+
+      <!-- Enrollment Card -->
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Student Enrollment</h3>
           </div>
-          <!--end::Container-->
+          <div class="card-body">
+            <form id="enrollmentForm">
+              <!-- Student Selection -->
+              <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                  <label for="student_lrn" class="form-label">Select by LRN <span class="text-danger">*</span></label>
+                  <select class="form-select select2" id="student_lrn" style="width: 100%;">
+                    <option value="">-- Select LRN --</option>
+                  </select>
+                </div>
+
+                <div class="col-md-3">
+                  <label for="student_name" class="form-label">Select by Name <span class="text-danger">*</span></label>
+                  <select class="form-select select2" id="student_name" style="width: 100%;">
+                    <option value="">-- Select Name --</option>
+                  </select>
+                </div>
+
+                <div class="col-md-2">
+                  <label for="student_birthday" class="form-label">Birthday</label>
+                  <input type="date" class="form-control" id="student_birthday" readonly>
+                </div>
+
+                <div class="col-md-2">
+                  <label for="student_gender" class="form-label">Gender</label>
+                  <input type="text" class="form-control" id="student_gender" readonly>
+                </div>
+
+                <input type="hidden" id="student_id" name="student_id">
+              </div>
+
+              <!-- Level and Section -->
+              <div class="row g-3 mb-4">
+                <!-- Level Selection -->
+                <div class="col-md-4">
+                  <label for="level_select" class="form-label">Select Level <span class="text-danger">*</span></label>
+                  <select class="form-select" id="level_select" name="level_id" required>
+                    <option value="">-- Select Level --</option>
+                  </select>
+                </div>
+
+                <!-- Section Selection -->
+                <div class="col-md-4">
+                  <label for="section_select" class="form-label">Select Section <span class="text-danger">*</span></label>
+                  <select class="form-select" id="section_select" name="section_id" required>
+                    <option value="">-- Select Section --</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Subjects Section -->
+              <div class="row mb-4">
+                <div class="col-12">
+                  <h5 class="border-bottom pb-2">Subjects</h5>
+                  <div id="subjectsContainer"></div>
+                </div>
+              </div>
+
+              <!-- Buttons -->
+              <div class="row">
+                <div class="col-12">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>Enroll Student
+                  </button>
+                  <button type="reset" class="btn btn-secondary">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Clear
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
         </div>
-        <!--end::App Content-->
-        <script src="jsfile/enroll.js"></script>
+      </div>
+
+      <!-- Enrollments List Card -->
+      <div class="col-12 mt-4">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Enrollment Records</h3>
+          </div>
+          <div class="card-body">
+            <table id="enrollmentTable" class="table table-bordered table-hover w-100">
+              <thead>
+                <tr>
+                  <th>LRN</th>
+                  <th>Student Name</th>
+                  <th>Level</th>
+                  <th>Section</th>
+                  <th>School Year</th>
+                  <th>Subjects</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="jsfile/enroll.js"></script>

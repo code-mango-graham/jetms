@@ -26,7 +26,7 @@ $barangay = isset($_POST['barangay']) ? trim($_POST['barangay']) : '';
 $municipality = isset($_POST['municipality']) ? trim($_POST['municipality']) : '';
 $province = isset($_POST['province']) ? trim($_POST['province']) : '';
 $contact_cp_no = isset($_POST['contact_cp_no']) ? trim($_POST['contact_cp_no']) : '';
-$student_status = isset($_POST['student_status']) ? trim($_POST['student_status']) : 'active';
+$student_status = isset($_POST['student_status']) ? trim($_POST['student_status']) : '';
 
 // =======================
 // VALIDATION
@@ -38,6 +38,30 @@ if (empty($student_id) || $last_name === '' || $first_name === '') {
         "message" => "Student ID, last name and first name are required"
     ]);
     exit;
+}
+
+
+// =======================
+// DUPLICATE LRN CHECK
+// =======================
+
+if (!empty($lrn)) {
+    // UPDATE duplicate check (exclude current record)
+    $check = mysqli_prepare($conn, "SELECT 1 FROM tbl_student WHERE lrn = ? AND student_id != ? LIMIT 1");
+    mysqli_stmt_bind_param($check, "ss", $lrn, $student_id);
+    mysqli_stmt_execute($check);
+    mysqli_stmt_store_result($check);
+
+    if (mysqli_stmt_num_rows($check) > 0) {
+        mysqli_stmt_close($check);
+        echo json_encode([
+            "status" => "error",
+            "message" => "LRN already exists"
+        ]);
+        exit;
+    }
+
+    mysqli_stmt_close($check);
 }
 
 

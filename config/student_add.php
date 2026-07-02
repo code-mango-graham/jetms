@@ -26,7 +26,7 @@ $barangay = isset($_POST['barangay']) ? trim($_POST['barangay']) : '';
 $municipality = isset($_POST['municipality']) ? trim($_POST['municipality']) : '';
 $province = isset($_POST['province']) ? trim($_POST['province']) : '';
 $contact_cp_no = isset($_POST['contact_cp_no']) ? trim($_POST['contact_cp_no']) : '';
-$student_status = isset($_POST['student_status']) ? trim($_POST['student_status']) : 'active';
+$student_status = isset($_POST['student_status']) ? trim($_POST['student_status']) : '';
 
 // =======================
 // VALIDATION

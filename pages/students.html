@@ -18,7 +18,7 @@
   <div class="container-fluid">
     <div class="row">
       <!-- Student Modal -->
-      <div class="modal fade" id="studentModal" tabindex="-1" aria-hidden="true">
+      <div class="modal fade" id="studentModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
           <div class="modal-content">
             <div class="modal-header">
@@ -33,30 +33,30 @@
                   <div class="row g-3">
                     <div class="col-md-2">
                       <label for="lrn" class="form-label">LRN</label>
-                      <input type="text" class="form-control" id="lrn" name="lrn" placeholder="Enter LRN">
+                      <input type="text" class="form-control" id="lrn" name="lrn" placeholder="Enter LRN" autocomplete="off">
                     </div>
                     <div class="col-md-3">
                       <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control" id="last_name" name="last_name" required placeholder="Enter last name">
+                      <input type="text" class="form-control" id="last_name" name="last_name" required placeholder="Enter last name" autocomplete="family-name">
                     </div>
                     <div class="col-md-3">
                       <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
-                      <input type="text" class="form-control" id="first_name" name="first_name" required placeholder="Enter first name">
+                      <input type="text" class="form-control" id="first_name" name="first_name" required placeholder="Enter first name" autocomplete="given-name">
                     </div>
                     <div class="col-md-2">
                       <label for="middle_name" class="form-label">Middle Name</label>
-                      <input type="text" class="form-control" id="middle_name" name="middle_name" placeholder="Enter middle name">
+                      <input type="text" class="form-control" id="middle_name" name="middle_name" placeholder="Enter middle name" autocomplete="additional-name">
                     </div>
                     <div class="col-md-2">
                       <label for="extension_name" class="form-label">Extension</label>
-                      <input type="text" class="form-control" id="extension_name" name="extension_name" placeholder="Jr., Sr., III, etc.">
+                      <input type="text" class="form-control" id="extension_name" name="extension_name" placeholder="Jr., Sr., III, etc." autocomplete="off">
                     </div>
                   </div>
 
                   <div class="row g-3">
                     <div class="col-md-2">
                       <label for="middle_initial" class="form-label">M.I.</label>
-                      <input type="text" class="form-control" id="middle_initial" name="middle_initial" maxlength="2" placeholder="e.g., A">
+                      <input type="text" class="form-control" id="middle_initial" name="middle_initial" maxlength="2" placeholder="e.g., A" autocomplete="off">
                     </div>
                     <div class="col-md-2">
                       <label for="sex" class="form-label">Sex</label>
@@ -69,22 +69,22 @@
                     </div>
                     <div class="col-md-3">
                       <label for="birthday" class="form-label">Birthday</label>
-                      <input type="date" class="form-control" id="birthday" name="birthday">
+                      <input type="date" class="form-control" id="birthday" name="birthday" autocomplete="bday">
                     </div>
                     <div class="col-md-3">
                       <label for="cp_no" class="form-label">CP No.</label>
-                      <input type="text" class="form-control" id="cp_no" name="cp_no" placeholder="09XX-XXX-XXXX">
+                      <input type="tel" class="form-control" id="cp_no" name="cp_no" placeholder="09XX-XXX-XXXX" autocomplete="tel">
                     </div>
                     <div class="col-md-2">
                       <label for="student_status" class="form-label">Status</label>
                       <select class="form-select" id="student_status" name="student_status">
-                        <option value="active">Active</option>
-                        <option value="enrolled">Enrolled</option>
-                        <option value="inactive">Inactive</option>
-                        <option value="transferred">Transferred</option>
-                        <option value="graduated">Graduated</option>
-                        <option value="archived">Archived</option>
-                        <option value="deceased">Deceased</option>
+                        <option value="">Select</option>
+                        <option value="New">New</option>
+                        <option value="Old">Old</option>
+                        <option value="Transferee">Transferee</option>
+                        <option value="Transferred">Transferred</option>
+                        <option value="Graduated">Graduated</option>
+                        <option value="Deceased">Deceased</option>
                       </select>
                     </div>
                   </div>
@@ -92,64 +92,64 @@
                   <div class="row g-3">
                     <div class="col-md-4">
                       <label for="spoken_language" class="form-label">Spoken Language</label>
-                      <input type="text" class="form-control" id="spoken_language" name="spoken_language" placeholder="e.g., English, Filipino">
+                      <input type="text" class="form-control" id="spoken_language" name="spoken_language" placeholder="e.g., English, Filipino" autocomplete="off">
                     </div>
                     <div class="col-md-4">
                       <label for="fb_name" class="form-label">FB Name</label>
-                      <input type="text" class="form-control" id="fb_name" name="fb_name" placeholder="Enter Facebook name">
+                      <input type="text" class="form-control" id="fb_name" name="fb_name" placeholder="Enter Facebook name" autocomplete="off">
                     </div>
                     <div class="col-md-4">
                       <label for="esc_id_no" class="form-label">ESC ID No.</label>
-                      <input type="text" class="form-control" id="esc_id_no" name="esc_id_no" placeholder="Enter ESC ID number">
+                      <input type="text" class="form-control" id="esc_id_no" name="esc_id_no" placeholder="Enter ESC ID number" autocomplete="off">
                     </div>
                   </div>
 
                   <div class="row g-3">
                     <div class="col-12">
                       <label for="former_school" class="form-label">Former School</label>
-                      <input type="text" class="form-control" id="former_school" name="former_school" placeholder="Enter former school name">
+                      <input type="text" class="form-control" id="former_school" name="former_school" placeholder="Enter former school name" autocomplete="off">
                     </div>
                   </div>
 
                   <!-- Parent Information -->
-                  <h6 class="mt-4 mb-2 border-bottom pb-2">Parent Information</h6>
+                  <h5 class="mt-4 mb-2 border-bottom pb-2">Parent Information</h5>
                   <div class="row g-3">
                     <div class="col-md-6">
                       <label for="father_name" class="form-label">Father's Name</label>
-                      <input type="text" class="form-control" id="father_name" name="father_name" placeholder="Enter father's name">
+                      <input type="text" class="form-control" id="father_name" name="father_name" placeholder="Enter father's name" autocomplete="off">
                     </div>
                     <div class="col-md-6">
                       <label for="mother_name" class="form-label">Mother's Name</label>
-                      <input type="text" class="form-control" id="mother_name" name="mother_name" placeholder="Enter mother's name">
+                      <input type="text" class="form-control" id="mother_name" name="mother_name" placeholder="Enter mother's name" autocomplete="off">
                     </div>
                   </div>
 
                   <!-- Contact Information -->
-                  <h6 class="mt-4 mb-2 border-bottom pb-2">Contact Information</h6>
+                  <h5 class="mt-4 mb-2 border-bottom pb-2">Contact Information</h5>
                   <div class="row g-3">
                     <div class="col-md-6">
                       <label for="contact_person" class="form-label">Contact Person</label>
-                      <input type="text" class="form-control" id="contact_person" name="contact_person" placeholder="Enter contact person name">
+                      <input type="text" class="form-control" id="contact_person" name="contact_person" placeholder="Enter contact person name" autocomplete="name">
                     </div>
                     <div class="col-md-6">
                       <label for="contact_fb_name" class="form-label">Facebook Name</label>
-                      <input type="text" class="form-control" id="contact_fb_name" name="contact_fb_name" placeholder="Enter Facebook name">
+                      <input type="text" class="form-control" id="contact_fb_name" name="contact_fb_name" placeholder="Enter Facebook name" autocomplete="off">
                     </div>
                   </div>
 
                   <div class="row g-3">
                     <div class="col-md-6">
                       <label for="contact_cp_no" class="form-label">Contact Number</label>
-                      <input type="text" class="form-control" id="contact_cp_no" name="contact_cp_no" placeholder="09XX-XXX-XXXX">
+                      <input type="tel" class="form-control" id="contact_cp_no" name="contact_cp_no" placeholder="09XX-XXX-XXXX" autocomplete="tel">
                     </div>
                   </div>
 
                   <!-- Address -->
-                  <h6 class="mt-4 mb-2 border-bottom pb-2">Address</h6>
+                  <h5 class="mt-4 mb-2 border-bottom pb-2">Address</h5>
                   <div class="row g-3">
                     <div class="col-12">
                       <label for="street_name" class="form-label">Street Name/Purok/Subdivision</label>
-                      <input type="text" class="form-control" id="street_name" name="street_name" placeholder="Enter street name/purok/subdivision">
+                      <input type="text" class="form-control" id="street_name" name="street_name" placeholder="Enter street name/purok/subdivision" autocomplete="street-address">
                     </div>
                   </div>
 
@@ -189,12 +189,12 @@
           <div class="card-tools ms-auto d-flex gap-2">
             <select class="form-select form-select-sm" id="statusFilter" style="width: 200px;">
               <option value="">-- All Status --</option>
-              <option value="active">Active/Enrolled</option>
-              <option value="inactive">Inactive</option>
-              <option value="transferred">Transferred</option>
-              <option value="graduated">Graduated</option>
-              <option value="archived">Archived</option>
-              <option value="deceased">Deceased</option>
+              <option value="New">New</option>
+              <option value="Old">Old</option>
+              <option value="Transferee">Transferee</option>
+              <option value="Transferred">Transferred</option>
+              <option value="Graduated">Graduated</option>
+              <option value="Deceased">Deceased</option>
             </select>
             <button type="button" class="btn btn-outline-primary btn-sm" id="btnAddStudent">
               <i class="bi bi-plus-circle me-1"></i>Add
@@ -208,9 +208,11 @@
           <table id="studentsTable" class="table table-bordered table-hover nowrap w-100">
             <thead>
               <tr>
-                <th>LRN</th>
+                <th style="text-align: center;">LRN</th>
                 <th>Last Name</th>
                 <th>First Name</th>
+                <th>Middle Name</th>
+                <th>Extension Name</th>
                 <th>Birthday</th>
                 <th>Sex</th>
                 <th>Status</th>
