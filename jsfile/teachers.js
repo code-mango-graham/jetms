@@ -52,16 +52,16 @@ $(document).ready(function () {
         });
     }
 
-    function loadDepartments(selectedId) {
+    function loadOffices(selectedId) {
         return $.ajax({
-            url: 'config/department_load.php',
+            url: 'config/office_load.php',
             type: 'POST',
             dataType: 'json',
             success: function (res) {
-                let options = '<option value="">-- Select Department --</option>';
+                let options = '<option value="">-- Select Office --</option>';
 
                 (res.data || []).forEach(function (row) {
-                    options += `<option value="${row.department_id}">${row.department_name}</option>`;
+                    options += `<option value="${row.office_id}">${row.office_name}</option>`;
                 });
 
                 $('#department_id').html(options);
@@ -107,7 +107,7 @@ $(document).ready(function () {
                     }
                 },
                 { data: 'position_title', defaultContent: '' },
-                { data: 'department_name', defaultContent: '' },
+                { data: 'office_name', defaultContent: '' },
                 {
                     data: 'date_hired',
                     render: function (data) {
@@ -161,7 +161,7 @@ $(document).ready(function () {
         resetTeacherForm();
         $('.modal-title').text('Add Teacher / Staff');
 
-        $.when(loadPositions(), loadDepartments()).always(function () {
+        $.when(loadPositions(), loadOffices()).always(function () {
             showTeacherModal();
         });
     });
@@ -206,7 +206,7 @@ $(document).ready(function () {
 
                 $.when(
                     loadPositions(data.position_id),
-                    loadDepartments(data.department_id)
+                    loadOffices(data.department_id)
                 ).always(function () {
                     $('.modal-title').text('Edit Teacher / Staff');
                     showTeacherModal();
@@ -309,5 +309,5 @@ $(document).ready(function () {
 
     initTable();
     loadPositions();
-    loadDepartments();
+    loadOffices();
 });

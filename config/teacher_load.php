@@ -17,10 +17,10 @@ $query = mysqli_query($conn, "
         t.email,
         t.date_hired,
         p.position_title,
-        d.department_name
+        o.office_name
     FROM tbl_teacher t
     LEFT JOIN tbl_position p ON p.position_id = t.position_id
-    LEFT JOIN tbl_department d ON d.department_id = t.department_id
+    LEFT JOIN tbl_office o ON o.office_id = t.department_id
     WHERE t.teacher_remarks = 1
     ORDER BY t.teacher_id DESC
 ");

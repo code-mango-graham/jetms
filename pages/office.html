@@ -1,16 +1,16 @@
 <!-- ============================= -->
-<!-- BEGIN CURRICULUM MANAGEMENT -->
+<!-- BEGIN OFFICE MANAGEMENT -->
 <!-- ============================= -->
 
 <div class="card card-primary card-outline">
 
     <!-- CARD HEADER -->
     <div class="card-header">
-        <h3 class="card-title fs-3 fw-bold">CURRICULUM MANAGEMENT</h3>
+        <h3 class="card-title fs-3 fw-bold">OFFICE MANAGEMENT</h3>
 
         <div class="card-tools">
             <button class="btn btn-primary btn-sm" id="btnAdd">
-                <i class="bi bi-plus-circle me-1"></i><B>Add Curriculum</B>
+                <i class="bi bi-plus-circle me-1"></i><B>Add Office</B>
             </button>
         </div>
     </div>
@@ -18,41 +18,31 @@
     <!-- ============================= -->
     <!-- BEGIN MODAL -->
     <!-- ============================= -->
-    <div class="modal fade" id="curriculumModal">
+    <div class="modal fade" id="officeModal">
 
         <div class="modal-dialog">
             <div class="modal-content">
 
-                <form id="curriculumForm">
+                <form id="officeForm">
 
                     <!-- MODAL HEADER -->
                     <div class="modal-header">
-                        <h4 class="modal-title">Curriculum</h4>
+                        <h4 class="modal-title">Office</h4>
                     </div>
 
                     <!-- MODAL BODY -->
                     <div class="modal-body">
 
-                        <input type="hidden" id="curriculum_id" name="curriculum_id">
+                        <input type="hidden" id="office_id" name="office_id">
 
                         <div class="form-group">
-                            <label for="curriculum_name">Curriculum Name</label>
-                            <input type="text" class="form-control" id="curriculum_name" name="curriculum_name" required>
+                            <label for="office_name">Office Name</label>
+                            <input type="text" class="form-control" id="office_name" name="office_name" required>
                         </div>
-
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <input type="text" class="form-control" id="description" name="description" required>
+                         <div class="form-group">
+                            <label for="office_description">Description</label>
+                            <input type="text" class="form-control" id="office_description" name="office_description">
                         </div>
-
-                        <div class="form-group">
-                            <label for="status">Status</label>
-                            <select class="form-control" id="status" name="status">
-                                <option value="1">Active</option>
-                                <option value="0">Inactive</option>
-                            </select>
-                        </div>
-
                     </div>
 
                     <!-- MODAL FOOTER -->
@@ -78,13 +68,12 @@
 
     <!-- TABLE CARD BODY -->
     <div class="card-body">
-        <table id="curriculumTable" class="table table-bordered table-hover compact nowrap">
+        <table id="officeTable" class="table table-bordered table-hover compact">
             <thead>
                 <tr>
-                    <th>CURRICULUM NAME</th>
+                    <th>OFFICE NAME</th>
                     <th>DESCRIPTION</th>
-                    <th>STATUS</th>
-                    <th width="230">ACTIONS</th>
+                    <th width="100">ACTIONS</th>
                 </tr>
             </thead>
         </table>
@@ -93,7 +82,7 @@
 </div>
 
 <!-- ============================= -->
-<!-- END CURRICULUM MANAGEMENT -->
+<!-- END OFFICE MANAGEMENT -->
 <!-- ============================= -->
 
-<script src="jsfile/curriculum.js"></script>
+<script src="jsfile/office.js"></script>

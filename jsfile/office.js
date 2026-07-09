@@ -1,11 +1,11 @@
 $(document).ready(function () {
 
     // Unbind previous handlers to prevent duplicates when page is reloaded
-    $(document).off('click', '#btnAdddepartment');
-    $(document).off('submit', '#departmentForm');
-    $(document).off('click', '.btnEditdep');
+    $(document).off('click', '#btnAddOffice');
+    $(document).off('submit', '#officeForm');
+    $(document).off('click', '.btnEditOffice');
 
-let table = $('#departmentTable').DataTable({
+let table = $('#officeTable').DataTable({
             processing: true,
             responsive: true,
             scrollX: true,
@@ -13,19 +13,20 @@ let table = $('#departmentTable').DataTable({
                 lengthMenu: "Show _MENU_ entries"
             },
             ajax: {
-                url: 'config/department_load.php',
+                url: 'config/office_load.php',
                 type: 'POST'
             },
             columns: [
-                { data: 'department_name' },
+                { data: 'office_name' },
+                { data: 'office_description' },
                 {
                     data: null,
                     className: 'text-center',
                     render: function(data){
 
                         return `
-                            <button class="btn btn-outline-secondary btn-sm btnEditdep"
-                                    data-id="${data.department_id}">
+                            <button class="btn btn-outline-secondary btn-sm btnEditOffice"
+                                    data-id="${data.office_id}">
                                 <i class="bi bi-pencil"></i>
                             </button>
                         `;
@@ -35,37 +36,38 @@ let table = $('#departmentTable').DataTable({
         });
 
 $('#btnAdd').click(function(){
-        $('#departmentForm')[0].reset();
-        $('#department_id').val('');
-        $('.modal-title').text('Add Department');
-        $('#departmentModal').modal('show');
+        $('#officeForm')[0].reset();
+        $('#office_id').val('');
+        $('.modal-title').text('Add Office');
+        $('#officeModal').modal('show');
        });
 
-$(document).on('click', '.btnEditdep', function(){
-         let department_id = $(this).data('id');
+$(document).on('click', '.btnEditOffice', function(){
+         let office_id = $(this).data('id');
             $.ajax({
-                url: 'config/department_get.php',
+                url: 'config/office_get.php',
                 type: 'POST',
                 data: {
-                    department_id: department_id
+                    office_id: office_id
                 },
                 dataType: 'json',
                 success: function(data){
 
-                    $('#department_id').val(data.department_id);
-                    $('#department_name').val(data.department_name);
-                    $('.modal-title').text('Edit Department/Office');
+                    $('#office_id').val(data.office_id);
+                    $('#office_name').val(data.office_name);
+                    $('#office_description').val(data.office_description);
+                    $('.modal-title').text('Edit Office');
 
-                    $('#departmentModal').modal('show');
+                    $('#officeModal').modal('show');
                 }
             });
         });
 
-$('#departmentForm').submit(function(e){
+$('#officeForm').submit(function(e){
              e.preventDefault();
 
     $.ajax({
-        url: 'config/department_add.php',
+        url: 'config/office_add.php',
         type: 'POST',
         data: $(this).serialize(),
         dataType: 'json',
@@ -83,9 +85,9 @@ $('#departmentForm').submit(function(e){
                 return;
             }
 
-            $('#departmentModal').modal('hide');
+            $('#officeModal').modal('hide');
             document.activeElement.blur(); 
-            $('#departmentTable').DataTable().ajax.reload(null, false);
+            $('#officeTable').DataTable().ajax.reload(null, false);
                    Swal.fire({
     toast: true,
     position: 'top-end',
