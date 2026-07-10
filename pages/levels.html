@@ -1,0 +1,97 @@
+<!-- ============================= -->
+<!-- BEGIN LEVEL MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">LEVEL MANAGEMENT</h3>
+
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnAdd">
+                <i class="bi bi-plus-circle me-1"></i><B>Add Level</B>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="levelModal">
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="levelForm">
+
+                    <!-- MODAL HEADER -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">Level</h4>
+                    </div>
+
+                    <!-- MODAL BODY -->
+                    <div class="modal-body">
+
+                        <input type="hidden" id="level_id" name="level_id">
+
+                        <div class="form-group">
+                            <label for="level_name">Level Name</label>
+                            <input type="text" class="form-control" id="level_name" name="level_name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="level_type">Level Type</label>
+                            <input type="text" class="form-control" id="level_type" name="level_type" required>
+                        </div>
+
+                    </div>
+
+                    <!-- MODAL FOOTER -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Save
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ============================= -->
+    <!-- END MODAL -->
+    <!-- ============================= -->
+
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <table id="levelTable" class="table table-bordered table-hover compact nowrap">
+            <thead>
+                <tr>
+                    <th>LEVEL NAME</th>
+                    <th>LEVEL TYPE</th>
+                    <th width="150">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- LEVEL VIEW - SECTIONS & SUBJECTS -->
+<!-- ============================= -->
+
+<div id="content_level"></div>
+
+<!-- ============================= -->
+<!-- END LEVEL MANAGEMENT -->
+<!-- ============================= -->
+
+<script src="jsfile/level.js"></script>

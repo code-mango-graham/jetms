@@ -1,0 +1,138 @@
+<!-- ============================= -->
+<!-- LEVEL VIEW - SECTIONS & SUBJECTS -->
+<!-- ============================= -->
+
+<div class="row g-3">
+
+    <!-- SECTIONS COLUMN -->
+    <div class="col-md-6">
+        <div class="card card-info card-outline">
+
+            <!-- CARD HEADER -->
+            <div class="card-header">
+                <h3 class="card-title fs-3 fw-bold">SECTIONS - <span id="view_level_name"></span></h3>
+                <div class="card-tools">
+                    <button class="btn btn-secondary btn-sm" id="btnBackLevel">
+                        <i class="bi bi-arrow-left me-1"></i>Back
+                    </button>
+                </div>
+            </div>
+
+            <!-- CARD BODY -->
+            <div class="card-body">
+                
+                <button class="btn btn-primary btn-sm mb-3" id="btnAddSection">
+                    <i class="bi bi-plus-circle me-1"></i>Add Section
+                </button>
+
+                <table id="sectionsTable" class="table table-bordered table-hover compact nowrap">
+                    <thead>
+                        <tr>
+                            <th>SECTION NAME</th>
+                            <th width="80">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SUBJECTS COLUMN -->
+    <div class="col-md-6">
+        <div class="card card-success card-outline">
+
+            <!-- CARD HEADER -->
+            <div class="card-header">
+                <h3 class="card-title fs-3 fw-bold">SUBJECTS - <span id="view_level_name_subjects"></span></h3>
+            </div>
+
+            <!-- CARD BODY -->
+            <div class="card-body">
+                
+                <button class="btn btn-primary btn-sm mb-3" id="btnAddSubject">
+                    <i class="bi bi-plus-circle me-1"></i>Add Subject
+                </button>
+
+                <table id="subjectsTable" class="table table-bordered table-hover compact nowrap">
+                    <thead>
+                        <tr>
+                            <th>SUBJECT NAME</th>
+                            <th>CODE</th>
+                            <th width="80">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- MODAL - ADD/EDIT SECTION -->
+<!-- ============================= -->
+
+<div class="modal fade" id="sectionModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="sectionForm">
+                <div class="modal-header">
+                    <h4 class="modal-title">Section</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="section_id" name="section_id">
+                    <input type="hidden" id="level_id_hidden" name="level_id" value="">
+                    
+                    <div class="form-group">
+                        <label for="section_name">Section Name</label>
+                        <input type="text" class="form-control" id="section_name" name="section_name" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ============================= -->
+<!-- MODAL - ADD/EDIT SUBJECT -->
+<!-- ============================= -->
+
+<div class="modal fade" id="subjectModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="subjectForm">
+                <div class="modal-header">
+                    <h4 class="modal-title">Subject</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="subject_id" name="subject_id">
+                    <input type="hidden" id="level_id_subject" name="level_id" value="">
+                    
+                    <div class="form-group">
+                        <label for="subject_name">Subject Name</label>
+                        <input type="text" class="form-control" id="subject_name" name="subject_name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subject_code">Subject Code</label>
+                        <input type="text" class="form-control" id="subject_code" name="subject_code">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Save</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="jsfile/level_view.js"></script>

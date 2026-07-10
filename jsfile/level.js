@@ -1,23 +1,23 @@
 $(document).ready(function () {
-    let schoolYearTable;
+    let levelTable;
 
-    function getSchoolYearModal() {
-        const el = document.getElementById('schoolYearModal');
+    function getLevelModal() {
+        const el = document.getElementById('levelModal');
         if (!el) return null;
         return bootstrap.Modal.getOrCreateInstance(el);
     }
 
-    function openSchoolYearModal() {
-        const modal = getSchoolYearModal();
+    function openLevelModal() {
+        const modal = getLevelModal();
         if (modal) modal.show();
     }
 
-    function closeSchoolYearModal() {
-        const modal = getSchoolYearModal();
+    function closeLevelModal() {
+        const modal = getLevelModal();
         if (modal) modal.hide();
     }
 
-    schoolYearTable = $('#schoolYearTable').DataTable({
+    levelTable = $('#levelTable').DataTable({
         processing: true,
         responsive: true,
         scrollX: true,
@@ -25,24 +25,13 @@ $(document).ready(function () {
             lengthMenu: 'Show _MENU_ entries'
         },
         ajax: {
-            url: 'config/school_year_load.php',
+            url: 'config/level_load.php',
             type: 'POST'
         },
-        order: [[1, 'desc']],
+        order: [[0, 'asc']],
         columns: [
-            { data: 'schoolyear_name', className: 'text-center' },
-            { data: 'year_start', className: 'text-center' },
-            { data: 'year_end', className: 'text-center' },
-            {
-                data: 'status',
-                className: 'text-center',
-                render: function (data) {
-                    if (String(data) === '1') {
-                        return '<span class="badge text-bg-success">Active</span>';
-                    }
-                    return '<span class="badge text-bg-secondary">Inactive</span>';
-                }
-            },
+            { data: 'level_name', className: 'text-center' },
+            { data: 'level_type', className: 'text-center' },
             {
                 data: null,
                 className: 'text-center',
@@ -50,10 +39,13 @@ $(document).ready(function () {
                 render: function (data) {
                     return `
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-secondary btnEdit" data-id="${data.schoolyear_id}" title="Edit">
+                            <button class="btn btn-outline-info btnViewLevel" data-id="${data.level_id}" title="View/Manage Sections & Subjects">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary btnEdit" data-id="${data.level_id}" title="Edit">
                                 <i class="bi bi-pencil"></i>
                             </button>
-                            <button class="btn btn-outline-danger btnDeleteSchoolYear" data-id="${data.schoolyear_id}" title="Delete">
+                            <button class="btn btn-outline-danger btnDelete" data-id="${data.level_id}" title="Delete">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
@@ -64,19 +56,19 @@ $(document).ready(function () {
     });
 
     $('#btnAdd').on('click', function () {
-        $('#schoolYearForm')[0].reset();
-        $('#schoolyear_id').val('');
-        $('.modal-title').text('Add School Year');
-        openSchoolYearModal();
+        $('#levelForm')[0].reset();
+        $('#level_id').val('');
+        $('.modal-title').text('Add Level');
+        openLevelModal();
     });
 
     $(document).on('click', '.btnEdit', function () {
-        const schoolyear_id = $(this).data('id');
+        const level_id = $(this).data('id');
 
         $.ajax({
-            url: 'config/school_year_get.php',
+            url: 'config/level_get.php',
             type: 'POST',
-            data: { schoolyear_id: schoolyear_id },
+            data: { level_id: level_id },
             dataType: 'json',
             success: function (data) {
                 if (data.status === 'error') {
@@ -89,23 +81,21 @@ $(document).ready(function () {
                     return;
                 }
 
-                $('#schoolyear_id').val(data.schoolyear_id || '');
-                $('#schoolyear_name').val(data.schoolyear_name || '');
-                $('#year_start').val(data.year_start || '');
-                $('#year_end').val(data.year_end || '');
-                $('#status').val(data.status || '0');
+                $('#level_id').val(data.level_id || '');
+                $('#level_name').val(data.level_name || '');
+                $('#level_type').val(data.level_type || '');
 
-                $('.modal-title').text('Edit School Year');
-                openSchoolYearModal();
+                $('.modal-title').text('Edit Level');
+                openLevelModal();
             }
         });
     });
 
-    $('#schoolYearForm').on('submit', function (e) {
+    $('#levelForm').on('submit', function (e) {
         e.preventDefault();
 
         $.ajax({
-            url: 'config/school_year_add.php',
+            url: 'config/level_add.php',
             type: 'POST',
             data: $(this).serialize(),
             dataType: 'json',
@@ -120,9 +110,9 @@ $(document).ready(function () {
                     return;
                 }
 
-                closeSchoolYearModal();
+                closeLevelModal();
                 document.activeElement.blur();
-                schoolYearTable.ajax.reload(null, false);
+                levelTable.ajax.reload(null, false);
 
                 Swal.fire({
                     toast: true,
@@ -137,12 +127,12 @@ $(document).ready(function () {
         });
     });
 
-    $(document).on('click', '.btnDeleteSchoolYear', function () {
-        const schoolyear_id = $(this).data('id');
+    $(document).on('click', '.btnDelete', function () {
+        const level_id = $(this).data('id');
 
         Swal.fire({
-            title: 'Delete School Year?',
-            text: 'This will remove the school year record.',
+            title: 'Delete Level?',
+            text: 'This will remove the level record.',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#dc3545',
@@ -155,9 +145,9 @@ $(document).ready(function () {
             }
 
             $.ajax({
-                url: 'config/school_year_delete.php',
+                url: 'config/level_delete.php',
                 type: 'POST',
-                data: { schoolyear_id: schoolyear_id },
+                data: { level_id: level_id },
                 dataType: 'json',
                 success: function (res) {
                     if (res.status === 'error') {
@@ -170,7 +160,7 @@ $(document).ready(function () {
                         return;
                     }
 
-                    schoolYearTable.ajax.reload(null, false);
+                    levelTable.ajax.reload(null, false);
 
                     Swal.fire({
                         toast: true,
@@ -186,5 +176,43 @@ $(document).ready(function () {
         });
     });
 
-});
+    $(document).on('click', '.btnViewLevel', function () {
+        const level_id = $(this).data('id');
 
+        $.ajax({
+            url: 'config/level_get.php',
+            type: 'POST',
+            data: { level_id: level_id },
+            dataType: 'json',
+            success: function (data) {
+                if (data.status === 'error') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: data.message,
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                    return;
+                }
+
+                $('#content_level').empty();
+                $('#content_level').load('pages/level_view.html', function () {
+                    $('#view_level_name').text(data.level_name);
+                    $('#level_id_hidden').val(level_id);
+                    $('#level_id_subject').val(level_id);
+                    
+                    $.getScript('jsfile/level_view.js', function() {
+                        if (typeof window.initLevelView === 'function') {
+                            window.initLevelView(level_id);
+                        }
+                    });
+                });
+
+                $('html, body').animate({
+                    scrollTop: $('#content_level').offset().top
+                }, 100);
+            }
+        });
+    });
+
+});

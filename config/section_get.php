@@ -3,25 +3,23 @@ include '../config.php';
 
 header('Content-Type: application/json');
 
-$id = isset($_POST['schoolyear_id']) ? (int) $_POST['schoolyear_id'] : 0;
+$id = isset($_POST['section_id']) ? (int) $_POST['section_id'] : 0;
 
 if ($id <= 0) {
     echo json_encode([
         "status" => "error",
-        "message" => "Invalid school year id"
+        "message" => "Invalid section id"
     ]);
     exit;
 }
 
 $query = mysqli_prepare($conn, "
     SELECT
-        schoolyear_id,
-        schoolyear_name,
-        year_start,
-        year_end,
-        status
-    FROM tbl_schoolyear
-    WHERE schoolyear_id = ?
+        section_id,
+        section_name,
+        level_id
+    FROM tbl_section
+    WHERE section_id = ?
     LIMIT 1
 ");
 mysqli_stmt_bind_param($query, "i", $id);
@@ -37,7 +35,7 @@ if ($data) {
 } else {
     echo json_encode([
         "status" => "error",
-        "message" => "School year not found"
+        "message" => "Section not found"
     ]);
 }
 ?>

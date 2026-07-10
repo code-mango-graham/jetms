@@ -3,25 +3,25 @@ include '../config.php';
 
 header('Content-Type: application/json');
 
-$schoolyear_id = isset($_POST['schoolyear_id']) ? (int) $_POST['schoolyear_id'] : 0;
+$section_id = isset($_POST['section_id']) ? (int) $_POST['section_id'] : 0;
 
-if ($schoolyear_id <= 0) {
+if ($section_id <= 0) {
     echo json_encode([
         'status' => 'error',
-        'message' => 'Invalid school year id'
+        'message' => 'Invalid section id'
     ]);
     exit;
 }
 
-$delete = mysqli_prepare($conn, 'DELETE FROM tbl_schoolyear WHERE schoolyear_id = ?');
-mysqli_stmt_bind_param($delete, 'i', $schoolyear_id);
+$delete = mysqli_prepare($conn, 'DELETE FROM tbl_section WHERE section_id = ?');
+mysqli_stmt_bind_param($delete, 'i', $section_id);
 mysqli_stmt_execute($delete);
 
 if (mysqli_stmt_affected_rows($delete) > 0) {
     mysqli_stmt_close($delete);
     echo json_encode([
         'status' => 'success',
-        'message' => 'School year deleted successfully'
+        'message' => 'Section deleted successfully'
     ]);
     exit;
 }
@@ -30,6 +30,6 @@ mysqli_stmt_close($delete);
 
 echo json_encode([
     'status' => 'error',
-    'message' => 'School year not found'
+    'message' => 'Section not found'
 ]);
 ?>

@@ -6,14 +6,13 @@ header('Content-Type: application/json');
 
 $query = mysqli_query($conn, "
     SELECT
-        schoolyear_id,
-        schoolyear_name,
-        year_start,
-        year_end,
-        status,
-        schoolyear_remarks
-    FROM tbl_schoolyear
-    ORDER BY year_start DESC
+        level_id,
+        level_name,
+        level_type,
+        created_at,
+        updated_at
+    FROM tbl_level
+    ORDER BY level_id DESC
 ");
 
 $data = [];

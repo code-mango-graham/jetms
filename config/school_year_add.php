@@ -8,23 +8,10 @@ $schoolyear_name = isset($_POST['schoolyear_name']) ? trim($_POST['schoolyear_na
 $year_start      = isset($_POST['year_start']) ? (int) $_POST['year_start'] : 0;
 $year_end        = isset($_POST['year_end']) ? (int) $_POST['year_end'] : 0;
 $status          = isset($_POST['status']) ? (int) $_POST['status'] : 0;
-$curriculum_id   = isset($_POST['curriculum_id']) ? (int) $_POST['curriculum_id'] : 0;
 
-if ($curriculum_id <= 0) {
-    $activeCurriculum = mysqli_query($conn, "SELECT curriculum_id FROM tbl_curriculum WHERE status = 1 LIMIT 1");
-    if ($activeCurriculum && mysqli_num_rows($activeCurriculum) > 0) {
-        $activeRow = mysqli_fetch_assoc($activeCurriculum);
-        $curriculum_id = (int) $activeRow['curriculum_id'];
-    }
-}
-
-if ($curriculum_id <= 0) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "Please set an active curriculum first"
-    ]);
-    exit;
-}
+// =======================
+// VALIDATION
+// =======================
 
 if ($schoolyear_name === '') {
     echo json_encode([
@@ -34,10 +21,13 @@ if ($schoolyear_name === '') {
     exit;
 }
 
-
-// =======================
-// VALIDATION
-// =======================
+if ($year_start <= 0 || $year_end <= 0) {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Year Start and Year End are required"
+    ]);
+    exit;
+}
 
 if ($year_end <= $year_start) {
     echo json_encode([
@@ -46,7 +36,6 @@ if ($year_end <= $year_start) {
     ]);
     exit;
 }
-
 
 // =======================
 // DUPLICATE CHECK
@@ -77,18 +66,13 @@ if (mysqli_stmt_num_rows($check) > 0) {
 
 mysqli_stmt_close($check);
 
-
 // =======================
 // ONLY ONE ACTIVE SCHOOL YEAR
 // =======================
 
 if ($status === 1) {
-    mysqli_query($conn,"
-        UPDATE tbl_schoolyear
-        SET status = 0
-    ");
+    mysqli_query($conn, "UPDATE tbl_schoolyear SET status = 0");
 }
-
 
 // =======================
 // INSERT OR UPDATE
@@ -96,12 +80,12 @@ if ($status === 1) {
 
 if (empty($schoolyear_id)) {
     // INSERT
-    $save = mysqli_prepare($conn, "INSERT INTO tbl_schoolyear (schoolyear_name, curriculum_id, year_start, year_end, status) VALUES (?, NULLIF(?, 0), ?, ?, ?)");
-    mysqli_stmt_bind_param($save, "siiii", $schoolyear_name, $curriculum_id, $year_start, $year_end, $status);
+    $save = mysqli_prepare($conn, "INSERT INTO tbl_schoolyear (schoolyear_name, year_start, year_end, status) VALUES (?, ?, ?, ?)");
+    mysqli_stmt_bind_param($save, "siii", $schoolyear_name, $year_start, $year_end, $status);
 } else {
     // UPDATE
-    $save = mysqli_prepare($conn, "UPDATE tbl_schoolyear SET schoolyear_name = ?, curriculum_id = NULLIF(?, 0), year_start = ?, year_end = ?, status = ? WHERE schoolyear_id = ?");
-    mysqli_stmt_bind_param($save, "siiiii", $schoolyear_name, $curriculum_id, $year_start, $year_end, $status, $schoolyear_id);
+    $save = mysqli_prepare($conn, "UPDATE tbl_schoolyear SET schoolyear_name = ?, year_start = ?, year_end = ?, status = ? WHERE schoolyear_id = ?");
+    mysqli_stmt_bind_param($save, "siiii", $schoolyear_name, $year_start, $year_end, $status, $schoolyear_id);
 }
 
 if (!mysqli_stmt_execute($save)) {
@@ -115,7 +99,6 @@ if (!mysqli_stmt_execute($save)) {
 
 mysqli_stmt_close($save);
 
-
 // =======================
 // RESPONSE
 // =======================
@@ -124,3 +107,4 @@ echo json_encode([
     "status" => "success",
     "message" => "Saved successfully"
 ]);
+?>
