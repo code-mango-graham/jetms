@@ -1,5 +1,8 @@
 $(document).ready(function () {
     console.log('Student management loaded');
+    const defaultStudentPhoto = 'logos/logo1.png';
+    const outputPhotoSize = 600;
+    let cameraStream = null;
     
     let studentsTable;
     let activeSchoolYearId;
@@ -9,7 +12,168 @@ $(document).ready(function () {
     $(document).off('submit', '#studentForm');
     $(document).off('click', '#btnSaveStudent');
     $(document).off('click', '.btnEditStudent');
+    $(document).off('click', '.btnViewStudent');
+    $(document).off('change', '#student_photo');
+    $(document).off('click', '#btnOpenCamera');
+    $(document).off('click', '#btnCapturePhoto');
+    $(document).off('click', '#btnCancelCamera');
+    $(document).off('click', '#btnCloseCameraModal');
     $(document).off('change', '#statusFilter');
+
+    function resolvePhotoSrc(path) {
+        if (!path) return defaultStudentPhoto;
+        if (path.startsWith('http://') || path.startsWith('https://')) return path;
+        if (path.startsWith('/')) return path.slice(1);
+        if (path.includes('/')) return path;
+        return 'assets/img/students/' + path;
+    }
+
+    function setPhotoPreview(path) {
+        $('#studentPhotoPreview').attr('src', resolvePhotoSrc(path));
+    }
+
+    function dataUrlToFile(dataUrl, filename) {
+        const parts = dataUrl.split(',');
+        const mime = parts[0].match(/:(.*?);/)[1];
+        const bstr = atob(parts[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        return new File([u8arr], filename, { type: mime });
+    }
+
+    function assignFileToInput(file) {
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+        const input = document.getElementById('student_photo');
+        input.files = transfer.files;
+    }
+
+    function normalizeTo2x2FileFromImage(imageSrc) {
+        return new Promise(function (resolve, reject) {
+            const img = new Image();
+            img.onload = function () {
+                const minSide = Math.min(img.width, img.height);
+                const sx = (img.width - minSide) / 2;
+                const sy = (img.height - minSide) / 2;
+
+                const canvas = document.createElement('canvas');
+                canvas.width = outputPhotoSize;
+                canvas.height = outputPhotoSize;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, outputPhotoSize, outputPhotoSize);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                resolve(dataUrlToFile(dataUrl, `student_${Date.now()}.jpg`));
+            };
+            img.onerror = function () {
+                reject(new Error('Unable to process selected photo'));
+            };
+            img.src = imageSrc;
+        });
+    }
+
+    async function handleSelectedPhotoFile(file) {
+        if (!file) return;
+
+        try {
+            const fileReader = new FileReader();
+            const dataUrl = await new Promise(function (resolve, reject) {
+                fileReader.onload = function (event) {
+                    resolve(event.target.result);
+                };
+                fileReader.onerror = function () {
+                    reject(new Error('Unable to read selected photo'));
+                };
+                fileReader.readAsDataURL(file);
+            });
+
+            const normalizedFile = await normalizeTo2x2FileFromImage(dataUrl);
+            assignFileToInput(normalizedFile);
+
+            const previewReader = new FileReader();
+            previewReader.onload = function (event) {
+                $('#studentPhotoPreview').attr('src', event.target.result);
+            };
+            previewReader.readAsDataURL(normalizedFile);
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Photo Error',
+                text: err.message || 'Failed to process photo',
+                timer: 4000,
+                showConfirmButton: true
+            });
+        }
+    }
+
+    async function startCamera() {
+        const modalEl = document.getElementById('cameraModal');
+        const video = document.getElementById('cameraVideo');
+
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'user',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                },
+                audio: false
+            });
+
+            video.srcObject = cameraStream;
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        } catch (err) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Camera Error',
+                text: 'Cannot access camera. Please allow permission or use file upload.',
+                timer: 5000,
+                showConfirmButton: true
+            });
+        }
+    }
+
+    function stopCamera() {
+        const modalEl = document.getElementById('cameraModal');
+        const video = document.getElementById('cameraVideo');
+
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(function (track) {
+                track.stop();
+            });
+            cameraStream = null;
+        }
+
+        video.srcObject = null;
+        bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+    }
+
+    async function captureFromCamera() {
+        const video = document.getElementById('cameraVideo');
+        if (!video || !video.videoWidth || !video.videoHeight) {
+            return;
+        }
+
+        // Match the on-screen guide (62% square) to extract centered framing from camera feed.
+        const cropSize = Math.floor(Math.min(video.videoWidth, video.videoHeight) * 0.62);
+        const sx = Math.floor((video.videoWidth - cropSize) / 2);
+        const sy = Math.floor((video.videoHeight - cropSize) / 2);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = outputPhotoSize;
+        canvas.height = outputPhotoSize;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, sx, sy, cropSize, cropSize, 0, 0, outputPhotoSize, outputPhotoSize);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        const cameraFile = dataUrlToFile(dataUrl, `student_camera_${Date.now()}.jpg`);
+        assignFileToInput(cameraFile);
+        $('#studentPhotoPreview').attr('src', dataUrl);
+        stopCamera();
+    }
 
     // Load active school year
     function loadActiveSchoolYear() {
@@ -249,6 +413,10 @@ $(document).ready(function () {
                 {
                     data: 'student_status',
                     render: function (data) {
+                        if (!data || !data.trim()) {
+                            return '<span class="badge bg-secondary">-</span>';
+                        }
+
                         let badgeClass = 'bg-secondary';
                         switch (data) {
                             case 'New':
@@ -280,6 +448,9 @@ $(document).ready(function () {
                     render: function (data) {
                         return `
                             <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary btnViewStudent" data-id="${data.student_id}" title="View Profile">
+                                    <i class="bi bi-person-vcard"></i>
+                                </button>
                                 <button class="btn btn-outline-secondary btnEditStudent" data-id="${data.student_id}" title="Edit">
                                     <i class="bi bi-pencil"></i>
                                 </button>
@@ -309,8 +480,44 @@ $(document).ready(function () {
     $(document).on('click', '#btnAddStudent', function () {
         $('#studentForm')[0].reset();
         $('#student_id').val('');
+        $('#existing_photo').val('');
+        $('#student_photo').val('');
+        setPhotoPreview('');
         $('#studentModal .modal-title').text('Add New Student');
         showStudentModal();
+    });
+
+    $(document).on('change', '#student_photo', function () {
+        const file = this.files && this.files[0] ? this.files[0] : null;
+        if (!file) {
+            setPhotoPreview($('#existing_photo').val());
+            return;
+        }
+
+        handleSelectedPhotoFile(file);
+    });
+
+    $(document).on('click', '#btnOpenCamera', function () {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Camera Not Supported',
+                text: 'Your browser does not support camera capture. Use file upload instead.',
+                timer: 4000,
+                showConfirmButton: true
+            });
+            return;
+        }
+
+        startCamera();
+    });
+
+    $(document).on('click', '#btnCapturePhoto', function () {
+        captureFromCamera();
+    });
+
+    $(document).on('click', '#btnCancelCamera, #btnCloseCameraModal', function () {
+        stopCamera();
     });
 
     // Edit student
@@ -348,6 +555,9 @@ $(document).ready(function () {
                     $('#province').val(data.province);
                     $('#contact_cp_no').val(data.contact_cp_no);
                     $('#student_status').val(data.student_status);
+                    $('#existing_photo').val(data.student_photo || '');
+                    $('#student_photo').val('');
+                    setPhotoPreview(data.student_photo || '');
 
                     // Load province if not empty, then load municipalities and barangays
                     if (data.province) {
@@ -384,6 +594,14 @@ $(document).ready(function () {
             }
         });
     });
+
+    $(document).on('click', '.btnViewStudent', function () {
+        const studentId = $(this).data('id');
+        if (!studentId) {
+            return;
+        }
+        window.open(`student_profile.html?student_id=${encodeURIComponent(studentId)}`, '_blank');
+    });
    
     $(document).on('submit', '#studentForm', function(e){
         e.preventDefault();
@@ -392,10 +610,14 @@ $(document).ready(function () {
         const studentId = $('#student_id').val();
         const endpoint = studentId ? 'config/student_update.php' : 'config/student_add.php';
 
+        const formData = new FormData(this);
+
         $.ajax({
             url: endpoint,
             type: 'POST',
-            data: $(this).serialize(),
+            data: formData,
+            processData: false,
+            contentType: false,
             dataType: 'json',
             success: function(res){
                 console.log('Response:', res);

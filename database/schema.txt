@@ -73,3 +73,33 @@ CREATE TABLE tbl_subject (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_level_id (level_id)
 ) ENGINE=InnoDB;
+
+CREATE TABLE tbl_student (
+    student_id INT AUTO_INCREMENT PRIMARY KEY,
+    lrn VARCHAR(20) UNIQUE,
+    last_name VARCHAR(100) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    student_photo VARCHAR(255),
+    middle_name VARCHAR(100),
+    extension_name VARCHAR(20),
+    middle_initial VARCHAR(2),
+    birthday DATE,
+    sex ENUM('Male', 'Female', 'Other'),
+    cp_no VARCHAR(20),
+    spoken_language VARCHAR(100),
+    fb_name VARCHAR(100),
+    esc_id_no VARCHAR(50),
+    former_school VARCHAR(150),
+    father_name VARCHAR(150),
+    mother_name VARCHAR(150),
+    contact_person VARCHAR(150),
+    contact_fb_name VARCHAR(100),
+    street_name VARCHAR(150),
+    barangay VARCHAR(100),
+    municipality VARCHAR(100),
+    province VARCHAR(100),
+    contact_cp_no VARCHAR(20),
+    student_status VARCHAR(30) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;

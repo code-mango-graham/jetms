@@ -26,8 +26,30 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-              <form id="studentForm">
+              <form id="studentForm" enctype="multipart/form-data">
                 <input type="hidden" id="student_id" name="student_id">
+                <input type="hidden" id="existing_photo" name="existing_photo">
+
+                <div class="card border-0 bg-light mb-3">
+                  <div class="card-body py-3">
+                    <div class="row g-3 align-items-center">
+                      <div class="col-md-2">
+                        <img id="studentPhotoPreview" src="logos/logo1.png" alt="Student photo preview" class="img-fluid rounded border" style="width: 120px; height: 120px; object-fit: cover;">
+                      </div>
+                      <div class="col-md-10">
+                        <label for="student_photo" class="form-label mb-1">Student 2x2 Photo</label>
+                        <div class="d-flex flex-wrap gap-2">
+                          <input type="file" class="form-control" id="student_photo" name="student_photo" accept="image/*" capture="user" style="max-width: 320px;">
+                          <button type="button" class="btn btn-outline-primary" id="btnOpenCamera">
+                            <i class="bi bi-camera"></i>
+                            Open Camera
+                          </button>
+                        </div>
+                        <small class="text-muted">Tip: We auto-crop to square 2x2 style and compress before upload.</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                   
                   <!-- Basic Information -->
                   <div class="row g-3">
@@ -182,6 +204,33 @@
           </div>
         </div>
       </form>
+
+      <div class="modal fade" id="cameraModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Capture Student Photo</h5>
+              <button type="button" class="btn-close" id="btnCloseCameraModal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="position-relative rounded overflow-hidden bg-dark" style="max-width: 560px; margin: 0 auto;">
+                <video id="cameraVideo" autoplay playsinline muted style="width: 100%; height: auto; display: block;"></video>
+                <div class="position-absolute top-50 start-50 translate-middle" style="width: 62%; aspect-ratio: 1/1; border: 2px dashed rgba(255,255,255,0.95); border-radius: 12px; box-shadow: 0 0 0 2000px rgba(0,0,0,0.35) inset; pointer-events: none;"></div>
+                <div class="position-absolute top-50 start-50 translate-middle" style="width: 44%; height: 56%; border: 2px solid rgba(255,255,255,0.85); border-radius: 50%; pointer-events: none;"></div>
+              </div>
+              <p class="text-muted small text-center mt-2 mb-0">Align the face inside the oval guide. We save a square 2x2 style photo.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" id="btnCancelCamera">Cancel</button>
+              <button type="button" class="btn btn-primary" id="btnCapturePhoto">
+                <i class="bi bi-camera-fill"></i>
+                Capture
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Students Table Card -->
       <div class="card" style="padding:0;">
         <div class="card-header d-flex align-items-center">
@@ -216,7 +265,7 @@
                 <th>Birthday</th>
                 <th>Sex</th>
                 <th>Status</th>
-                <th width="100">Actions</th>
+                <th width="130">Actions</th>
               </tr>
             </thead>
             <tbody></tbody>

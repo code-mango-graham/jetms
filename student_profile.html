@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Profile</title>
+  <link rel="stylesheet" href="plugins/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="plugins/icons/font/bootstrap-icons.min.css" />
+  <style>
+    body {
+      background: linear-gradient(160deg, #f7f9fc 0%, #e9eef6 100%);
+      min-height: 100vh;
+    }
+
+    .profile-shell {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .profile-banner {
+      background: #1f3c88;
+      color: #fff;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 12px 24px rgba(31, 60, 136, 0.2);
+    }
+
+    .profile-photo {
+      width: 160px;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 1rem;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      background: #fff;
+    }
+
+    .profile-card {
+      border: 0;
+      border-radius: 1rem;
+      box-shadow: 0 8px 20px rgba(16, 24, 40, 0.08);
+    }
+
+    .label-muted {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #6c757d;
+      margin-bottom: 0.2rem;
+    }
+
+    .value-strong {
+      font-weight: 600;
+      color: #1f2937;
+      min-height: 1.4rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="profile-shell">
+    <div class="profile-banner mb-4 d-flex flex-column flex-md-row align-items-md-center gap-3">
+      <img id="profilePhoto" class="profile-photo" src="logos/logo1.png" alt="Student photo" />
+      <div>
+        <h2 id="studentFullName" class="mb-1">Student Profile</h2>
+        <div class="d-flex flex-wrap gap-2">
+          <span class="badge text-bg-light" id="studentLrn">LRN: -</span>
+          <span class="badge text-bg-light" id="studentStatus">Status: -</span>
+        </div>
+      </div>
+      <div class="ms-md-auto">
+        <a href="index.html" class="btn btn-light btn-sm">
+          <i class="bi bi-arrow-left"></i>
+          Back to System
+        </a>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12">
+        <div class="card profile-card">
+          <div class="card-header bg-white border-0 pt-3">
+            <h5 class="mb-0">Student Data</h5>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <div class="col-md-3">
+                <div class="label-muted">First Name</div>
+                <div id="first_name" class="value-strong">-</div>
+              </div>
+              <div class="col-md-3">
+                <div class="label-muted">Middle Name</div>
+                <div id="middle_name" class="value-strong">-</div>
+              </div>
+              <div class="col-md-3">
+                <div class="label-muted">Last Name</div>
+                <div id="last_name" class="value-strong">-</div>
+              </div>
+              <div class="col-md-3">
+                <div class="label-muted">Extension</div>
+                <div id="extension_name" class="value-strong">-</div>
+              </div>
+
+              <div class="col-md-3">
+                <div class="label-muted">Sex</div>
+                <div id="sex" class="value-strong">-</div>
+              </div>
+              <div class="col-md-3">
+                <div class="label-muted">Birthday</div>
+                <div id="birthday" class="value-strong">-</div>
+              </div>
+              <div class="col-md-3">
+                <div class="label-muted">CP No.</div>
+                <div id="cp_no" class="value-strong">-</div>
+              </div>
+              <div class="col-md-3">
+                <div class="label-muted">Spoken Language</div>
+                <div id="spoken_language" class="value-strong">-</div>
+              </div>
+
+              <div class="col-md-4">
+                <div class="label-muted">Parent / Guardian</div>
+                <div id="parent_info" class="value-strong">-</div>
+              </div>
+              <div class="col-md-4">
+                <div class="label-muted">Contact Person</div>
+                <div id="contact_person" class="value-strong">-</div>
+              </div>
+              <div class="col-md-4">
+                <div class="label-muted">Contact Number</div>
+                <div id="contact_cp_no" class="value-strong">-</div>
+              </div>
+
+              <div class="col-12">
+                <div class="label-muted">Address</div>
+                <div id="address" class="value-strong">-</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="card profile-card h-100">
+          <div class="card-header bg-white border-0 pt-3">
+            <h5 class="mb-0">Payment History</h5>
+          </div>
+          <div class="card-body d-flex align-items-center justify-content-center text-muted" style="min-height: 180px;">
+            No payment records yet.
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card profile-card h-100">
+          <div class="card-header bg-white border-0 pt-3">
+            <h5 class="mb-0">Enrollment Details</h5>
+          </div>
+          <div class="card-body d-flex align-items-center justify-content-center text-muted" style="min-height: 180px;">
+            No enrollment details yet.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="jquery/jquery.min.js"></script>
+  <script src="jsfile/student_profile.js"></script>
+</body>
+</html>
