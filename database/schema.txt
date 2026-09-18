@@ -1,14 +1,3 @@
-CREATE TABLE tbl_schoolyear (
-    schoolyear_id INT AUTO_INCREMENT PRIMARY KEY,
-    year_start YEAR NOT NULL,
-    year_end YEAR NOT NULL,
-    schoolyear_name VARCHAR(50) NOT NULL,
-    status TINYINT(1) NOT NULL DEFAULT 1,
-    schoolyear_remarks TINYINT(1) DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
 CREATE TABLE tbl_office (
     office_id INT AUTO_INCREMENT PRIMARY KEY,
     office_name VARCHAR(100) NOT NULL,
@@ -16,15 +5,6 @@ CREATE TABLE tbl_office (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     office_remarks TINYINT(1) DEFAULT 1
-) ENGINE=InnoDB;
-
-CREATE TABLE tbl_level (
-    level_id INT AUTO_INCREMENT PRIMARY KEY,
-    level_name VARCHAR(100) NOT NULL,
-    level_type VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    level_remarks TINYINT(1) DEFAULT 1
 ) ENGINE=InnoDB;
 
 CREATE TABLE tbl_position ( 
@@ -55,24 +35,6 @@ CREATE TABLE tbl_teacher (
     teacher_remarks TINYINT(1) not null default 1
 ) ENGINE=InnoDB;
 
-CREATE TABLE tbl_section (
-    section_id INT AUTO_INCREMENT PRIMARY KEY,
-    level_id INT NOT NULL,
-    section_name VARCHAR(100) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    KEY idx_level_id (level_id)
-) ENGINE=InnoDB;
-
-CREATE TABLE tbl_subject (
-    subject_id INT AUTO_INCREMENT PRIMARY KEY,
-    level_id INT NOT NULL,
-    subject_name VARCHAR(100) NOT NULL,
-    subject_code VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    KEY idx_level_id (level_id)
-) ENGINE=InnoDB;
 
 CREATE TABLE tbl_student (
     student_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -104,55 +66,42 @@ CREATE TABLE tbl_student (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
-CREATE TABLE tbl_schoolyear_section (
-    schoolyear_section_id INT AUTO_INCREMENT PRIMARY KEY,
-    schoolyear_id INT NOT NULL,
-    level_id INT NOT NULL,
-    section_name VARCHAR(100) NOT NULL,
-    section_remarks TINYINT(1) NOT NULL DEFAULT 1,
+
+CREATE TABLE tbl_admin (
+    admin_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    middle_name VARCHAR(100),
+    last_name VARCHAR(100) NOT NULL,
+    extension_name VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uq_sy_level_section (schoolyear_id, level_id, section_name),
-    KEY idx_sy_section_schoolyear (schoolyear_id),
-    KEY idx_sy_section_level (level_id),
-    CONSTRAINT fk_sy_section_schoolyear
-        FOREIGN KEY (schoolyear_id)
-        REFERENCES tbl_schoolyear(schoolyear_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_sy_section_level
-        FOREIGN KEY (level_id)
-        REFERENCES tbl_level(level_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+    admin_remarks TINYINT(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB;
 
-CREATE TABLE tbl_assignments (
-    assignment_id INT AUTO_INCREMENT PRIMARY KEY,
-    section_id INT NOT NULL,
-    subject_id INT NOT NULL,
-    teacher_id INT NULL,
-    schedule_info VARCHAR(255) NULL,
-    room_no VARCHAR(50) NULL,
+CREATE TABLE tbl_student_account (
+    student_account_id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL UNIQUE,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uq_section_subject (section_id, subject_id),
-    KEY idx_assignment_section (section_id),
-    KEY idx_assignment_subject (subject_id),
-    KEY idx_assignment_teacher (teacher_id),
-    CONSTRAINT fk_assignment_section
-        FOREIGN KEY (section_id)
-        REFERENCES tbl_section(section_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_assignment_subject
-        FOREIGN KEY (subject_id)
-        REFERENCES tbl_subject(subject_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_assignment_teacher
-        FOREIGN KEY (teacher_id)
-        REFERENCES tbl_teacher(teacher_id)
-        ON DELETE SET NULL
-        ON UPDATE CASCADE
+    account_remarks TINYINT(1) NOT NULL DEFAULT 1,
+    FOREIGN KEY (student_id) REFERENCES tbl_student(student_id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB;
+
+CREATE TABLE tbl_teacher_account (
+    teacher_account_id INT AUTO_INCREMENT PRIMARY KEY,
+    teacher_id INT NOT NULL UNIQUE,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    account_remarks TINYINT(1) NOT NULL DEFAULT 1,
+    FOREIGN KEY (teacher_id) REFERENCES tbl_teacher(teacher_id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Seed admin login (username: admin / password: admin)
+INSERT INTO tbl_admin (username, password, first_name, middle_name, last_name, extension_name)
+VALUES ('admin', '$2y$10$fAxXMFCEBNiVUGT8SDNsgOhMJgsrYy.sXpZeMobRM6SkBkQvjMXsa', 'Arnold', 'Seriales', 'Dela Cruz', NULL);

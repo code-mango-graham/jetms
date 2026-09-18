@@ -85,4 +85,10 @@
 <!-- END OFFICE MANAGEMENT -->
 <!-- ============================= -->
 
-<script src="jsfile/office.js"></script>
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/office.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

@@ -1,0 +1,150 @@
+<!-- ============================= -->
+<!-- BEGIN USER MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">USER MANAGEMENT</h3>
+
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnAddUser">
+                <i class="bi bi-plus-circle me-1"></i><B>Add Account</B>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="userModal">
+
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <form id="userForm">
+
+                    <!-- MODAL HEADER -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">Account</h4>
+                    </div>
+
+                    <!-- MODAL BODY -->
+                    <div class="modal-body">
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="account_role">Role</label>
+                                <select class="form-select select2" id="account_role" name="role" required>
+                                    <option value="">-- Select Role --</option>
+                                    <option value="student">Student</option>
+                                    <option value="teacher">Teacher</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 field-linked d-none">
+                                <label class="form-label" for="linked_id">Linked Record</label>
+                                <select class="form-select select2" id="linked_id" name="linked_id">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 field-admin d-none">
+                                <label class="form-label" for="first_name">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name">
+                            </div>
+                            <div class="col-md-4 field-admin d-none">
+                                <label class="form-label" for="middle_name">Middle Name</label>
+                                <input type="text" class="form-control" id="middle_name" name="middle_name">
+                            </div>
+                            <div class="col-md-4 field-admin d-none">
+                                <label class="form-label" for="last_name">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name">
+                            </div>
+                            <div class="col-md-4 field-admin d-none">
+                                <label class="form-label" for="extension_name">Extension Name</label>
+                                <input type="text" class="form-control" id="extension_name" name="extension_name">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label" for="username">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="password">Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <button type="button" class="btn btn-outline-secondary toggle-password" tabindex="-1">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MODAL FOOTER -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Save
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ============================= -->
+    <!-- END MODAL -->
+    <!-- ============================= -->
+
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <table id="usersTable" class="table table-bordered table-hover compact">
+            <thead>
+                <tr>
+                    <th>ROLE</th>
+                    <th>NAME</th>
+                    <th>USERNAME</th>
+                    <th>CREATED</th>
+                    <th width="100">ACTIONS</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END USER MANAGEMENT -->
+<!-- ============================= -->
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/users.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>
+<script>
+$(document).ready(function () {
+  $('.select2').select2({
+    width: '100%',
+    placeholder: 'Search and select',
+    allowClear: true
+  });
+
+  $('#userModal').on('shown.bs.modal', function () {
+    $('#userModal .select2').select2({
+      width: '100%',
+      dropdownParent: $('#userModal')
+    });
+  });
+});
+</script>

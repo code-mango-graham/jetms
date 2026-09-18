@@ -63,4 +63,10 @@
           </div>
         </div>
         <!--end::App Content-->
-        <script src="jsfile/settings.js"></script>
+        <script>
+        (function () {
+            var s = document.createElement('script');
+            s.src = 'jsfile/settings.js?v=' + Date.now();
+            document.body.appendChild(s);
+        })();
+        </script>

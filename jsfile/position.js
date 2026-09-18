@@ -6,6 +6,11 @@ $(document).ready(function () {
     $(document).off('click', '.btnEditposition');
     $(document).off('click', '.btnDeleteposition');
 
+if ($.fn.DataTable.isDataTable('#positionTable')) {
+    $('#positionTable').DataTable().destroy();
+    $('#positionTable tbody').empty();
+}
+
 let table = $('#positionTable').DataTable({
             processing: true,
             responsive: true,
@@ -14,8 +19,12 @@ let table = $('#positionTable').DataTable({
                 lengthMenu: "Show _MENU_ entries"
             },
             ajax: {
-                url: 'config/position_load.php',
-                type: 'POST'
+                url: 'config/position.php',
+                type: 'POST',
+                data: function (d) {
+                    d.action = 'load';
+                    return d;
+                }
             },
             columns: [
                 { data: 'position_title' },
@@ -54,9 +63,10 @@ $('#btnAdd').click(function(){
 $(document).on('click', '.btnEditposition', function(){
          let position_id = $(this).data('id');
             $.ajax({
-                url: 'config/position_get.php',
+                url: 'config/position.php',
                 type: 'POST',
                 data: {
+                    action: 'get',
                     position_id: position_id
                 },
                 dataType: 'json',
@@ -76,9 +86,9 @@ $('#positionForm').submit(function(e){
              e.preventDefault();
 
     $.ajax({
-        url: 'config/position_add.php',
+        url: 'config/position.php',
         type: 'POST',
-        data: $(this).serialize(),
+        data: $(this).serialize() + '&action=add',
         dataType: 'json',
         success: function(res){
 
@@ -128,9 +138,10 @@ $(document).on('click', '.btnDeleteposition', function(){
             if (result.isConfirmed) {
 
                 $.ajax({
-                    url: 'config/position_delete.php',
+                    url: 'config/position.php',
                     type: 'POST',
                     data: {
+                        action: 'delete',
                         position_id: position_id
                     },
                     dataType: 'json',

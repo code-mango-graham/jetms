@@ -20,10 +20,10 @@ $(document).ready(function () {
     }
 
     $.ajax({
-        url: 'config/student_profile_get.php',
-        type: 'GET',
+        url: 'config/student.php',
+        type: 'POST',
         dataType: 'json',
-        data: { student_id: studentId },
+        data: { action: 'profile', student_id: studentId },
         success: function (res) {
             if (!res.success || !res.data) {
                 alert(res.message || 'Student not found.');

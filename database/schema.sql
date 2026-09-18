@@ -87,3 +87,51 @@ CREATE TABLE IF NOT EXISTS tbl_student (
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+-- Login accounts: one per role, each linked to its source record
+CREATE TABLE IF NOT EXISTS tbl_admin (
+	admin_id INT AUTO_INCREMENT PRIMARY KEY,
+	username VARCHAR(50) NOT NULL UNIQUE,
+	password VARCHAR(255) NOT NULL,
+	first_name VARCHAR(100) NOT NULL,
+	middle_name VARCHAR(100),
+	last_name VARCHAR(100) NOT NULL,
+	extension_name VARCHAR(20),
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	admin_remarks TINYINT(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS tbl_student_account (
+	student_account_id INT AUTO_INCREMENT PRIMARY KEY,
+	student_id INT NOT NULL UNIQUE,
+	username VARCHAR(50) NOT NULL UNIQUE,
+	password VARCHAR(255) NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	account_remarks TINYINT(1) NOT NULL DEFAULT 1,
+	CONSTRAINT fk_student_account_student
+		FOREIGN KEY (student_id)
+		REFERENCES tbl_student(student_id)
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS tbl_teacher_account (
+	teacher_account_id INT AUTO_INCREMENT PRIMARY KEY,
+	teacher_id INT NOT NULL UNIQUE,
+	username VARCHAR(50) NOT NULL UNIQUE,
+	password VARCHAR(255) NOT NULL,
+	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	account_remarks TINYINT(1) NOT NULL DEFAULT 1,
+	CONSTRAINT fk_teacher_account_teacher
+		FOREIGN KEY (teacher_id)
+		REFERENCES tbl_teacher(teacher_id)
+		ON DELETE CASCADE
+		ON UPDATE CASCADE
+) ENGINE=InnoDB;
+
+-- Seed admin login (username: admin / password: admin)
+INSERT INTO tbl_admin (username, password, first_name, middle_name, last_name, extension_name)
+VALUES ('admin', '$2y$10$fAxXMFCEBNiVUGT8SDNsgOhMJgsrYy.sXpZeMobRM6SkBkQvjMXsa', 'Arnold', 'Seriales', 'Dela Cruz', NULL);

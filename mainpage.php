@@ -1,0 +1,436 @@
+<?php
+session_start();
+if (!isset($_SESSION['auth'])) {
+    header('Location: index.html');
+    exit;
+}
+$auth = $_SESSION['auth'];
+?>
+<!doctype html>
+<html lang="en">
+  <!--begin::Head-->
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>JET Montessori School of Ramon, Incorporated</title>
+      <link rel="icon" type="image/png" href="logos/logo1.png"/>
+    <!--begin::Accessibility Meta Tags-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+    <!--end::Accessibility Meta Tags-->
+
+    <meta name="supported-color-schemes" content="light dark" />
+    <link rel="preload" href="adminlte/css/adminlte.css" as="style" />
+    <!-- Bootstrap FIRST -->
+  
+
+    <link rel="stylesheet" href="plugins/overlayscrollbars/overlayscrollbars.min.css" />
+    <link rel="stylesheet" href="plugins/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="plugins/icons/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="adminlte/css/adminlte.css" />
+    <link rel="stylesheet" href="plugins/datatables/datatables.min.css">
+    <link rel="stylesheet" href="plugins/datatables_buttons/buttons.bootstrap5.min.css">
+    <link rel="stylesheet" href="plugins/select2/select2.min.css">
+    <link rel="stylesheet" href="plugins/sweetalert/sweetalert2.min.css">
+    
+  </head>
+  <!--end::Head-->
+  <!--begin::Body-->
+  <body class="layout-fixed sidebar-expand-lg bg-body-tertiary">
+    <!--begin::App Wrapper-->
+    <div class="app-wrapper">
+      <!--begin::Header-->
+      <nav class="app-header navbar navbar-expand bg-body">
+        <!--begin::Container-->
+        <div class="container-fluid">
+          <!--begin::Start Navbar Links-->
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" data-lte-toggle="sidebar" href="#" role="button">
+                <i class="bi bi-list"></i>
+              </a>
+            </li>
+
+            <li class="nav-item d-none d-md-block">
+              <a href="./mainpage.php" class="nav-link">
+                <i class="bi bi-grid-1x2 me-1" aria-hidden="true"></i>
+                Home
+              </a>
+            </li>
+            <li class="nav-item d-none d-md-block">
+              <a href="./docs/introduction.html" class="nav-link">
+                <i class="bi bi-calendar" aria-hidden="true"></i>
+                School Calendar
+              </a>
+            </li>
+          </ul>
+          <!--end::Start Navbar Links-->
+
+          <!--begin::End Navbar Links-->
+          <ul class="navbar-nav ms-auto">
+            <!--begin::Fullscreen Toggle-->
+            <li class="nav-item">
+              <a class="nav-link" href="#" data-lte-toggle="fullscreen">
+                <i data-lte-icon="maximize" class="bi bi-arrows-fullscreen"></i>
+                <i data-lte-icon="minimize" class="bi bi-fullscreen-exit d-none"></i>
+              </a>
+            </li>
+            <!--end::Fullscreen Toggle-->
+
+            <!--begin::Color Mode Toggle (#6010)-->
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link"
+                href="#"
+                id="bd-theme"
+                aria-label="Toggle color scheme"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+              >
+                <i class="bi bi-sun-fill" data-lte-theme-icon="light"></i>
+                <i class="bi bi-moon-fill d-none" data-lte-theme-icon="dark"></i>
+                <i class="bi bi-circle-half d-none" data-lte-theme-icon="auto"></i>
+              </a>
+              <ul
+                class="dropdown-menu dropdown-menu-end"
+                aria-labelledby="bd-theme"
+                style="--bs-dropdown-min-width: 8rem"
+              >
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item d-flex align-items-center"
+                    data-bs-theme-value="light"
+                    aria-pressed="false"
+                  >
+                    <i class="bi bi-sun-fill me-2"></i>
+                    Light
+                    <i class="bi bi-check-lg ms-auto d-none"></i>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item d-flex align-items-center"
+                    data-bs-theme-value="dark"
+                    aria-pressed="false"
+                  >
+                    <i class="bi bi-moon-fill me-2"></i>
+                    Dark
+                    <i class="bi bi-check-lg ms-auto d-none"></i>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    class="dropdown-item d-flex align-items-center active"
+                    data-bs-theme-value="auto"
+                    aria-pressed="true"
+                  >
+                    <i class="bi bi-circle-half me-2"></i>
+                    Auto
+                    <i class="bi bi-check-lg ms-auto d-none"></i>
+                  </button>
+                </li>
+              </ul>
+            </li>
+            <!--end::Color Mode Toggle-->
+
+            <!--begin::User Menu Dropdown-->
+            <li class="nav-item dropdown user-menu">
+              <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                <img
+                  src="./assets/img/me.jpg"
+                  class="user-image rounded-circle shadow"
+                  alt="User Image"
+                />
+                <span class="d-none d-md-inline"><?php echo htmlspecialchars($auth['name']); ?></span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-end">
+                <!--begin::User Image-->
+                <li class="user-header text-bg-info">
+                  <img
+                    src="./assets/img/me.jpg"
+                    class="rounded-circle shadow"
+                    alt="User Image"
+                  />
+                  <p>
+                    <?php echo htmlspecialchars($auth['name']); ?>
+                    <small><?php echo htmlspecialchars(ucfirst($auth['role'])); ?></small>
+                  </p>
+                </li>
+                <!--end::User Image-->
+                <!--begin::Menu Body-->
+                <li class="user-body">
+                  <!--begin::Row-->
+                  <div class="row">
+                    <div class="col-4 text-center">
+                      <a href="#">
+                       Profile
+                      </a>
+                    </div>
+                    <div class="col-4 text-center">
+                      <a href="#">
+                        Calendar
+                      </a>
+                    </div>
+                    <div class="col-4 text-center">
+                      <a href="#">
+                       Lock
+                      </a>
+                    </div>
+                  </div>
+                  <!--end::Row-->
+                </li>
+                <!--end::Menu Body-->
+                <!--begin::Menu Footer-->
+                <li class="user-footer">
+                  <a href="#" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Change Password</a>
+                  <a href="config/logout.php" class="btn btn-outline-danger float-end">Log out</a>
+                </li>
+                <!--end::Menu Footer-->
+              </ul>
+            </li>
+            <!--end::User Menu Dropdown-->
+          </ul>
+          <!--end::End Navbar Links-->
+        </div>
+        <!--end::Container-->
+      </nav>
+      <!--end::Header-->
+      <!--begin::Sidebar-->
+      <aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="Dark">
+        <!--begin::Sidebar Brand-->
+        <div class="sidebar-brand">
+          <!--begin::Brand Link-->
+          <a href="./mainpage.php" class="brand-link">
+            <!--begin::Brand Image-->
+            <img
+              src="logos/logo2.png"
+              alt="School Logo"
+              class="brand-image"
+            />
+            <!--end::Brand Image-->
+            <!--begin::Brand Text-->
+            <span class="brand-text fw-light"><b>JETMS</b> Infosys</span>
+            <!--end::Brand Text-->
+          </a>
+          <!--end::Brand Link-->
+        </div>
+        <!--end::Sidebar Brand-->
+        <!--begin::Sidebar Wrapper-->
+        <div class="sidebar-wrapper">
+          <nav class="mt-2">
+            <!--begin::Sidebar Menu-->
+            <ul
+              class="nav sidebar-menu flex-column"
+              data-lte-toggle="treeview"
+              role="navigation"
+              aria-label="Main navigation"
+              data-accordion="false"
+              id="navigation"
+            >
+              <?php if ($auth['role'] === 'admin'): ?>
+              <li class="nav-header">ADMIN PANEL</li>
+              <li class="nav-item">
+                <a href="#" name = "admin_dash" id = "admin_dash" class="nav-link">
+                  <i class="nav-icon bi bi-speedometer2"></i>
+                  <p>Dashboard</p>
+                </a>
+              </li>
+               <li class="nav-item">
+                <a href="#" name = "admin_students" id = "admin_students" class="nav-link">
+                  <i class="nav-icon bi bi-people"></i>
+                  <p>Students</p>
+                </a>
+              </li>
+               <li class="nav-item">
+                <a href="#" name = "admin_enroll" id = "admin_enroll" class="nav-link">
+                  <i class="nav-icon bi bi-people"></i>
+                  <p>Enrollment</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                    <a href="#" name = "admin_payments" id = "admin_payments" class="nav-link">
+                      <i class="nav-icon bi bi-wallet2"></i>
+                      <p>Payments</p>
+                    </a>
+              </li>
+              <li class="nav-item">
+                    <a href="#" name = "admin_attendance" id = "admin_attendance" class="nav-link">
+                      <i class="nav-icon bi bi-geo-alt"></i>
+                      <p>Attendance</p>
+                    </a>
+              </li>
+              <li class="nav-item">
+                    <a href="#" name = "admin_announcements" id = "admin_announcements" class="nav-link">
+                      <i class="nav-icon bi bi-megaphone"></i>
+                      <p>Announcements</p>
+                    </a>
+              </li>  
+              <li class="nav-item">
+                    <a href="#" name = "admin_settings" id = "admin_settings" class="nav-link">
+                      <i class="nav-icon bi bi-gear"></i>
+                      <p>Admin Settings</p>
+                    </a>
+              </li>
+              <?php endif; ?>
+
+              <?php if ($auth['role'] === 'teacher'): ?>
+              <li class="nav-header">TEACHER'S PANEL</li>
+              <li class="nav-item">
+                <a href="#" name = "teacher_classes" id = "teacher_classes" class="nav-link">
+                  <i class="nav-icon bi bi-diagram-2"></i>
+                  <p>My Classes</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                    <a href="#" name = "teacher_announcements" id = "teacher_announcements" class="nav-link">
+                      <i class="nav-icon bi bi-megaphone"></i>
+                      <p>Announcements</p>
+                    </a>
+              </li>
+              <?php endif; ?>
+
+              <?php if ($auth['role'] === 'student'): ?>
+              <li class="nav-header">STUDENT'S PANEL</li>
+              <li class="nav-item">
+                <a href="#" name = "student_subjects" id = "student_subjects" class="nav-link">
+                  <i class="nav-icon bi bi-diagram-2"></i>
+                  <p>My subjects</p>
+                </a>
+              </li>
+               <li class="nav-item">
+                <a href="#" name = "student_grades" id = "student_grades" class="nav-link">
+                  <i class="nav-icon bi bi-award"></i>
+                  <p>My Grades</p>
+                </a>
+              </li>
+              <li class="nav-item">
+                    <a href="#" name = "student_payments" id = "student_payments" class="nav-link">
+                      <i class="nav-icon bi bi-wallet2"></i>
+                      <p>Payment History</p>
+                    </a>
+              </li>
+              <li class="nav-item">
+                    <a href="#" name = "student_announcements" id = "student_announcements" class="nav-link">
+                      <i class="nav-icon bi bi-megaphone"></i>
+                      <p>Announcements</p>
+                    </a>
+              </li>
+              <?php endif; ?>
+
+            </ul>
+            <!--end::Sidebar Menu-->
+
+            <!-- Docs CTA (bottom of sidebar) -->
+            <div class="p-3 mt-3 border-top border-secondary border-opacity-25">
+              <a
+                href="./docs/introduction.html"
+                class="btn btn-sm btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2"
+              >
+              <i class="bi bi-book" aria-hidden="true"></i>
+                Documentation
+              </a>
+              <small class="text-muted d-block mt-2 text-center" style="font-size: 0.75rem;">
+                  Version 1.0
+              </small>
+            </div>
+          </nav>
+        </div>
+        <!--end::Sidebar Wrapper-->
+      </aside>
+      <!--end::Sidebar-->
+
+      <!--begin::App Main-->
+      <main class="app-main" name = "app-main" id = "app-main">
+        <div id="content_level"></div>
+      </main>
+      <!--end::App Main-->
+
+      <!--begin::Footer-->
+      <footer class="app-footer">
+        <!--begin::To the end-->
+        <div class="float-end d-none d-sm-inline">Tel/Phone: 078 258 5796 / 0935 819 5028<br> Email: jetmontessorischool@gmail.com</div>
+        <!--end::To the end-->
+        <!--begin::Copyright-->
+        <strong>
+          JET Montessori School of Ramon, Incorporated&nbsp;<br>
+          <!---a href="#" class="text-decoration-none">078 258 5796 / 0935 819 5028</a--->
+        </strong>
+        Ramon, Isabela, 3319 Philippines
+        <!--end::Copyright-->
+      </footer>
+      <!--end::Footer-->
+    </div>
+    <!--end::App Wrapper-->
+
+    <!--begin::Change Password Modal-->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Change Password</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <form id="changePasswordForm" autocomplete="off">
+              <div class="mb-3">
+                <label class="form-label" for="current_password">Current Password</label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="current_password" name="current_password" required>
+                  <button type="button" class="btn btn-outline-secondary toggle-password" tabindex="-1">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="new_password">New Password</label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="new_password" name="new_password" required minlength="4">
+                  <button type="button" class="btn btn-outline-secondary toggle-password" tabindex="-1">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label" for="confirm_password">Confirm New Password</label>
+                <div class="input-group">
+                  <input type="password" class="form-control" id="confirm_password" name="confirm_password" required minlength="4">
+                  <button type="button" class="btn btn-outline-secondary toggle-password" tabindex="-1">
+                    <i class="bi bi-eye"></i>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" form="changePasswordForm" class="btn btn-primary">Change Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--end::Change Password Modal-->
+
+    <script src="jquery/jquery.min.js"></script>
+    <script src="plugins/overlayscrollbars/overlayscrollbars.browser.es6.min.js"></script>
+    <script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="adminlte/js/adminlte.js"></script>
+    <script src="plugins/datatables/datatables.min.js"></script>
+    <script src="plugins/datatables_buttons/dataTables.buttons.min.js"></script>
+    <script src="plugins/datatables_buttons/buttons.html5.min.js"></script>
+    <script src="plugins/datatables_buttons/buttons.print.min.js"></script>
+    <script src="plugins/datatables_buttons/jszip.js"></script>
+    <script src="plugins/datatables_buttons/pdfmake.js"></script>
+    <script src="plugins/datatables_buttons/vfs_fonts.js"></script>
+    <script src="plugins/select2/select2.full.min.js"></script>
+    <script src="plugins/sweetalert/sweetalert2.min.js"></script>
+    <script src="jsfile/main.js"></script>
+    <script src="jsfile/navi.js"></script>
+    <script src="jsfile/change_password.js"></script>
+    
+  </body> 
+  <!--end::Body-->
+</html>

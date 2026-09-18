@@ -16,7 +16,6 @@ $(document).ready(function () {
     }
     // Unbind previous handlers to prevent duplicates when page is reloaded
     $(document).off('click', '#btnAddTeacher');
-    $(document).off('click', '#refreshTeachers');
     $(document).off('submit', '#teacherForm');
     $(document).off('click', '.btnEditTeacher');
     $(document).off('click', '.btnDeleteTeacher');
@@ -31,8 +30,9 @@ $(document).ready(function () {
 
     function loadPositions(selectedId) {
         return $.ajax({
-            url: 'config/position_load.php',
+            url: 'config/position.php',
             type: 'POST',
+            data: { action: 'load' },
             dataType: 'json',
             success: function (res) {
                 let options = '<option value="">-- Select Position --</option>';
@@ -54,8 +54,9 @@ $(document).ready(function () {
 
     function loadOffices(selectedId) {
         return $.ajax({
-            url: 'config/office_load.php',
+            url: 'config/office.php',
             type: 'POST',
+            data: { action: 'load' },
             dataType: 'json',
             success: function (res) {
                 let options = '<option value="">-- Select Office --</option>';
@@ -89,8 +90,12 @@ $(document).ready(function () {
                 lengthMenu: 'Show _MENU_ entries'
             },
             ajax: {
-                url: 'config/teacher_load.php',
+                url: 'config/teacher.php',
                 type: 'POST',
+                data: function (d) {
+                    d.action = 'load';
+                    return d;
+                },
                 dataSrc: 'data'
             },
             columns: [
@@ -166,19 +171,13 @@ $(document).ready(function () {
         });
     });
 
-    $(document).on('click', '#refreshTeachers', function () {
-        if (teachersTable) {
-            teachersTable.ajax.reload(null, false);
-        }
-    });
-
     $(document).on('click', '.btnEditTeacher', function () {
         const teacher_id = $(this).data('id');
 
         $.ajax({
-            url: 'config/teacher_get.php',
+            url: 'config/teacher.php',
             type: 'POST',
-            data: { teacher_id: teacher_id },
+            data: { action: 'get', teacher_id: teacher_id },
             dataType: 'json',
             success: function (data) {
                 if (data.status === 'error') {
@@ -219,9 +218,9 @@ $(document).ready(function () {
         e.preventDefault();
 
         $.ajax({
-            url: 'config/teacher_add.php',
+            url: 'config/teacher.php',
             type: 'POST',
-            data: $(this).serialize(),
+            data: $(this).serialize() + '&action=add',
             dataType: 'json',
             success: function (res) {
                 if (res.status === 'error') {
@@ -272,9 +271,9 @@ $(document).ready(function () {
             }
 
             $.ajax({
-                url: 'config/teacher_delete.php',
+                url: 'config/teacher.php',
                 type: 'POST',
-                data: { teacher_id: teacher_id },
+                data: { action: 'delete', teacher_id: teacher_id },
                 dataType: 'json',
                 success: function (res) {
                     if (res.status === 'error') {

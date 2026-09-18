@@ -358,8 +358,12 @@ $(document).ready(function () {
                 lengthMenu: 'Show _MENU_ entries'
             },
             ajax: {
-                url: 'config/student_load.php',
+                url: 'config/student.php',
                 type: 'POST',
+                data: function (d) {
+                    d.action = 'load';
+                    return d;
+                },
                 dataSrc: 'data'
             },
             columns: [
@@ -524,9 +528,9 @@ $(document).ready(function () {
     $(document).on('click', '.btnEditStudent', function () {
         const studentId = $(this).data('id');
         $.ajax({
-            url: 'config/student_get.php',
+            url: 'config/student.php',
             type: 'POST',
-            data: { student_id: studentId },
+            data: { action: 'get', student_id: studentId },
             dataType: 'json',
             success: function (res) {
                 if (res.success && res.data) {
@@ -605,15 +609,12 @@ $(document).ready(function () {
    
     $(document).on('submit', '#studentForm', function(e){
         e.preventDefault();
-        
-        // Determine if adding new or updating existing student
-        const studentId = $('#student_id').val();
-        const endpoint = studentId ? 'config/student_update.php' : 'config/student_add.php';
 
         const formData = new FormData(this);
+        formData.append('action', 'add');
 
         $.ajax({
-            url: endpoint,
+            url: 'config/student.php',
             type: 'POST',
             data: formData,
             processData: false,
