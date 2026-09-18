@@ -22,7 +22,7 @@ let table = $('#positionTable').DataTable({
                 { data: 'description' },
                 {
                     data: null,
-                    className: 'text-center',
+                    classame: 'text-center',
                     render: function(data){
 
                         return `
