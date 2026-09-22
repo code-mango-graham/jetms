@@ -1,0 +1,90 @@
+<!-- ============================= -->
+<!-- BEGIN SCHOOL YEAR MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">SCHOOL YEAR MANAGEMENT</h3>
+
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnAddSchoolYear">
+                <i class="bi bi-plus-circle me-1"></i><B>Add School Year</B>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="schoolYearModal">
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="schoolYearForm">
+
+                    <!-- MODAL HEADER -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">School Year</h4>
+                    </div>
+
+                    <!-- MODAL BODY -->
+                    <div class="modal-body">
+
+                        <input type="hidden" id="schoolyear_id" name="schoolyear_id">
+
+                        <div class="form-group">
+                            <label for="schoolyear_name">School Year (e.g. 2026-2027)</label>
+                            <input type="text" class="form-control" id="schoolyear_name" name="schoolyear_name" placeholder="2026-2027" required>
+                        </div>
+                    </div>
+
+                    <!-- MODAL FOOTER -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Save
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ============================= -->
+    <!-- END MODAL -->
+    <!-- ============================= -->
+
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <table id="schoolYearTable" class="table table-bordered table-hover nowrap w-100">
+            <thead>
+                <tr>
+                    <th>SCHOOL YEAR</th>
+                    <th width="120">STATUS</th>
+                    <th width="180">ACTIONS</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END SCHOOL YEAR MANAGEMENT -->
+<!-- ============================= -->
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/school_year.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

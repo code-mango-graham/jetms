@@ -1,0 +1,347 @@
+/*
+  JETMS shared theme — design pattern for all admin-shell pages.
+  Link this AFTER adminlte.css / bootstrap.min.css so its rules win the cascade.
+  Reuse on every future page (Enrollment, Subjects, Grades, etc.) for a
+  consistent look instead of writing page-specific overrides.
+*/
+
+:root {
+  --accent: #12a480;
+  --accent-dark: #0c7c60;
+  --accent-soft: #e4f6f1;
+  --accent-rgb: 18, 164, 128;
+  --ink: #1f2d2a;
+  --muted: #6c7a76;
+}
+
+/* ===== Layout containment — stop wide content (long unbroken text, wide tables)
+   from ever pushing the main content area beyond the viewport and under the
+   fixed sidebar. Any table that genuinely needs to scroll (DataTables with
+   scrollX) still scrolls internally via its own wrapper below. ===== */
+html, body {
+  overflow-x: hidden;
+}
+
+#app-main,
+.app-content,
+#content_settings,
+#content_level {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.card, .card-body, .subpanel, .subpanel-body {
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.dataTables_wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Tables scroll horizontally on narrow screens (scrollX) instead of squeezing
+   cell text — break-word on a crushed-width cell wraps one letter per line. */
+.dataTables_wrapper table,
+.dataTables_wrapper table td,
+.dataTables_wrapper table th {
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  white-space: nowrap !important;
+}
+
+/* ===== Buttons ===== */
+.btn-primary {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+  background-color: var(--accent-dark) !important;
+  border-color: var(--accent-dark) !important;
+}
+
+.btn-outline-primary {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn-check:checked + .btn-outline-primary,
+.btn-outline-primary:active {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+.btn {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* ===== Links / text accents ===== */
+a {
+  color: var(--accent-dark);
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+.text-primary {
+  color: var(--accent) !important;
+}
+
+/* ===== Form focus rings ===== */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 0.2rem rgba(var(--accent-rgb), 0.18);
+}
+
+/* ===== Topbar ===== */
+.app-header {
+  box-shadow: 0 2px 12px rgba(20, 40, 35, 0.05);
+  border-bottom: 1px solid rgba(20, 40, 35, 0.06);
+}
+
+/* ===== Sidebar ===== */
+.app-sidebar {
+  box-shadow: 2px 0 16px rgba(20, 40, 35, 0.08);
+}
+
+.app-sidebar .nav-sidebar > .nav-item > .nav-link.active,
+.app-sidebar .nav-sidebar > .nav-item > .nav-link:hover {
+  background-color: var(--accent) !important;
+  color: #ffffff !important;
+}
+
+.app-sidebar .nav-sidebar > .nav-item > .nav-link {
+  transition: background-color 0.2s ease, color 0.2s ease;
+  border-radius: 0.4rem;
+  margin: 0.05rem 0.4rem;
+}
+
+.app-sidebar .nav-header {
+  color: var(--accent);
+  opacity: 0.85;
+  letter-spacing: 0.04em;
+}
+
+/* ===== Cards ===== */
+.card {
+  border: none;
+  border-radius: 0.85rem;
+  box-shadow: 0 6px 20px -8px rgba(20, 40, 35, 0.14), 0 1px 4px rgba(20, 40, 35, 0.05);
+}
+
+.card.card-primary.card-outline {
+  border-top: 3px solid var(--accent);
+}
+
+.card-header {
+  border-radius: 0.85rem 0.85rem 0 0 !important;
+  background: transparent;
+}
+
+/* ===== DataTables buttons ===== */
+.dt-buttons .btn-primary {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+}
+
+/* ===== Fresh-content fade-in (plays automatically whenever navi.js/settings.js
+   inject a new page fragment into #app-main / #content_settings) ===== */
+.app-content-header,
+#app-main > .card,
+#content_settings > .card,
+#content_level > *,
+.app-content > .container-fluid > .card {
+  animation: theme-fade-up 0.35s ease;
+}
+
+@keyframes theme-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-content-header,
+  #app-main > .card,
+  #content_settings > .card,
+  #content_level > *,
+  .app-content > .container-fluid > .card {
+    animation: none;
+  }
+}
+
+/* ===== Badges ===== */
+.badge.bg-primary {
+  background-color: var(--accent) !important;
+}
+
+/* ===== Sub-panels (grouped sections within a modal/card, e.g. Sections vs
+   Subjects under Manage Level) — reuse for any future grouped sub-content ===== */
+.subpanel {
+  border: 1px solid rgba(20, 40, 35, 0.09);
+  border-radius: 0.65rem;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.subpanel:last-child {
+  margin-bottom: 0;
+}
+
+.subpanel-header {
+  padding: 0.55rem 1rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-left: 4px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.subpanel-body {
+  padding: 0.85rem 1rem 1rem;
+  background: #fff;
+}
+
+.subpanel-amber .subpanel-header {
+  border-left-color: #f2b134;
+  background: #fdf1da;
+  color: #8a5d00;
+}
+
+.subpanel-violet .subpanel-header {
+  border-left-color: #7b6ef6;
+  background: #ece9fe;
+  color: #5142c4;
+}
+
+/* ===== Decorative background (shell-wide, sits behind the sidebar/topbar which
+   stay opaque, and peeks through in the #app-main gutters around cards) ===== */
+.bg-deco {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-deco svg {
+  position: absolute;
+  opacity: 0.18;
+}
+
+.bg-deco .deco-1 {
+  top: -10%;
+  right: -8%;
+  width: 34vw;
+  max-width: 480px;
+  animation: theme-float-a 26s ease-in-out infinite;
+}
+
+.bg-deco .deco-2 {
+  bottom: -14%;
+  left: 6%;
+  width: 30vw;
+  max-width: 420px;
+  animation: theme-float-b 22s ease-in-out infinite;
+}
+
+.bg-deco .deco-3 {
+  bottom: 8%;
+  right: 4%;
+  width: 16vw;
+  max-width: 220px;
+  opacity: 0.14;
+  animation: theme-float-c 16s ease-in-out infinite;
+}
+
+@keyframes theme-float-a {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-2%, 2.5%) rotate(6deg); }
+}
+
+@keyframes theme-float-b {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(2%, -2%) rotate(-5deg); }
+}
+
+@keyframes theme-float-c {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-10px) scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-deco svg {
+    animation: none !important;
+  }
+}
+
+#app-main,
+#content_level {
+  background: transparent;
+}
+
+/* Announcements feed — plain document flow, not a stack of card tiles */
+.announcement-feed-card {
+  width: 50%;
+}
+
+.announcement-photo-wrap {
+  width: 60%;
+}
+
+@media (max-width: 768px) {
+  .announcement-feed-card,
+  .announcement-photo-wrap {
+    width: 100%;
+  }
+}
+
+.announcement-post {
+  border-bottom: 1px solid rgba(20, 40, 35, 0.09);
+}
+
+.announcement-post:last-child {
+  border-bottom: none;
+  padding-bottom: 0 !important;
+}
+
+.announcement-post:first-child {
+  padding-top: 0 !important;
+}
+
+/* Pages loaded straight into #app-main via a bare .card (Enrollment, Announcements,
+   Attendance, and the Teacher/Student role panels) have no wrapper of their own to
+   supply a gutter — give the shell itself one so nothing ever sits flush against the
+   sidebar/edges. Pages that already pad themselves (e.g. .app-content.px-4) just end
+   up with a little extra horizontal breathing room, which is harmless. */
+#app-main {
+  padding: 1.25rem 1.5rem;
+}

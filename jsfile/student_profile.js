@@ -14,10 +14,116 @@ $(document).ready(function () {
         return 'assets/img/students/' + path;
     }
 
+    function money(v) {
+        return '₱' + parseFloat(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    const statusBadgeMap = { enrolled: 'bg-success', dropped: 'bg-danger', transferred: 'bg-warning', completed: 'bg-secondary' };
+
+    function loadCurrentEnrollment() {
+        $.ajax({
+            url: 'config/enrollment.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { action: 'student_current', student_id: studentId },
+            success: function (res) {
+                const e = res.data;
+
+                if (!e) {
+                    $('#currentEnrollmentBody').html('<div class="text-muted">Not enrolled for the current school year.</div>');
+                    return;
+                }
+
+                const badge = `<span class="badge ${statusBadgeMap[e.status] || 'bg-secondary'}">${e.status.charAt(0).toUpperCase() + e.status.slice(1)}</span>`;
+
+                $('#currentEnrollmentBody').html(`
+                    <div class="row g-2">
+                        <div class="col-md-3"><div class="label-muted">School Year</div><div class="value-strong">${e.schoolyear_name}</div></div>
+                        <div class="col-md-3"><div class="label-muted">Level</div><div class="value-strong">${e.level_name}</div></div>
+                        <div class="col-md-3"><div class="label-muted">Section</div><div class="value-strong">${e.section_name}</div></div>
+                        <div class="col-md-3"><div class="label-muted">Status</div><div class="value-strong">${badge}</div></div>
+                        <div class="col-md-4"><div class="label-muted">Tuition</div><div class="value-strong">${money(e.tuition_fee)}</div></div>
+                        <div class="col-md-4"><div class="label-muted">Paid</div><div class="value-strong text-success">${money(e.total_paid)}</div></div>
+                        <div class="col-md-4"><div class="label-muted">Balance</div><div class="value-strong text-danger">${money(e.balance)}</div></div>
+                        <div class="col-12"><div class="label-muted">Subjects</div><div class="value-strong">${(e.subjects || []).map(function (s) { return s.subject_name; }).join(', ') || '-'}</div></div>
+                        ${e.remarks ? `<div class="col-12"><div class="label-muted">Remarks</div><div class="value-strong">${e.remarks}</div></div>` : ''}
+                    </div>
+                `);
+            }
+        });
+    }
+
+    function initPaymentTable() {
+        $('#paymentTable').DataTable({
+            processing: true,
+            responsive: true,
+            scrollX: true,
+            language: { lengthMenu: 'Show _MENU_ entries', emptyTable: 'No payment records yet.' },
+            ajax: {
+                url: 'config/payment.php',
+                type: 'POST',
+                data: { action: 'student_history', student_id: studentId }
+            },
+            order: [[0, 'desc']],
+            columns: [
+                { data: 'payment_date' },
+                { data: 'schoolyear_name' },
+                { data: 'amount', render: function (d) { return money(d); } },
+                { data: 'payment_mode' },
+                { data: 'reference_no', defaultContent: '-' },
+                { data: 'admin_name' }
+            ]
+        });
+    }
+
+    function initHistoryTable() {
+        $('#historyTable').DataTable({
+            processing: true,
+            responsive: true,
+            scrollX: true,
+            language: { lengthMenu: 'Show _MENU_ entries', emptyTable: 'No enrollment history yet.' },
+            ajax: {
+                url: 'config/enrollment.php',
+                type: 'POST',
+                data: { action: 'history', student_id: studentId }
+            },
+            columns: [
+                { data: 'schoolyear_name' },
+                { data: 'level_name' },
+                { data: 'section_name' },
+                {
+                    data: 'status',
+                    render: function (data) {
+                        return `<span class="badge ${statusBadgeMap[data] || 'bg-secondary'}">${data.charAt(0).toUpperCase() + data.slice(1)}</span>`;
+                    }
+                },
+                { data: 'remarks', defaultContent: '-' }
+            ]
+        });
+    }
+
+    function loadActiveYearBadge() {
+        $.ajax({
+            url: 'config/schoolyear.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { action: 'load' },
+            success: function (res) {
+                const active = (res.data || []).find(function (y) { return y.status === 'active'; });
+                $('#currentYearBadge').text(active ? 'S.Y. ' + active.schoolyear_name : 'No active school year');
+            }
+        });
+    }
+
     if (!studentId) {
         alert('Missing student ID.');
         return;
     }
+
+    loadActiveYearBadge();
+    loadCurrentEnrollment();
+    initPaymentTable();
+    initHistoryTable();
 
     $.ajax({
         url: 'config/student.php',

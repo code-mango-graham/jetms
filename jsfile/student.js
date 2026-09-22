@@ -230,27 +230,37 @@ $(document).ready(function () {
         modal.hide();
     }
 
-    // Load provinces
-    function loadProvinces(selectedProvCode = '') {
+    // Load provinces. `selectedProvName` is the stored NAME (province/municipality are
+    // saved as readable names, not PSGC codes — see the submit handler), so it's resolved
+    // to its code here before the dropdown can be pre-selected or cascaded.
+    function loadProvinces(selectedProvName = '', onDone) {
         $.ajax({
             url: 'config/ref_province_load.php',
             type: 'POST',
             dataType: 'json',
             success: function (res) {
+                const list = res.data || [];
                 let options = '<option value="">-- Select Province --</option>';
-                
-                if (res.data && res.data.length > 0) {
-                    res.data.forEach(function (row) {
-                        options += `<option value="${row.provCode}">${row.provDesc}</option>`;
-                    });
-                }
-                
+
+                list.forEach(function (row) {
+                    options += `<option value="${row.provCode}">${row.provDesc}</option>`;
+                });
+
                 $('#province').html(options);
+
+                let matchedCode = '';
+                if (selectedProvName) {
+                    const match = list.find(function (row) { return row.provDesc === selectedProvName; });
+                    if (match) {
+                        matchedCode = match.provCode;
+                        $('#province').val(matchedCode);
+                    }
+                }
+
                 $('#province').trigger('change');
-                
-                if (selectedProvCode) {
-                    $('#province').val(selectedProvCode).trigger('change');
-                    loadMunicipalities(selectedProvCode);
+
+                if (typeof onDone === 'function') {
+                    onDone(matchedCode);
                 }
             },
             error: function (err) {
@@ -259,8 +269,8 @@ $(document).ready(function () {
         });
     }
 
-    // Load municipalities by province code
-    function loadMunicipalities(provCode, selectedCitymunCode = '') {
+    // Load municipalities by province code. `selectedCitymunName` is the stored NAME.
+    function loadMunicipalities(provCode, selectedCitymunName = '', onDone) {
         if (!provCode) {
             $('#municipality').html('<option value="">-- Select Municipality --</option>');
             $('#barangay').html('<option value="">-- Select Barangay --</option>');
@@ -273,22 +283,30 @@ $(document).ready(function () {
             data: { prov_code: provCode },
             dataType: 'json',
             success: function (res) {
+                const list = res.data || [];
                 let options = '<option value="">-- Select Municipality --</option>';
-                
-                if (res.data && res.data.length > 0) {
-                    res.data.forEach(function (row) {
-                        options += `<option value="${row.citymunCode}">${row.citymunDesc}</option>`;
-                    });
-                }
-                
+
+                list.forEach(function (row) {
+                    options += `<option value="${row.citymunCode}">${row.citymunDesc}</option>`;
+                });
+
                 $('#municipality').html(options);
-                $('#municipality').trigger('change');
                 $('#barangay').html('<option value="">-- Select Barangay --</option>');
+
+                let matchedCode = '';
+                if (selectedCitymunName) {
+                    const match = list.find(function (row) { return row.citymunDesc === selectedCitymunName; });
+                    if (match) {
+                        matchedCode = match.citymunCode;
+                        $('#municipality').val(matchedCode);
+                    }
+                }
+
+                $('#municipality').trigger('change');
                 $('#barangay').trigger('change');
-                
-                if (selectedCitymunCode) {
-                    $('#municipality').val(selectedCitymunCode).trigger('change');
-                    loadBarangays(selectedCitymunCode);
+
+                if (typeof onDone === 'function') {
+                    onDone(matchedCode);
                 }
             },
             error: function (err) {
@@ -554,32 +572,26 @@ $(document).ready(function () {
                     $('#contact_person').val(data.contact_person);
                     $('#contact_fb_name').val(data.contact_fb_name);
                     $('#street_name').val(data.street_name);
-                    $('#barangay').val(data.barangay);
-                    $('#municipality').val(data.municipality);
-                    $('#province').val(data.province);
                     $('#contact_cp_no').val(data.contact_cp_no);
                     $('#student_status').val(data.student_status);
                     $('#existing_photo').val(data.student_photo || '');
                     $('#student_photo').val('');
                     setPhotoPreview(data.student_photo || '');
 
-                    // Load province if not empty, then load municipalities and barangays
+                    // Province/Municipality/Barangay are stored as readable names, not PSGC
+                    // codes, so each level must resolve its code before the next can cascade.
                     if (data.province) {
-                        loadProvinces(data.province);
-                        
-                        // Wait for province to load, then load municipality
-                        setTimeout(() => {
-                            if (data.municipality) {
-                                loadMunicipalities(data.province, data.municipality);
+                        loadProvinces(data.province, function (provCode) {
+                            if (provCode && data.municipality) {
+                                loadMunicipalities(provCode, data.municipality, function (citymunCode) {
+                                    if (citymunCode && data.barangay) {
+                                        loadBarangays(citymunCode, data.barangay);
+                                    }
+                                });
                             }
-                        }, 300);
-
-                        // After municipality loads, load barangay
-                        setTimeout(() => {
-                            if (data.barangay && data.municipality) {
-                                loadBarangays(data.municipality, data.barangay);
-                            }
-                        }, 600);
+                        });
+                    } else {
+                        loadProvinces();
                     }
 
                     $('#studentModal .modal-title').text('Edit Student');
@@ -612,6 +624,18 @@ $(document).ready(function () {
 
         const formData = new FormData(this);
         formData.append('action', 'add');
+
+        // Province/Municipality dropdown values are PSGC codes (needed to filter the
+        // next dropdown's options), not the readable name — swap in the selected
+        // option's label so what gets saved matches Barangay, which already stores its name.
+        const provinceText = $('#province option:selected').text();
+        const municipalityText = $('#municipality option:selected').text();
+        if ($('#province').val()) {
+            formData.set('province', provinceText);
+        }
+        if ($('#municipality').val()) {
+            formData.set('municipality', municipalityText);
+        }
 
         $.ajax({
             url: 'config/student.php',

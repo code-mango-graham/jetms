@@ -1,0 +1,182 @@
+<!-- ============================= -->
+<!-- BEGIN LEVEL MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">LEVEL MANAGEMENT</h3>
+
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnAddLevel">
+                <i class="bi bi-plus-circle me-1"></i><B>Add Level</B>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN LEVEL MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="levelModal">
+
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="levelForm">
+
+                    <!-- MODAL HEADER -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">Level</h4>
+                    </div>
+
+                    <!-- MODAL BODY -->
+                    <div class="modal-body">
+
+                        <input type="hidden" id="level_id" name="level_id">
+
+                        <div class="form-group mb-3">
+                            <label for="level_name">Level Name</label>
+                            <input type="text" class="form-control" id="level_name" name="level_name" placeholder="e.g. Grade 7" required>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="level_order">Order</label>
+                            <input type="number" class="form-control" id="level_order" name="level_order" min="1" required>
+                        </div>
+
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="allows_subject_selection" name="allows_subject_selection" value="1">
+                            <label class="form-check-label" for="allows_subject_selection">
+                                Students can choose their subjects (Senior High)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- MODAL FOOTER -->
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">
+                            Save
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    <!-- ============================= -->
+    <!-- END LEVEL MODAL -->
+    <!-- ============================= -->
+
+    <!-- ============================= -->
+    <!-- BEGIN MANAGE (SECTIONS & SUBJECTS) MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="manageLevelModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sections &amp; Subjects — <span id="manageLevelName"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="manage_level_id">
+
+                    <div class="subpanel">
+                        <div class="subpanel-header"><i class="bi bi-people"></i>Sections</div>
+                        <div class="subpanel-body">
+                            <form id="sectionForm" class="row g-2 mb-3">
+                                <div class="col-8">
+                                    <input type="text" class="form-control form-control-sm" id="section_name" placeholder="Section name (e.g. Faith)" required>
+                                </div>
+                                <div class="col-4">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                        <i class="bi bi-plus-lg me-1"></i>Add
+                                    </button>
+                                </div>
+                            </form>
+                            <table id="sectionTable" class="table table-sm table-bordered mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Section Name</th>
+                                        <th width="60">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="subpanel subpanel-amber">
+                        <div class="subpanel-header"><i class="bi bi-journal-bookmark"></i>Subjects Offered</div>
+                        <div class="subpanel-body">
+                            <form id="subjectForm" class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <input type="text" class="form-control form-control-sm" id="subject_name" placeholder="Subject name (e.g. Mathematics)" required>
+                                </div>
+                                <div class="col-3">
+                                    <input type="text" class="form-control form-control-sm" id="subject_code" placeholder="Code">
+                                </div>
+                                <div class="col-3">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100">
+                                        <i class="bi bi-plus-lg me-1"></i>Add
+                                    </button>
+                                </div>
+                            </form>
+                            <table id="subjectTable" class="table table-sm table-bordered mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Subject Name</th>
+                                        <th width="90">Code</th>
+                                        <th width="60">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================= -->
+    <!-- END MANAGE MODAL -->
+    <!-- ============================= -->
+
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <table id="levelTable" class="table table-bordered table-hover nowrap w-100">
+            <thead>
+                <tr>
+                    <th>LEVEL</th>
+                    <th width="80">ORDER</th>
+                    <th width="140">SUBJECT SELECTION</th>
+                    <th width="100">SECTIONS</th>
+                    <th width="100">SUBJECTS</th>
+                    <th width="160">ACTIONS</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END LEVEL MANAGEMENT -->
+<!-- ============================= -->
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/level.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

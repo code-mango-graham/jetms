@@ -5,9 +5,8 @@
     <title>JET Montessori School of Ramon, Incorporated</title>
     <link rel="icon" type="image/png" href="logos/logo1.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-    <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#007bff" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1a1a1a" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#f6f8f9" />
 
     <link rel="stylesheet" href="plugins/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="plugins/icons/font/bootstrap-icons.min.css" />
@@ -15,50 +14,314 @@
     <link rel="stylesheet" href="plugins/sweetalert/sweetalert2.min.css" />
 
     <style>
-      body.login-page {
+      :root {
+        --accent: #12a480;
+        --accent-dark: #0c7c60;
+        --accent-soft: #e4f6f1;
+      }
+
+      html, body.login-page {
         min-height: 100vh;
+      }
+
+      body.login-page {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #0d6efd 0%, #084298 100%);
+        overflow-x: hidden;
+        background: linear-gradient(160deg, #fbfcfd 0%, #f3f6f6 55%, #eef4f2 100%);
         padding: 1.5rem;
       }
+
+      /* ===== Decorative floating blobs ===== */
+      .bg-deco {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .bg-deco svg {
+        position: absolute;
+        opacity: 0.5;
+      }
+
+      .blob-1 {
+        top: -12%;
+        left: -10%;
+        width: 46vw;
+        max-width: 560px;
+        animation: float-a 22s ease-in-out infinite;
+      }
+
+      .blob-2 {
+        bottom: -16%;
+        right: -12%;
+        width: 50vw;
+        max-width: 620px;
+        animation: float-b 26s ease-in-out infinite;
+      }
+
+      .blob-3 {
+        top: 55%;
+        left: -8%;
+        width: 26vw;
+        max-width: 320px;
+        opacity: 0.35;
+        animation: float-c 18s ease-in-out infinite;
+      }
+
+      .blob-4 {
+        top: 4%;
+        right: 6%;
+        width: 14vw;
+        max-width: 160px;
+        opacity: 0.4;
+        animation: float-c 14s ease-in-out infinite reverse;
+      }
+
+      .dot-grid {
+        position: absolute;
+        top: 8%;
+        right: 10%;
+        width: 140px;
+        opacity: 0.35;
+      }
+
+      @keyframes float-a {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(2.5%, 3%) rotate(8deg); }
+      }
+
+      @keyframes float-b {
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(-3%, -2.5%) rotate(-6deg); }
+      }
+
+      @keyframes float-c {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-14px) scale(1.04); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .bg-deco svg { animation: none !important; }
+      }
+
+      /* ===== Login box ===== */
       .login-box {
+        position: relative;
+        z-index: 1;
         width: 100%;
-        max-width: 420px;
+        max-width: 400px;
       }
+
+      .login-logo {
+        animation: fade-drop 0.7s ease both;
+      }
+
       .login-logo img {
-        height: 64px;
+        height: 84px;
+        filter: drop-shadow(0 6px 14px rgba(18, 164, 128, 0.25));
+        animation: pop-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
       }
+
+      .login-logo h1 {
+        color: #1f2d2a;
+        font-weight: 700;
+      }
+
+      .login-logo p {
+        color: #6c7a76;
+      }
+
+      @keyframes fade-drop {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @keyframes pop-in {
+        0% { opacity: 0; transform: scale(0.6) rotate(-8deg); }
+        100% { opacity: 1; transform: scale(1) rotate(0deg); }
+      }
+
+      .login-card {
+        border: none;
+        border-radius: 1.1rem;
+        box-shadow: 0 18px 45px -18px rgba(18, 60, 46, 0.28), 0 2px 10px rgba(18, 60, 46, 0.06);
+        overflow: hidden;
+        animation: card-rise 0.6s 0.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+
+      @keyframes card-rise {
+        from { opacity: 0; transform: translateY(24px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      .login-card .card-body {
+        padding: 2rem 1.85rem 1.85rem;
+      }
+
+      /* ===== Role tabs ===== */
+      .role-tabs {
+        background: #f2f5f4;
+        border-radius: 0.75rem;
+        padding: 0.3rem;
+        gap: 0.25rem;
+      }
+
       .role-tabs .nav-link {
         cursor: pointer;
+        border-radius: 0.55rem;
+        color: #5b6b66;
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.5rem 0.4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+      }
+
+      .role-tabs .nav-link i {
+        font-size: 1rem;
+      }
+
+      .role-tabs .nav-link:hover:not(.active) {
+        background: #e7ece9;
+      }
+
+      .role-tabs .nav-link.active {
+        background: #ffffff;
+        color: var(--accent-dark);
+        box-shadow: 0 4px 10px rgba(18, 60, 46, 0.12);
+      }
+
+      /* ===== Inputs ===== */
+      .login-card .input-group-text {
+        background: #f7f9f8;
+        border-color: #dbe2df;
+        color: #7a8985;
+      }
+
+      .login-card .form-control {
+        border-color: #dbe2df;
+      }
+
+      .login-card .input-group:has(.form-control:focus) {
+        box-shadow: 0 0 0 3px var(--accent-soft);
+        border-radius: 0.5rem;
+      }
+
+      .login-card .form-control:focus {
+        box-shadow: none;
+        border-color: #cfe4dd;
+        z-index: 1;
+      }
+
+      .toggle-password {
+        border-color: #dbe2df;
+        background: #ffffff;
+        color: #7a8985;
+      }
+
+      .toggle-password:hover,
+      .toggle-password:focus {
+        background: #f7f9f8;
+        border-color: #cfe4dd;
+        color: var(--accent-dark);
+        box-shadow: none;
+        z-index: 1;
+      }
+
+      /* ===== Submit button ===== */
+      #btnLogin {
+        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+        border: none;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        padding: 0.65rem;
+        border-radius: 0.6rem;
+        box-shadow: 0 10px 20px -8px rgba(12, 124, 96, 0.55);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      }
+
+      #btnLogin:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 24px -8px rgba(12, 124, 96, 0.6);
+        filter: brightness(1.04);
+      }
+
+      #btnLogin:active {
+        transform: translateY(0);
+      }
+
+      #btnLogin:disabled {
+        opacity: 0.75;
+        transform: none;
+      }
+
+      .login-footnote {
+        color: #8a9793;
+        font-size: 0.78rem;
       }
     </style>
   </head>
   <body class="login-page">
+    <!-- Decorative background SVGs -->
+    <div class="bg-deco" aria-hidden="true">
+      <svg class="blob-1" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#12a480" d="M45.2,-58.4C58.4,-49.9,68.6,-35.7,72.6,-19.8C76.6,-3.9,74.4,13.7,66.6,28.2C58.8,42.7,45.4,54.1,30.1,61.6C14.8,69,-2.4,72.6,-19.1,69.6C-35.9,66.6,-52.2,57,-62.6,42.9C-73,28.9,-77.5,10.4,-74.9,-6.4C-72.3,-23.2,-62.6,-38.4,-49.5,-47.1C-36.4,-55.8,-19.9,-58.1,-2.1,-54.7C15.6,-51.4,31.9,-66.9,45.2,-58.4Z" transform="translate(100 100)" />
+      </svg>
+      <svg class="blob-2" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#f2b134" d="M39.6,-51.2C51.4,-42.6,61,-30.6,65.3,-16.7C69.6,-2.8,68.6,13,62,26.1C55.4,39.2,43.3,49.6,29.6,56.8C15.9,64,0.6,68,-15.4,66.3C-31.5,64.6,-48.3,57.2,-58.9,44.5C-69.5,31.7,-73.9,13.6,-72.1,-3.5C-70.3,-20.6,-62.3,-36.7,-50,-46.1C-37.7,-55.5,-21.1,-58.2,-4.3,-52.6C12.5,-47,27.8,-59.8,39.6,-51.2Z" transform="translate(100 100)" />
+      </svg>
+      <svg class="blob-3" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#7b6ef6" d="M42.8,-56.3C54.9,-49.1,63.6,-35.8,67.8,-21C72,-6.2,71.7,10.1,65.6,23.9C59.5,37.7,47.6,49,33.9,57.3C20.2,65.6,4.7,70.9,-11.4,70.2C-27.6,69.6,-44.4,63.1,-56.4,51.2C-68.5,39.3,-75.8,22.1,-76.5,4.5C-77.2,-13.1,-71.3,-31.1,-59.8,-43.8C-48.3,-56.5,-31.2,-63.8,-14.4,-64.9C2.5,-66,30.7,-63.5,42.8,-56.3Z" transform="translate(100 100)" />
+      </svg>
+      <svg class="blob-4" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#ff8a80" d="M35.9,-45.7C46.4,-38.4,54.8,-27.3,58.5,-14.4C62.2,-1.6,61.2,13.1,54.7,25.2C48.2,37.3,36.2,46.8,22.9,53.2C9.6,59.6,-5,63,-18.8,60.1C-32.6,57.3,-45.6,48.2,-54.2,35.9C-62.8,23.6,-67,8.1,-64.7,-6.1C-62.4,-20.3,-53.6,-33.2,-42,-40.8C-30.4,-48.4,-15.2,-50.7,-0.7,-49.8C13.7,-48.9,25.4,-52.9,35.9,-45.7Z" transform="translate(100 100)" />
+      </svg>
+      <svg class="dot-grid" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <g fill="#12a480">
+          <circle cx="6" cy="6" r="3"></circle><circle cx="30" cy="6" r="3"></circle><circle cx="54" cy="6" r="3"></circle><circle cx="78" cy="6" r="3"></circle><circle cx="102" cy="6" r="3"></circle>
+          <circle cx="6" cy="30" r="3"></circle><circle cx="30" cy="30" r="3"></circle><circle cx="54" cy="30" r="3"></circle><circle cx="78" cy="30" r="3"></circle><circle cx="102" cy="30" r="3"></circle>
+          <circle cx="6" cy="54" r="3"></circle><circle cx="30" cy="54" r="3"></circle><circle cx="54" cy="54" r="3"></circle><circle cx="78" cy="54" r="3"></circle><circle cx="102" cy="54" r="3"></circle>
+        </g>
+      </svg>
+    </div>
+
     <div class="login-box">
       <div class="login-logo mb-3 text-center">
         <img src="logos/logo2.png" alt="School Logo" />
-        <h1 class="h4 text-white mt-2 mb-0">JET Montessori School</h1>
-        <p class="text-white-50 mb-0">of Ramon, Incorporated</p>
+        <h1 class="h4 mt-2 mb-0">JET Montessori School</h1>
+        <p class="mb-0">of Ramon, Incorporated</p>
       </div>
 
-      <div class="card">
+      <div class="card login-card">
         <div class="card-body">
-          <ul class="nav nav-pills nav-fill role-tabs mb-3" id="roleTabs" role="tablist">
+          <ul class="nav nav-fill role-tabs mb-3" id="roleTabs" role="tablist">
             <li class="nav-item" role="presentation">
-              <button type="button" class="nav-link active" data-role="student">Student</button>
+              <button type="button" class="nav-link active" data-role="admin">
+                <i class="bi bi-shield-lock"></i>Admin
+              </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button type="button" class="nav-link" data-role="teacher">Teacher</button>
+              <button type="button" class="nav-link" data-role="teacher">
+                <i class="bi bi-person-workspace"></i>Teacher
+              </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button type="button" class="nav-link" data-role="admin">Admin</button>
+              <button type="button" class="nav-link" data-role="student">
+                <i class="bi bi-mortarboard"></i>Student
+              </button>
             </li>
           </ul>
 
           <form id="loginForm" autocomplete="off">
-            <input type="hidden" id="role" name="role" value="student" />
+            <input type="hidden" id="role" name="role" value="admin" />
 
             <div class="mb-3">
               <label for="username" class="form-label">Username</label>
@@ -79,12 +342,21 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary w-100" id="btnLogin">
-              Log in as <span id="roleLabel">Student</span>
+            <button type="submit" class="btn w-100 text-white" id="btnLogin">
+              Log in as <span id="roleLabel">Admin</span>
             </button>
           </form>
         </div>
       </div>
+
+      <p class="login-footnote text-center mt-3 mb-0">
+        JET Montessori School of Ramon, Incorporated &middot; Ramon, Isabela
+      </p>
+      <p class="text-center mt-2 mb-0">
+        <a href="attendance_kiosk.html" class="login-footnote text-decoration-none">
+          <i class="bi bi-upc-scan me-1"></i>Gate Attendance Kiosk
+        </a>
+      </p>
     </div>
 
     <script src="jquery/jquery.min.js"></script>

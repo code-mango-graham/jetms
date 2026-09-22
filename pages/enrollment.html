@@ -1,0 +1,261 @@
+<!-- ============================= -->
+<!-- BEGIN ENROLLMENT MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">ENROLLMENT MANAGEMENT</h3>
+
+        <div class="card-tools">
+            <span class="badge bg-secondary me-2" id="activeYearBadge">Loading school year...</span>
+            <button class="btn btn-primary btn-sm" id="btnAddEnrollment">
+                <i class="bi bi-plus-circle me-1"></i><B>Add Enrollment</B>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN ADD ENROLLMENT MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="enrollmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+
+                <form id="enrollmentForm">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Enrollment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="enroll_student_id">Student</label>
+                                <select class="form-select select2" id="enroll_student_id" name="student_id" required>
+                                    <option value="">-- Select Student --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">School Year</label>
+                                <input type="text" class="form-control" id="enroll_schoolyear_display" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="enroll_level_id">Level</label>
+                                <select class="form-select select2" id="enroll_level_id" name="level_id" required>
+                                    <option value="">-- Select Level --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="enroll_section_id">Section</label>
+                                <select class="form-select select2" id="enroll_section_id" name="section_id" required disabled>
+                                    <option value="">-- Select Level First --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="tuition_fee">Tuition Fee</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₱</span>
+                                    <input type="number" class="form-control" id="tuition_fee" name="tuition_fee" min="0" step="0.01" value="0" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div id="subjectsPreviewWrap" class="d-none">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-journal-bookmark me-1"></i>Subjects (fixed for this level)</h6>
+                            <div id="subjectsPreview" class="text-muted small mb-3">Select a level to see its subjects.</div>
+                        </div>
+
+                        <div id="subjectsPickWrap" class="d-none">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-journal-bookmark me-1"></i>Choose Subjects</h6>
+                            <div id="subjectsPick" class="row g-1 mb-3"></div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="addDownpayment">
+                            <label class="form-check-label fw-bold" for="addDownpayment">Add a downpayment now</label>
+                        </div>
+
+                        <div id="downpaymentFields" class="row g-3 d-none">
+                            <div class="col-md-4">
+                                <label class="form-label">Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₱</span>
+                                    <input type="number" class="form-control" id="downpayment_amount" min="0" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Payment Mode</label>
+                                <select class="form-select" id="payment_mode">
+                                    <option value="">-- Select --</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="GCash">GCash</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4" id="referenceNoWrap">
+                                <label class="form-label">Reference / Transaction No.</label>
+                                <input type="text" class="form-control" id="reference_no">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Enroll Student</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+    <!-- ============================= -->
+    <!-- END ADD ENROLLMENT MODAL -->
+    <!-- ============================= -->
+
+    <!-- ============================= -->
+    <!-- BEGIN STUDENT DETAIL MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Enrollment Detail — <span id="detailStudentName"></span></h5>
+                    <button type="button" class="btn btn-outline-secondary btn-sm me-2" id="btnViewFullProfile">
+                        <i class="bi bi-person-vcard me-1"></i>View Full Profile
+                    </button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="detail_enrollment_id">
+                    <input type="hidden" id="detail_student_id">
+
+                    <!-- Current Enrollment -->
+                    <div class="subpanel">
+                        <div class="subpanel-header"><i class="bi bi-mortarboard"></i>Current Enrollment</div>
+                        <div class="subpanel-body" id="currentEnrollmentBody">
+                            <div class="text-muted">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Payment History -->
+                    <div class="subpanel subpanel-amber">
+                        <div class="subpanel-header"><i class="bi bi-cash-coin"></i>Payment History</div>
+                        <div class="subpanel-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    Tuition: <strong id="paymentTuition">-</strong> &middot;
+                                    Paid: <strong id="paymentPaid" class="text-success">-</strong> &middot;
+                                    Balance: <strong id="paymentBalance" class="text-danger">-</strong>
+                                </div>
+                                <button type="button" class="btn btn-primary btn-sm" id="btnAddPayment">
+                                    <i class="bi bi-plus-lg me-1"></i>Add Payment
+                                </button>
+                            </div>
+
+                            <form id="paymentForm" class="row g-2 mb-3 d-none">
+                                <div class="col-md-3">
+                                    <input type="date" class="form-control form-control-sm" id="payment_date" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="number" class="form-control form-control-sm" id="payment_amount" placeholder="Amount" min="0" step="0.01" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select form-select-sm" id="payment_mode_add" required>
+                                        <option value="">Mode</option>
+                                        <option value="Cash">Cash</option>
+                                        <option value="GCash">GCash</option>
+                                        <option value="Bank Transfer">Bank Transfer</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3" id="paymentReferenceWrap">
+                                    <input type="text" class="form-control form-control-sm" id="payment_reference_no" placeholder="Reference No.">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="submit" class="btn btn-success btn-sm w-100"><i class="bi bi-check-lg"></i></button>
+                                </div>
+                            </form>
+
+                            <table id="paymentTable" class="table table-sm table-bordered nowrap w-100 mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Mode</th>
+                                        <th>Reference</th>
+                                        <th>Processed By</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- History -->
+                    <div class="subpanel subpanel-violet">
+                        <div class="subpanel-header"><i class="bi bi-clock-history"></i>Enrollment History</div>
+                        <div class="subpanel-body">
+                            <table id="historyTable" class="table table-sm table-bordered nowrap w-100 mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>School Year</th>
+                                        <th>Level</th>
+                                        <th>Section</th>
+                                        <th>Status</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================= -->
+    <!-- END STUDENT DETAIL MODAL -->
+    <!-- ============================= -->
+
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <table id="enrollmentTable" class="table table-bordered table-hover nowrap w-100">
+            <thead>
+                <tr>
+                    <th>LRN</th>
+                    <th>STUDENT</th>
+                    <th>LEVEL</th>
+                    <th>SECTION</th>
+                    <th>TUITION</th>
+                    <th>BALANCE</th>
+                    <th>STATUS</th>
+                    <th width="80">ACTIONS</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END ENROLLMENT MANAGEMENT -->
+<!-- ============================= -->
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/enrollment.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

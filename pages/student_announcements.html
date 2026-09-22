@@ -1,26 +1,27 @@
-<div class="app-content-header">
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-sm-6">
-        <h3 class="mb-0">Announcements</h3>
-      </div>
-      <div class="col-sm-6">
-        <ol class="breadcrumb float-sm-end">
-          <li class="breadcrumb-item"><a href="#">Home</a></li>
-          <li class="breadcrumb-item active" aria-current="page">Announcements</li>
-        </ol>
-      </div>
+<!-- ============================= -->
+<!-- BEGIN ANNOUNCEMENTS (read-only) -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline announcement-feed-card">
+
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">ANNOUNCEMENTS</h3>
     </div>
-  </div>
+
+    <div class="card-body">
+        <div id="announcementFeed"></div>
+    </div>
+
 </div>
 
-<div class="app-content px-4">
-  <div class="container-fluid">
-    <div class="card">
-      <div class="card-body text-center text-muted py-5">
-        <i class="bi bi-megaphone fs-1 d-block mb-2"></i>
-        Content coming soon.
-      </div>
-    </div>
-  </div>
-</div>
+<!-- ============================= -->
+<!-- END ANNOUNCEMENTS -->
+<!-- ============================= -->
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/announcements.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

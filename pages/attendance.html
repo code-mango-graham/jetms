@@ -1,0 +1,55 @@
+<!-- ============================= -->
+<!-- BEGIN STUDENT ATTENDANCE -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline">
+
+    <div class="card-header d-flex align-items-center justify-content-between">
+        <h3 class="card-title fs-3 fw-bold">STUDENT ATTENDANCE</h3>
+        <a href="attendance_kiosk.html" target="_blank" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Open Gate Kiosk
+        </a>
+    </div>
+
+    <div class="card-body">
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <label class="form-label" for="attendance_student_id">Select Student</label>
+                <select class="form-select select2" id="attendance_student_id">
+                    <option value="">-- Select Student --</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="attendanceEmptyState" class="text-center text-muted py-5">
+            <i class="bi bi-person-badge fs-1 d-block mb-2"></i>
+            Select a student above to view their attendance record.
+        </div>
+
+        <div id="attendanceResult" class="d-none">
+            <table id="studentAttendanceTable" class="table table-bordered table-hover compact w-100">
+                <thead>
+                    <tr>
+                        <th>DATE</th>
+                        <th>TIME</th>
+                        <th>TYPE</th>
+                        <th>SOURCE</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END STUDENT ATTENDANCE -->
+<!-- ============================= -->
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/attendance.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

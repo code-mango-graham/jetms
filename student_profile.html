@@ -6,6 +6,8 @@
   <title>Student Profile</title>
   <link rel="stylesheet" href="plugins/bootstrap/css/bootstrap.min.css" />
   <link rel="stylesheet" href="plugins/icons/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="plugins/datatables/datatables.min.css">
+  <link rel="stylesheet" href="assets/css/theme.css">
   <style>
     body {
       background: linear-gradient(160deg, #f7f9fc 0%, #e9eef6 100%);
@@ -140,24 +142,61 @@
       </div>
     </div>
 
+    <div class="row g-3 mb-3">
+      <div class="col-12">
+        <div class="card profile-card">
+          <div class="card-header bg-white border-0 pt-3 d-flex align-items-center">
+            <h5 class="mb-0">Current Enrollment</h5>
+            <span class="badge bg-secondary ms-2" id="currentYearBadge"></span>
+          </div>
+          <div class="card-body" id="currentEnrollmentBody">
+            <div class="text-muted">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="row g-3">
       <div class="col-md-6">
         <div class="card profile-card h-100">
           <div class="card-header bg-white border-0 pt-3">
             <h5 class="mb-0">Payment History</h5>
           </div>
-          <div class="card-body d-flex align-items-center justify-content-center text-muted" style="min-height: 180px;">
-            No payment records yet.
+          <div class="card-body">
+            <table id="paymentTable" class="table table-sm table-bordered mb-0 w-100">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>School Year</th>
+                  <th>Amount</th>
+                  <th>Mode</th>
+                  <th>Reference</th>
+                  <th>Processed By</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="card profile-card h-100">
           <div class="card-header bg-white border-0 pt-3">
-            <h5 class="mb-0">Enrollment Details</h5>
+            <h5 class="mb-0">Enrollment History</h5>
           </div>
-          <div class="card-body d-flex align-items-center justify-content-center text-muted" style="min-height: 180px;">
-            No enrollment details yet.
+          <div class="card-body">
+            <table id="historyTable" class="table table-sm table-bordered mb-0 w-100">
+              <thead>
+                <tr>
+                  <th>School Year</th>
+                  <th>Level</th>
+                  <th>Section</th>
+                  <th>Status</th>
+                  <th>Remarks</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -165,6 +204,13 @@
   </div>
 
   <script src="jquery/jquery.min.js"></script>
-  <script src="jsfile/student_profile.js"></script>
+  <script src="plugins/datatables/datatables.min.js"></script>
+  <script>
+  (function () {
+      var s = document.createElement('script');
+      s.src = 'jsfile/student_profile.js?v=' + Date.now();
+      document.body.appendChild(s);
+  })();
+  </script>
 </body>
 </html>

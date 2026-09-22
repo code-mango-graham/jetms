@@ -1,0 +1,83 @@
+<!-- ============================= -->
+<!-- BEGIN ANNOUNCEMENTS -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline announcement-feed-card">
+
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">ANNOUNCEMENTS</h3>
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnAddAnnouncement">
+                <i class="bi bi-plus-circle me-1"></i><B>New Post</B>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="announcementModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="announcementForm">
+                    <div class="modal-header">
+                        <h4 class="modal-title">New Post</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="announcement_id" name="announcement_id">
+
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <label class="form-label" for="title">Title</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="audience">Audience</label>
+                                <select class="form-select" id="audience" name="audience">
+                                    <option value="all">Everyone</option>
+                                    <option value="teachers">Teachers Only</option>
+                                    <option value="students">Students Only</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="content">Message</label>
+                                <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="photos">Photos (optional, multiple allowed)</label>
+                                <input type="file" class="form-control" id="photos" name="photos[]" accept="image/png,image/jpeg,image/webp" multiple>
+                                <div id="existingPhotosPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                                <div id="newPhotosPreview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Post</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- ============================= -->
+    <!-- END MODAL -->
+    <!-- ============================= -->
+
+    <div class="card-body">
+        <div id="announcementFeed"></div>
+    </div>
+
+</div>
+
+<!-- ============================= -->
+<!-- END ANNOUNCEMENTS -->
+<!-- ============================= -->
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/announcements.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

@@ -1,4 +1,5 @@
 <?php
+session_start();
 include '../config.php';
 
 header('Content-Type: application/json');
@@ -6,6 +7,72 @@ header('Content-Type: application/json');
 $action = isset($_POST['action']) ? $_POST['action'] : '';
 
 switch ($action) {
+
+    // =======================
+    // UPDATE_MY_PHOTO (self-service — any logged-in role updates their own avatar)
+    // =======================
+    case 'update_my_photo': {
+        if (!isset($_SESSION['auth'])) {
+            echo json_encode(["status" => "error", "message" => "You must be logged in"]);
+            break;
+        }
+
+        if (!isset($_FILES['photo']) || (int) $_FILES['photo']['error'] === UPLOAD_ERR_NO_FILE) {
+            echo json_encode(["status" => "error", "message" => "Please choose a photo"]);
+            break;
+        }
+
+        $file = $_FILES['photo'];
+        if ((int) $file['error'] !== UPLOAD_ERR_OK) {
+            echo json_encode(["status" => "error", "message" => "Failed to upload photo"]);
+            break;
+        }
+
+        $mime = mime_content_type($file['tmp_name']);
+        $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+        if (!isset($allowed[$mime])) {
+            echo json_encode(["status" => "error", "message" => "Only JPG, PNG, and WEBP photos are allowed"]);
+            break;
+        }
+
+        $role = $_SESSION['auth']['role'];
+        $id = $_SESSION['auth']['id'];
+
+        if ($role === 'admin') {
+            $table = 'tbl_admin';
+            $idCol = 'admin_id';
+            $photoColumn = 'photo';
+            $uploadDir = __DIR__ . '/../assets/img/admins';
+        } elseif ($role === 'student') {
+            $table = 'tbl_student';
+            $idCol = 'student_id';
+            $photoColumn = 'student_photo';
+            $uploadDir = __DIR__ . '/../assets/img/students';
+        } else {
+            // tbl_teacher has no photo column yet — add one before enabling this for teachers.
+            echo json_encode(["status" => "error", "message" => "Profile photos aren't available for teachers yet"]);
+            break;
+        }
+
+        if (!is_dir($uploadDir) && !mkdir($uploadDir, 0755, true)) {
+            echo json_encode(["status" => "error", "message" => "Unable to create upload directory"]);
+            break;
+        }
+
+        $filename = $role . '_' . time() . '_' . bin2hex(random_bytes(5)) . '.' . $allowed[$mime];
+        if (!move_uploaded_file($file['tmp_name'], $uploadDir . '/' . $filename)) {
+            echo json_encode(["status" => "error", "message" => "Unable to save photo"]);
+            break;
+        }
+
+        $stmt = mysqli_prepare($conn, "UPDATE $table SET $photoColumn = ? WHERE $idCol = ?");
+        mysqli_stmt_bind_param($stmt, "si", $filename, $id);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+
+        echo json_encode(["status" => "success", "message" => "Profile photo updated", "photo" => $filename, "role" => $role]);
+        break;
+    }
 
     // =======================
     // LOAD (DataTable list, unioned across all account tables)

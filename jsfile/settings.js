@@ -22,7 +22,7 @@ $("#school_year").on("click", function()
             setActiveMenu("#school_year");
 			$("#content_settings").removeClass("d-none");
 			$("#content_settings").empty();
-			$("#content_settings").load("#");			
+			$("#content_settings").load("pages/school_year.html?v=" + Date.now());
         });
 $("#teachers").on("click", function()
 		{
@@ -55,7 +55,14 @@ $("#levels").on("click", function()
 			$("#content_settings").removeClass("d-none");
 			$("#content_settings").empty();
 			$("#content_level").empty();
-			$("#content_settings").load("#");			
+			$("#content_settings").load("pages/levels.html?v=" + Date.now());
+        });
+$("#assignments").on("click", function()
+		{
+            setActiveMenu("#assignments");
+			$("#content_settings").removeClass("d-none");
+			$("#content_settings").empty();
+			$("#content_settings").load("pages/assignments.html?v=" + Date.now());
         });
         function setActiveMenu(activeId) {
             $("#users").removeClass("active");
@@ -64,6 +71,7 @@ $("#levels").on("click", function()
             $("#offices").removeClass("active");
             $("#positions").removeClass("active");
             $("#levels").removeClass("active");
+            $("#assignments").removeClass("active");
 
             $("#content_settings").addClass("d-none");
             $("#content_level").addClass("d-none");
