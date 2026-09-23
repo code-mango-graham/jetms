@@ -234,12 +234,12 @@ switch ($action) {
         }
 
         $stmt = mysqli_prepare($conn, "
-            SELECT s.student_id, s.lrn, s.first_name, s.last_name, e.enrollment_id
+            SELECT s.student_id, s.lrn, s.first_name, s.last_name, e.enrollment_id, e.status AS enrollment_status
             FROM tbl_enrollment e
             JOIN tbl_student s ON s.student_id = e.student_id
             JOIN tbl_enrollment_subject es ON es.enrollment_id = e.enrollment_id
-            WHERE e.section_id = ? AND e.schoolyear_id = ? AND e.status = 'enrolled' AND es.subject_id = ?
-            ORDER BY s.last_name ASC, s.first_name ASC
+            WHERE e.section_id = ? AND e.schoolyear_id = ? AND es.subject_id = ?
+            ORDER BY FIELD(e.status, 'enrolled', 'dropped', 'transferred', 'completed'), s.last_name ASC, s.first_name ASC
         ");
         mysqli_stmt_bind_param($stmt, "iii", $classRow['section_id'], $classRow['schoolyear_id'], $classRow['subject_id']);
         mysqli_stmt_execute($stmt);

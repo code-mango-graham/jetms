@@ -73,7 +73,8 @@ $(document).ready(function () {
             const subjects = (res.data || []).filter(function (s) { return s.class_id; });
             let options = '<option value="">-- Select a Subject --</option>';
             subjects.forEach(function (s) {
-                options += `<option value="${s.class_id}">${s.subject_name}${s.subject_code ? ' (' + s.subject_code + ')' : ''}</option>`;
+                const label = `${s.subject_name}${s.subject_code ? ' (' + s.subject_code + ')' : ''} — S.Y. ${s.schoolyear_name}${s.enrollment_status !== 'enrolled' ? ' [' + s.enrollment_status + ']' : ''}`;
+                options += `<option value="${s.class_id}">${label}</option>`;
             });
             $('#grades_subject_select').html(options);
 

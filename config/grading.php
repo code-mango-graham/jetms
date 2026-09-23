@@ -135,12 +135,12 @@ switch ($action) {
         }
 
         $rosterStmt = mysqli_prepare($conn, "
-            SELECT s.student_id, s.lrn, s.first_name, s.last_name
+            SELECT s.student_id, s.lrn, s.first_name, s.last_name, e.status AS enrollment_status
             FROM tbl_enrollment e
             JOIN tbl_student s ON s.student_id = e.student_id
             JOIN tbl_enrollment_subject es ON es.enrollment_id = e.enrollment_id
-            WHERE e.section_id = ? AND e.schoolyear_id = ? AND e.status = 'enrolled' AND es.subject_id = ?
-            ORDER BY s.last_name ASC, s.first_name ASC
+            WHERE e.section_id = ? AND e.schoolyear_id = ? AND es.subject_id = ?
+            ORDER BY FIELD(e.status, 'enrolled', 'dropped', 'transferred', 'completed'), s.last_name ASC, s.first_name ASC
         ");
         mysqli_stmt_bind_param($rosterStmt, "iii", $classRow['section_id'], $classRow['schoolyear_id'], $classRow['subject_id']);
         mysqli_stmt_execute($rosterStmt);
@@ -332,7 +332,10 @@ switch ($action) {
     }
 
     // =======================
-    // STUDENT_SUBJECTS (session-scoped — this student's current subjects + assigned teacher)
+    // STUDENT_SUBJECTS (session-scoped — every subject this student has ever
+    // had, across every enrollment/school year, not just the currently
+    // 'enrolled' one — otherwise a completed/dropped year's subjects and
+    // grades become permanently unreachable once that year ends)
     // =======================
     case 'student_subjects': {
         if (!isset($_SESSION['auth']) || $_SESSION['auth']['role'] !== 'student') {
@@ -343,13 +346,13 @@ switch ($action) {
 
         $stmt = mysqli_prepare($conn, "
             SELECT es.subject_id, es.subject_name, es.subject_code,
-                   e.section_name, e.schoolyear_name,
+                   e.section_name, e.schoolyear_name, e.status AS enrollment_status,
                    c.class_id, c.teacher_name
             FROM tbl_enrollment e
             JOIN tbl_enrollment_subject es ON es.enrollment_id = e.enrollment_id
             LEFT JOIN tbl_class c ON c.section_id = e.section_id AND c.schoolyear_id = e.schoolyear_id AND c.subject_id = es.subject_id AND c.class_remarks = 1
-            WHERE e.student_id = ? AND e.status = 'enrolled'
-            ORDER BY es.subject_name ASC
+            WHERE e.student_id = ?
+            ORDER BY FIELD(e.status, 'enrolled', 'dropped', 'transferred', 'completed'), e.schoolyear_name DESC, es.subject_name ASC
         ");
         mysqli_stmt_bind_param($stmt, "i", $student_id);
         mysqli_stmt_execute($stmt);
@@ -376,12 +379,14 @@ switch ($action) {
         $student_id = $_SESSION['auth']['id'];
         $class_id = isset($_POST['class_id']) ? (int) $_POST['class_id'] : 0;
 
-        // Confirm this class actually corresponds to one of the student's own enrolled subjects
+        // Confirm this class corresponds to one of the student's own subjects —
+        // any enrollment status counts (not just 'enrolled'), so grades from a
+        // completed/dropped/transferred school year stay reachable
         $ownStmt = mysqli_prepare($conn, "
             SELECT c.class_id FROM tbl_class c
             JOIN tbl_enrollment e ON e.section_id = c.section_id AND e.schoolyear_id = c.schoolyear_id
             JOIN tbl_enrollment_subject es ON es.enrollment_id = e.enrollment_id AND es.subject_id = c.subject_id
-            WHERE c.class_id = ? AND e.student_id = ? AND e.status = 'enrolled'
+            WHERE c.class_id = ? AND e.student_id = ?
             LIMIT 1
         ");
         mysqli_stmt_bind_param($ownStmt, "ii", $class_id, $student_id);

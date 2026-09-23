@@ -15,6 +15,13 @@ $(document).ready(function () {
                 return;
             }
 
+            const statusBadge = {
+                enrolled: '<span class="badge bg-success">Current</span>',
+                dropped: '<span class="badge bg-danger">Dropped</span>',
+                transferred: '<span class="badge bg-warning">Transferred</span>',
+                completed: '<span class="badge bg-secondary">Completed</span>'
+            };
+
             let html = '';
             subjects.forEach(function (s) {
                 const teacherLine = s.teacher_name
@@ -27,10 +34,15 @@ $(document).ready(function () {
                        </button>`
                     : '';
 
+                const badge = statusBadge[s.enrollment_status] || '';
+
                 html += `
                     <div class="col-md-4">
                         <div class="subpanel p-3 h-100">
-                            <div class="fw-bold">${s.subject_name}${s.subject_code ? ` <span class="text-muted small">(${s.subject_code})</span>` : ''}</div>
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="fw-bold">${s.subject_name}${s.subject_code ? ` <span class="text-muted small">(${s.subject_code})</span>` : ''}</div>
+                                ${badge}
+                            </div>
                             <div class="text-muted small">${s.section_name} &middot; S.Y. ${s.schoolyear_name}</div>
                             ${teacherLine}
                             ${gradesBtn}

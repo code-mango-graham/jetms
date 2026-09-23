@@ -113,9 +113,16 @@ $(document).ready(function () {
             return;
         }
 
+        const statusBadge = {
+            dropped: '<span class="badge bg-danger ms-1" style="font-size:0.65rem;">Dropped</span>',
+            transferred: '<span class="badge bg-warning ms-1" style="font-size:0.65rem;">Transferred</span>',
+            completed: '<span class="badge bg-secondary ms-1" style="font-size:0.65rem;">Completed</span>'
+        };
+
         let body = '';
         roster.forEach(function (student) {
-            body += `<tr><td>${student.last_name}, ${student.first_name}</td>`;
+            const badge = statusBadge[student.enrollment_status] || '';
+            body += `<tr><td>${student.last_name}, ${student.first_name}${badge}</td>`;
             components.forEach(function (c) {
                 const val = student.scores && student.scores[c.component_id] !== null && student.scores[c.component_id] !== undefined ? student.scores[c.component_id] : '';
                 body += `<td><input type="number" class="form-control form-control-sm gradebook-score-input" style="width:80px;" min="0" max="${c.max_score}" step="0.01"

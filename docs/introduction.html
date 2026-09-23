@@ -415,6 +415,7 @@
     <ul>
       <li>Cancel and the cell reverts; confirm with a reason and it saves, with the old value, new value, reason, and editor all logged internally.</li>
       <li>Removing a component (the × on its chip) hides it and its scores without deleting the underlying data — a safety net, not a hard delete.</li>
+      <li>The roster includes every student who ever took this class, not just currently-enrolled ones — a small <strong>Completed</strong>/<strong>Dropped</strong>/<strong>Transferred</strong> badge next to a name means that student's own enrollment has since ended, but their scores for this class stay visible and editable here.</li>
     </ul>
 
     <h2 id="announcements-teacher">Announcements</h2>
@@ -426,16 +427,16 @@
     <h2 id="my-subjects">My Subjects</h2>
     <p><strong>Where:</strong> left sidebar → <strong>My subjects</strong>.</p>
     <img class="doc-shot" src="manual/student_my_subjects.png" alt="My Subjects">
-    <p>One card per subject the student is currently enrolled in. Each shows the section, school year, and either the assigned teacher's name or <strong>"Teacher not yet assigned"</strong> if Admin hasn't set up that Assignment yet. Subjects with a teacher get a <strong>View Grades</strong> shortcut straight into the next screen, pre-selected.</p>
+    <p>One card per subject the student has ever been enrolled in — <strong>not just the current year</strong>. Each shows a status badge (green <strong>Current</strong> for the active enrollment, or <strong>Completed</strong> / <strong>Dropped</strong> / <strong>Transferred</strong> for past ones), the section, school year, and either the assigned teacher's name or <strong>"Teacher not yet assigned"</strong> if Admin hasn't set up that Assignment yet. Subjects with a teacher get a <strong>View Grades</strong> shortcut straight into the next screen, pre-selected. Current-year subjects list first, then past years newest-first.</p>
 
     <h2 id="my-grades">My Grades</h2>
     <p><strong>Where:</strong> left sidebar → <strong>My Grades</strong>.</p>
     <img class="doc-shot" src="manual/student_my_grades.png" alt="My Grades">
     <ol>
-      <li>Pick a subject from the dropdown (only subjects with an assigned teacher/class appear here).</li>
+      <li>Pick a subject from the dropdown (only subjects with an assigned teacher/class appear here). Since a student can have the same subject across multiple years, each option is labeled with its school year and status, e.g. "Mathematics (MATH1) — S.Y. 2027-2028 [completed]".</li>
       <li>One panel per quarter that has any activity — a <strong>Final Grade</strong> badge (green with the number once released, gray "Not yet released" until then), and a table of every quiz/activity/exam for that quarter with its score, or "Not yet recorded" if the teacher hasn't graded it yet.</li>
     </ol>
-    <div class="doc-note">Everything here is read-only and scoped to the logged-in student's own account — verified that a crafted request for someone else's class is rejected server-side, not just hidden in the UI.</div>
+    <div class="doc-note">Everything here is read-only and scoped to the logged-in student's own account — verified that a crafted request for someone else's class is rejected server-side, not just hidden in the UI. <strong>Grades from a completed, dropped, or transferred school year stay fully accessible</strong> — activating a new school year does not lock a student out of their own history. The Teacher's gradebook roster works the same way: it still shows students from years the class was actually taught, each tagged with their status, instead of going empty once that year ends.</div>
 
     <h2 id="payment-history">Payment History</h2>
     <p><strong>Where:</strong> left sidebar → <strong>Payment History</strong>.</p>
