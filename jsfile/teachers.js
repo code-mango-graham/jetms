@@ -18,6 +18,11 @@ $(document).ready(function () {
     $(document).off('click', '#btnAddTeacher');
     $(document).off('submit', '#teacherForm');
     $(document).off('click', '.btnEditTeacher');
+    $(document).off('input', '#phone_number');
+
+    $(document).on('input', '#phone_number', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 11);
+    });
     $(document).off('click', '.btnDeleteTeacher');
 
     function formatDate(value) {

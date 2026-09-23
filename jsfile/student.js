@@ -5,8 +5,6 @@ $(document).ready(function () {
     let cameraStream = null;
     
     let studentsTable;
-    let activeSchoolYearId;
-    let activeSchoolYearName;
     // Unbind previous handlers to prevent duplicates when page is reloaded
     $(document).off('click', '#btnAddStudent');
     $(document).off('submit', '#studentForm');
@@ -14,6 +12,12 @@ $(document).ready(function () {
     $(document).off('click', '.btnEditStudent');
     $(document).off('click', '.btnViewStudent');
     $(document).off('change', '#student_photo');
+    $(document).off('input', '#cp_no');
+    $(document).off('input', '#contact_cp_no');
+
+    $(document).on('input', '#cp_no, #contact_cp_no', function () {
+        this.value = this.value.replace(/\D/g, '').slice(0, 11);
+    });
     $(document).off('click', '#btnOpenCamera');
     $(document).off('click', '#btnCapturePhoto');
     $(document).off('click', '#btnCancelCamera');
@@ -176,36 +180,6 @@ $(document).ready(function () {
     }
 
     // Load active school year
-    function loadActiveSchoolYear() {
-        $.ajax({
-            url: 'config/school_year_load.php',
-            type: 'POST',
-            dataType: 'json',
-            success: function (res) {
-                if (res.data && res.data.length > 0) {
-                    // Find the active school year (status = 1)
-                    const activeYear = res.data.find(year => year.status == 1);
-                    if (activeYear) {
-                        activeSchoolYearId = activeYear.schoolyear_id;
-                        activeSchoolYearName = activeYear.schoolyear_name;
-                        $('#activeSchoolYear').text(activeSchoolYearName);
-                    } else {
-                        // If no active year, use the first one
-                        activeSchoolYearId = res.data[0].schoolyear_id;
-                        activeSchoolYearName = res.data[0].schoolyear_name;
-                        $('#activeSchoolYear').text(activeSchoolYearName + ' (No active status)');
-                    }
-                } else {
-                    $('#activeSchoolYear').text('No school year found');
-                }
-            },
-            error: function (err) {
-                console.error('Error loading school year:', err);
-                $('#activeSchoolYear').text('Error loading school year');
-            }
-        });
-    }
-
     // Show student modal
     function showStudentModal() {
         const el = document.getElementById('studentModal');
@@ -695,6 +669,5 @@ $(document).ready(function () {
     });
 
     // Initialize
-    loadActiveSchoolYear();
     initTable();
 });

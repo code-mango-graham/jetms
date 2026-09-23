@@ -242,6 +242,127 @@ CREATE TABLE `tbl_subject` (
 
 
 -- =====================================================================
+-- TEACHER ASSIGNMENTS & GRADING (Settings > Assignments assigns a teacher
+-- to teach one subject for one section in the active school year; the
+-- gradebook is scoped to that assignment)
+-- =====================================================================
+
+CREATE TABLE `tbl_class` (
+  `class_id` int(11) NOT NULL AUTO_INCREMENT,
+  `schoolyear_id` int(11) NOT NULL,
+  `schoolyear_name` varchar(20) NOT NULL,
+  `level_id` int(11) DEFAULT NULL,
+  `level_name` varchar(50) NOT NULL,
+  `section_id` int(11) DEFAULT NULL,
+  `section_name` varchar(100) NOT NULL,
+  `subject_id` int(11) DEFAULT NULL,
+  `subject_name` varchar(100) NOT NULL,
+  `subject_code` varchar(50) DEFAULT NULL,
+  `teacher_id` int(11) DEFAULT NULL,
+  `teacher_name` varchar(200) NOT NULL,
+  `class_remarks` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`class_id`),
+  UNIQUE KEY `uq_class_assignment` (`schoolyear_id`,`subject_id`,`section_id`),
+  KEY `fk_class_level` (`level_id`),
+  KEY `fk_class_teacher` (`teacher_id`),
+  KEY `fk_class_section` (`section_id`),
+  KEY `fk_class_subject` (`subject_id`),
+  CONSTRAINT `fk_class_level` FOREIGN KEY (`level_id`) REFERENCES `tbl_level` (`level_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_class_schoolyear` FOREIGN KEY (`schoolyear_id`) REFERENCES `tbl_schoolyear` (`schoolyear_id`),
+  CONSTRAINT `fk_class_section` FOREIGN KEY (`section_id`) REFERENCES `tbl_section` (`section_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_class_subject` FOREIGN KEY (`subject_id`) REFERENCES `tbl_subject` (`subject_id`) ON DELETE SET NULL,
+  CONSTRAINT `fk_class_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `tbl_teacher` (`teacher_id`) ON DELETE SET NULL
+  -- one teacher-subject-section assignment per school year (uq_class_assignment);
+  -- all name/label columns are frozen snapshots, same reasoning as tbl_enrollment
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `tbl_grade_component` (
+  `component_id` int(11) NOT NULL AUTO_INCREMENT,
+  `class_id` int(11) NOT NULL,
+  `quarter` enum('Q1','Q2','Q3','Q4') NOT NULL,
+  `component_type` enum('quiz','activity','exam') NOT NULL,
+  `title` varchar(150) NOT NULL,
+  `max_score` decimal(6,2) NOT NULL DEFAULT 100.00,
+  `date_given` date DEFAULT NULL,
+  `component_remarks` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`component_id`),
+  KEY `fk_component_class` (`class_id`),
+  CONSTRAINT `fk_component_class` FOREIGN KEY (`class_id`) REFERENCES `tbl_class` (`class_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `tbl_grade` (
+  `grade_id` int(11) NOT NULL AUTO_INCREMENT,
+  `component_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `score` decimal(6,2) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`grade_id`),
+  UNIQUE KEY `uq_grade` (`component_id`,`student_id`),
+  KEY `fk_grade_student` (`student_id`),
+  CONSTRAINT `fk_grade_component` FOREIGN KEY (`component_id`) REFERENCES `tbl_grade_component` (`component_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_grade_student` FOREIGN KEY (`student_id`) REFERENCES `tbl_student` (`student_id`) ON DELETE CASCADE
+  -- one score per student per component (uq_grade); a NULL score means
+  -- "not yet recorded", distinct from a 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `tbl_grade_edit_log` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `grade_id` int(11) NOT NULL,
+  `old_score` decimal(6,2) DEFAULT NULL,
+  `new_score` decimal(6,2) DEFAULT NULL,
+  `reason` varchar(500) NOT NULL,
+  `teacher_id` int(11) NOT NULL,
+  `teacher_name` varchar(200) NOT NULL,
+  `edited_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`log_id`),
+  KEY `fk_gradelog_grade` (`grade_id`),
+  CONSTRAINT `fk_gradelog_grade` FOREIGN KEY (`grade_id`) REFERENCES `tbl_grade` (`grade_id`) ON DELETE CASCADE
+  -- one row per edit of an already-recorded (non-NULL) score; `reason` is
+  -- required by config/grading.php's `score_save` action ONLY when
+  -- overwriting an existing value — first-time entry needs no reason
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `tbl_final_grade` (
+  `final_grade_id` int(11) NOT NULL AUTO_INCREMENT,
+  `class_id` int(11) NOT NULL,
+  `student_id` int(11) NOT NULL,
+  `quarter` enum('Q1','Q2','Q3','Q4') NOT NULL,
+  `final_grade` decimal(5,2) DEFAULT NULL,
+  `remarks` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`final_grade_id`),
+  UNIQUE KEY `uq_final_grade` (`class_id`,`student_id`,`quarter`),
+  KEY `fk_finalgrade_student` (`student_id`),
+  CONSTRAINT `fk_finalgrade_class` FOREIGN KEY (`class_id`) REFERENCES `tbl_class` (`class_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_finalgrade_student` FOREIGN KEY (`student_id`) REFERENCES `tbl_student` (`student_id`) ON DELETE CASCADE
+  -- final_grade is entered manually by the teacher per quarter, not
+  -- auto-computed from tbl_grade — component scores are reference only
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `tbl_final_grade_edit_log` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `final_grade_id` int(11) NOT NULL,
+  `old_final_grade` decimal(5,2) DEFAULT NULL,
+  `new_final_grade` decimal(5,2) DEFAULT NULL,
+  `reason` varchar(500) NOT NULL,
+  `teacher_id` int(11) NOT NULL,
+  `teacher_name` varchar(200) NOT NULL,
+  `edited_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`log_id`),
+  KEY `fk_fglog_finalgrade` (`final_grade_id`),
+  CONSTRAINT `fk_fglog_finalgrade` FOREIGN KEY (`final_grade_id`) REFERENCES `tbl_final_grade` (`final_grade_id`) ON DELETE CASCADE
+  -- same reason-required-on-edit-only rule as tbl_grade_edit_log, but for
+  -- an already-released final grade
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- =====================================================================
 -- ENROLLMENT & PAYMENTS
 -- =====================================================================
 
@@ -308,6 +429,29 @@ CREATE TABLE `tbl_payment` (
   -- admin_name is a frozen snapshot of who processed the payment
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `tbl_payment_edit_log` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `payment_id` int(11) NOT NULL,
+  `old_payment_date` date NOT NULL,
+  `old_amount` decimal(10,2) NOT NULL,
+  `old_payment_mode` enum('Cash','GCash','Bank Transfer') NOT NULL,
+  `old_reference_no` varchar(100) DEFAULT NULL,
+  `new_payment_date` date NOT NULL,
+  `new_amount` decimal(10,2) NOT NULL,
+  `new_payment_mode` enum('Cash','GCash','Bank Transfer') NOT NULL,
+  `new_reference_no` varchar(100) DEFAULT NULL,
+  `reason` varchar(500) NOT NULL,
+  `admin_id` int(11) NOT NULL,
+  `admin_name` varchar(150) NOT NULL,
+  `edited_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`log_id`),
+  KEY `fk_paymentlog_payment` (`payment_id`),
+  CONSTRAINT `fk_paymentlog_payment` FOREIGN KEY (`payment_id`) REFERENCES `tbl_payment` (`payment_id`) ON DELETE CASCADE
+  -- one row per edit of an existing payment; `reason` is required by
+  -- config/payment.php's `edit` action — see pages/payments.html's Edit
+  -- Payment modal
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- =====================================================================
 -- ANNOUNCEMENTS
@@ -338,6 +482,46 @@ CREATE TABLE `tbl_announcement_photo` (
   PRIMARY KEY (`photo_id`),
   KEY `fk_announcement_photo` (`announcement_id`),
   CONSTRAINT `fk_announcement_photo` FOREIGN KEY (`announcement_id`) REFERENCES `tbl_announcement` (`announcement_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `tbl_announcement_view` (
+  `view_id` int(11) NOT NULL AUTO_INCREMENT,
+  `role` enum('admin','teacher','student') NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `last_viewed_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`view_id`),
+  UNIQUE KEY `uq_role_user` (`role`,`user_id`)
+  -- one row per user, tracking when they last opened the Announcements feed
+  -- (role, user_id) rather than a users table since accounts are split
+  -- across tbl_admin/tbl_teacher_account/tbl_student_account — see
+  -- config/announcement.php's `unread_count` / `mark_viewed` actions
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- =====================================================================
+-- SCHOOL CALENDAR (admin-authored events, visible read-only to every role
+-- via the shared topbar "School Calendar" link — see config/event.php)
+-- =====================================================================
+
+CREATE TABLE `tbl_event` (
+  `event_id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(150) NOT NULL,
+  `description` text DEFAULT NULL,
+  `event_type` enum('Holiday','Exam','Meeting','Deadline','Other') NOT NULL DEFAULT 'Other',
+  `start_date` date NOT NULL,
+  `end_date` date DEFAULT NULL,
+  `admin_id` int(11) NOT NULL,
+  `admin_name` varchar(150) NOT NULL,
+  `event_remarks` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`event_id`),
+  KEY `fk_event_admin` (`admin_id`),
+  KEY `idx_event_dates` (`start_date`,`end_date`),
+  CONSTRAINT `fk_event_admin` FOREIGN KEY (`admin_id`) REFERENCES `tbl_admin` (`admin_id`)
+  -- end_date is NULL for a single-day event; `idx_event_dates` supports the
+  -- range query the calendar month-view uses to fetch events overlapping
+  -- whatever date range is currently on screen
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 

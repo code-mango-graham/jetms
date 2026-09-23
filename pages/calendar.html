@@ -1,0 +1,117 @@
+<div class="app-content-header">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0">School Calendar</h3>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-end">
+          <li class="breadcrumb-item"><a href="#">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">School Calendar</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content px-4">
+  <div class="container-fluid">
+
+    <div class="card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <button class="btn btn-outline-secondary btn-sm" id="btnCalPrev"><i class="bi bi-chevron-left"></i></button>
+          <h5 class="mb-0" id="calMonthLabel" style="min-width:180px;text-align:center;">Month Year</h5>
+          <button class="btn btn-outline-secondary btn-sm" id="btnCalNext"><i class="bi bi-chevron-right"></i></button>
+          <button class="btn btn-outline-primary btn-sm ms-2" id="btnCalToday">Today</button>
+        </div>
+        <button class="btn btn-primary btn-sm d-none" id="btnAddEvent">
+          <i class="bi bi-plus-circle me-1"></i><b>Add Event</b>
+        </button>
+      </div>
+
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-3 mb-3 small">
+          <span><span class="cal-dot" style="background:#dc3545;"></span> Holiday</span>
+          <span><span class="cal-dot" style="background:#0d6efd;"></span> Exam</span>
+          <span><span class="cal-dot" style="background:#6f42c1;"></span> Meeting</span>
+          <span><span class="cal-dot" style="background:#fd7e14;"></span> Deadline</span>
+          <span><span class="cal-dot" style="background:#6c757d;"></span> Other</span>
+        </div>
+
+        <div id="calendarGrid" class="cal-grid"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================= -->
+<!-- DAY DETAIL / ADD EVENT MODAL -->
+<!-- ============================= -->
+<div class="modal fade" id="dayModal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="dayModalTitle">Events</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div id="dayEventsList" class="mb-3"></div>
+
+        <form id="eventForm" class="d-none border-top pt-3">
+          <input type="hidden" id="event_id" name="event_id">
+
+          <div class="form-group mb-3">
+            <label for="event_title">Title</label>
+            <input type="text" class="form-control" id="event_title" name="title" required>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label for="event_start_date">Start Date</label>
+              <input type="date" class="form-control" id="event_start_date" name="start_date" required>
+            </div>
+            <div class="col-md-6">
+              <label for="event_end_date">End Date <span class="text-muted small">(optional)</span></label>
+              <input type="date" class="form-control" id="event_end_date" name="end_date">
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="event_type">Type</label>
+            <select class="form-select" id="event_type" name="event_type" required>
+              <option value="Holiday">Holiday</option>
+              <option value="Exam">Exam</option>
+              <option value="Meeting">Meeting</option>
+              <option value="Deadline">Deadline</option>
+              <option value="Other" selected>Other</option>
+            </select>
+          </div>
+
+          <div class="form-group mb-3">
+            <label for="event_description">Description <span class="text-muted small">(optional)</span></label>
+            <textarea class="form-control" id="event_description" name="description" rows="2"></textarea>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success btn-sm">Save Event</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btnCancelEventForm">Cancel</button>
+          </div>
+        </form>
+
+        <button type="button" class="btn btn-outline-primary btn-sm d-none" id="btnShowEventForm">
+          <i class="bi bi-plus-circle me-1"></i>Add Event on This Day
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/calendar.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

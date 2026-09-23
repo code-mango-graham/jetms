@@ -1,6 +1,109 @@
-<div class="card">
-  <div class="card-body text-center text-muted py-5">
-    <i class="bi bi-calendar3-week fs-1 d-block mb-2"></i>
-    Content coming soon.
-  </div>
+<!-- ============================= -->
+<!-- BEGIN ASSIGNMENT MANAGEMENT -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline">
+
+    <!-- CARD HEADER -->
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">TEACHER ASSIGNMENTS</h3>
+
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnAddAssignment">
+                <i class="bi bi-plus-circle me-1"></i><B>Add Assignment</B>
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- BEGIN ASSIGNMENT MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="assignmentModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <form id="assignmentForm">
+
+                    <div class="modal-header">
+                        <h4 class="modal-title">Assign Teacher to Class</h4>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" id="class_id" name="class_id">
+
+                        <div class="form-group mb-3">
+                            <label for="assign_level_id">Level</label>
+                            <select class="form-select" id="assign_level_id" name="level_id" required>
+                                <option value="">-- Select Level --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="assign_section_id">Section</label>
+                            <select class="form-select" id="assign_section_id" name="section_id" required disabled>
+                                <option value="">-- Select Level First --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="assign_subject_id">Subject</label>
+                            <select class="form-select" id="assign_subject_id" name="subject_id" required disabled>
+                                <option value="">-- Select Level First --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="assign_teacher_id">Teacher</label>
+                            <select class="form-select" id="assign_teacher_id" name="teacher_id" required>
+                                <option value="">-- Select Teacher --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-text">
+                            Assignments apply to the currently active school year.
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Save</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+    <!-- ============================= -->
+    <!-- END ASSIGNMENT MODAL -->
+    <!-- ============================= -->
+
+    <!-- TABLE CARD BODY -->
+    <div class="card-body">
+        <table id="assignmentTable" class="table table-bordered table-hover nowrap w-100">
+            <thead>
+                <tr>
+                    <th>SCHOOL YEAR</th>
+                    <th>LEVEL</th>
+                    <th>SECTION</th>
+                    <th>SUBJECT</th>
+                    <th>TEACHER</th>
+                    <th width="120">ACTIONS</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+
 </div>
+
+<!-- ============================= -->
+<!-- END ASSIGNMENT MANAGEMENT -->
+<!-- ============================= -->
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/assignments.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

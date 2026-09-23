@@ -17,10 +17,25 @@
 <div class="app-content px-4">
   <div class="container-fluid">
     <div class="card">
-      <div class="card-body text-center text-muted py-5">
-        <i class="bi bi-award fs-1 d-block mb-2"></i>
-        Content coming soon.
+      <div class="card-header">
+        <div class="form-group mb-0" style="max-width:420px;">
+          <label for="grades_subject_select">Subject</label>
+          <select class="form-select" id="grades_subject_select">
+            <option value="">-- Select a Subject --</option>
+          </select>
+        </div>
+      </div>
+      <div class="card-body" id="gradesDetailBody">
+        <div class="text-center text-muted py-4">Select a subject above to view your grades.</div>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/student_grades.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

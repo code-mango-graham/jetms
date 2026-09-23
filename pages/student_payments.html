@@ -17,10 +17,27 @@
 <div class="app-content px-4">
   <div class="container-fluid">
     <div class="card">
-      <div class="card-body text-center text-muted py-5">
-        <i class="bi bi-wallet2 fs-1 d-block mb-2"></i>
-        Content coming soon.
+      <div class="card-body">
+        <table id="myPaymentsTable" class="table table-bordered table-hover nowrap w-100">
+          <thead>
+            <tr>
+              <th>DATE</th>
+              <th>SCHOOL YEAR</th>
+              <th>AMOUNT</th>
+              <th>MODE</th>
+              <th>REFERENCE #</th>
+            </tr>
+          </thead>
+        </table>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/student_payments.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

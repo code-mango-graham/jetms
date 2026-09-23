@@ -17,10 +17,19 @@
 <div class="app-content px-4">
   <div class="container-fluid">
     <div class="card">
-      <div class="card-body text-center text-muted py-5">
-        <i class="bi bi-diagram-2 fs-1 d-block mb-2"></i>
-        Content coming soon.
+      <div class="card-body">
+        <div id="subjectsList" class="row g-3">
+          <div class="col-12 text-center text-muted py-4">Loading...</div>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/student_subjects.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

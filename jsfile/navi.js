@@ -40,6 +40,11 @@ $(document).ready(function () {
 			$("#app-main").empty();
 			$("#app-main").load("pages/dashboard.html?v=" + Date.now());
         });
+        $('#nav_school_calendar').click(function (e) {
+            e.preventDefault();
+            $("#app-main").empty();
+            $("#app-main").load("pages/calendar.html?v=" + Date.now());
+        });
         $("#admin_students").on("click", function()
 		{
           //  alert("Dashboard");

@@ -16,11 +16,121 @@
 
 <div class="app-content px-4">
   <div class="container-fluid">
-    <div class="card">
-      <div class="card-body text-center text-muted py-5">
-        <i class="bi bi-diagram-2 fs-1 d-block mb-2"></i>
-        Content coming soon.
+
+    <!-- ============================= -->
+    <!-- CLASS LIST -->
+    <!-- ============================= -->
+    <div class="card" id="classListCard">
+      <div class="card-body">
+        <table id="myClassesTable" class="table table-bordered table-hover nowrap w-100">
+          <thead>
+            <tr>
+              <th>SCHOOL YEAR</th>
+              <th>LEVEL</th>
+              <th>SECTION</th>
+              <th>SUBJECT</th>
+              <th width="100">STUDENTS</th>
+              <th width="100">ACTIONS</th>
+            </tr>
+          </thead>
+        </table>
       </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- CLASS DETAIL / GRADEBOOK -->
+    <!-- ============================= -->
+    <div class="card d-none" id="classDetailCard">
+      <div class="card-header d-flex align-items-center">
+        <button class="btn btn-outline-secondary btn-sm me-3" id="btnBackToClasses">
+          <i class="bi bi-arrow-left"></i> Back
+        </button>
+        <h5 class="mb-0" id="classDetailTitle">Class</h5>
+      </div>
+      <div class="card-body">
+
+        <ul class="nav nav-pills mb-3" id="quarterTabs">
+          <li class="nav-item"><a class="nav-link active" href="#" data-quarter="Q1">Q1</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-quarter="Q2">Q2</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-quarter="Q3">Q3</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" data-quarter="Q4">Q4</a></li>
+        </ul>
+
+        <div class="mb-3">
+          <div class="d-flex align-items-center flex-wrap gap-2 mb-2">
+            <strong class="me-2">Components:</strong>
+            <span id="componentChips"></span>
+            <button class="btn btn-outline-primary btn-sm ms-2" id="btnAddComponent">
+              <i class="bi bi-plus-circle me-1"></i>Add Component
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered table-sm nowrap w-100" id="gradebookTable">
+            <thead class="table-light">
+              <tr id="gradebookHeaderRow">
+                <th>Student</th>
+                <th width="120">Final Grade</th>
+              </tr>
+            </thead>
+            <tbody id="gradebookBody">
+              <tr><td colspan="2" class="text-center text-muted">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================= -->
+<!-- ADD COMPONENT MODAL -->
+<!-- ============================= -->
+<div class="modal fade" id="componentModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="componentForm">
+        <div class="modal-header">
+          <h4 class="modal-title">Add Grade Component</h4>
+        </div>
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label for="component_type">Type</label>
+            <select class="form-select" id="component_type" name="component_type" required>
+              <option value="quiz">Quiz</option>
+              <option value="activity">Activity</option>
+              <option value="exam">Exam</option>
+            </select>
+          </div>
+          <div class="form-group mb-3">
+            <label for="component_title">Title</label>
+            <input type="text" class="form-control" id="component_title" name="title" placeholder="e.g. Quiz 1 - Fractions" required>
+          </div>
+          <div class="form-group mb-3">
+            <label for="component_max_score">Max Score</label>
+            <input type="number" class="form-control" id="component_max_score" name="max_score" min="1" step="0.01" required>
+          </div>
+          <div class="form-group mb-3">
+            <label for="component_date">Date Given</label>
+            <input type="date" class="form-control" id="component_date" name="date_given">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Save</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/teacher_classes.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

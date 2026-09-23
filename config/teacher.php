@@ -136,6 +136,14 @@ switch ($action) {
             break;
         }
 
+        if ($phone_number !== '' && !preg_match('/^[0-9]{11}$/', $phone_number)) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Phone number must be exactly 11 digits"
+            ]);
+            break;
+        }
+
         if ($email !== '') {
             if (empty($teacher_id)) {
                 $check = mysqli_prepare($conn, "SELECT 1 FROM tbl_teacher WHERE email = ? LIMIT 1");

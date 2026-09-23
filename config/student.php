@@ -248,6 +248,22 @@ switch ($action) {
             break;
         }
 
+        if ($cp_no !== '' && !preg_match('/^[0-9]{11}$/', $cp_no)) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "CP No. must be exactly 11 digits"
+            ]);
+            break;
+        }
+
+        if ($contact_cp_no !== '' && !preg_match('/^[0-9]{11}$/', $contact_cp_no)) {
+            echo json_encode([
+                "status" => "error",
+                "message" => "Contact Number must be exactly 11 digits"
+            ]);
+            break;
+        }
+
         // Duplicate LRN check (safe for add + edit)
         if (!empty($lrn)) {
             if (empty($student_id)) {

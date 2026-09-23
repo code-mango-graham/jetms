@@ -88,7 +88,7 @@ if ($auth['role'] === 'admin') {
               </a>
             </li>
             <li class="nav-item d-none d-md-block">
-              <a href="./docs/introduction.html" class="nav-link">
+              <a href="#" id="nav_school_calendar" class="nav-link">
                 <i class="bi bi-calendar" aria-hidden="true"></i>
                 School Calendar
               </a>
@@ -359,6 +359,8 @@ if ($auth['role'] === 'admin') {
             <div class="p-3 mt-3 border-top border-secondary border-opacity-25">
               <a
                 href="./docs/introduction.html"
+                target="_blank"
+                rel="noopener"
                 class="btn btn-sm btn-outline-light w-100 d-flex align-items-center justify-content-center gap-2"
               >
               <i class="bi bi-book" aria-hidden="true"></i>
@@ -481,6 +483,9 @@ if ($auth['role'] === 'admin') {
     <script src="plugins/datatables_buttons/vfs_fonts.js"></script>
     <script src="plugins/select2/select2.full.min.js"></script>
     <script src="plugins/sweetalert/sweetalert2.min.js"></script>
+    <script>
+      window.__jetms_role = <?php echo json_encode($auth['role']); ?>;
+    </script>
     <script src="jsfile/main.js?v=<?php echo time(); ?>"></script>
     <script src="jsfile/navi.js?v=<?php echo time(); ?>"></script>
     <script src="jsfile/change_password.js?v=<?php echo time(); ?>"></script>

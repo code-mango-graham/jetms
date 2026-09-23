@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Documentation — JETMS</title>
+<link rel="icon" type="image/png" href="../logos/logo1.png"/>
+<link rel="stylesheet" href="../plugins/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="../plugins/icons/font/bootstrap-icons.min.css">
+<style>
+  :root {
+    --accent: #12a480;
+    --accent-dark: #0c7c60;
+    --accent-soft: #e4f6f1;
+    --ink: #1f2d2a;
+    --muted: #6c7a76;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: #f7f9f8;
+  }
+  .doc-header {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    color: #fff;
+    padding: 2rem 0 2.5rem;
+  }
+  .doc-header img {
+    height: 56px;
+    width: 56px;
+    border-radius: 50%;
+    background: #fff;
+    padding: 4px;
+  }
+  .doc-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .doc-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    margin-top: -1.5rem;
+  }
+  .doc-toc {
+    position: sticky;
+    top: 1.5rem;
+    flex: 0 0 260px;
+    background: #fff;
+    border-radius: 0.6rem;
+    box-shadow: 0 4px 18px rgba(20, 40, 35, 0.08);
+    padding: 1.25rem;
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+  }
+  .doc-toc h6 {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+  .doc-toc a {
+    display: block;
+    padding: 0.3rem 0;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-left: 2px solid transparent;
+    padding-left: 0.6rem;
+  }
+  .doc-toc a:hover {
+    color: var(--accent-dark);
+    border-left-color: var(--accent);
+  }
+  .doc-toc .toc-sub a {
+    padding-left: 1.2rem;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+  .doc-content {
+    flex: 1;
+    min-width: 0;
+    background: #fff;
+    border-radius: 0.6rem;
+    box-shadow: 0 4px 18px rgba(20, 40, 35, 0.08);
+    padding: 2rem 2.5rem 3rem;
+    margin-bottom: 3rem;
+  }
+  .doc-content h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+  }
+  .doc-content h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #eef2f0;
+    color: var(--accent-dark);
+    scroll-margin-top: 1rem;
+  }
+  .doc-content h2:first-of-type {
+    border-top: none;
+    margin-top: 1rem;
+    padding-top: 0;
+  }
+  .doc-content h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-top: 1.75rem;
+    scroll-margin-top: 1rem;
+  }
+  .doc-content p { color: #33403c; line-height: 1.65; }
+  .doc-content ul, .doc-content ol { line-height: 1.7; color: #33403c; }
+  .doc-shot {
+    max-width: 100%;
+    border: 1px solid #e3e9e6;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 10px rgba(20, 40, 35, 0.08);
+    margin: 1rem 0 1.5rem;
+    display: block;
+  }
+  .doc-note {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 0.85rem 1.1rem;
+    border-radius: 0.4rem;
+    margin: 1rem 0;
+    font-size: 0.93rem;
+  }
+  .section-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    margin-bottom: 0.5rem;
+  }
+  .tag-admin { background: #e4f6f1; color: var(--accent-dark); }
+  .tag-teacher { background: #eef2ff; color: #4338ca; }
+  .tag-student { background: #fff7e6; color: #b45309; }
+  .tag-kiosk { background: #fde8e8; color: #b91c1c; }
+  code {
+    background: #f1f4f2;
+    padding: 0.1rem 0.4rem;
+    border-radius: 0.3rem;
+    color: #b3401f;
+  }
+  @media (max-width: 900px) {
+    .doc-toc { display: none; }
+    .doc-content { padding: 1.5rem 1.25rem 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="doc-shell d-flex align-items-center gap-3">
+    <img src="../logos/logo1.png" alt="School Logo">
+    <div>
+      <div class="fw-bold fs-4">JETMS Documentation</div>
+      <div class="opacity-75 small">JET Montessori School of Ramon, Incorporated — Full User Manual</div>
+    </div>
+  </div>
+</div>
+
+<div class="doc-shell doc-layout">
+
+  <nav class="doc-toc">
+    <h6>On this page</h6>
+    <a href="#login">Logging In</a>
+    <a href="#school-calendar">School Calendar</a>
+
+    <h6 class="mt-3">Admin Panel</h6>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#students">Students</a>
+    <a href="#enrollment">Enrollment</a>
+    <a href="#payments">Payments</a>
+    <a href="#attendance">Attendance</a>
+    <a href="#announcements-admin">Announcements</a>
+    <a href="#settings">Settings</a>
+    <div class="toc-sub">
+      <a href="#settings-users">Users</a>
+      <a href="#settings-offices">Offices</a>
+      <a href="#settings-positions">Positions</a>
+      <a href="#settings-teachers">Teachers</a>
+      <a href="#settings-schoolyear">School Year</a>
+      <a href="#settings-levels">Levels</a>
+      <a href="#settings-assignments">Assignments</a>
+    </div>
+
+    <h6 class="mt-3">Teacher's Panel</h6>
+    <a href="#my-classes">My Classes / Gradebook</a>
+    <a href="#announcements-teacher">Announcements</a>
+
+    <h6 class="mt-3">Student's Panel</h6>
+    <a href="#my-subjects">My Subjects</a>
+    <a href="#my-grades">My Grades</a>
+    <a href="#payment-history">Payment History</a>
+    <a href="#announcements-student">Announcements</a>
+
+    <h6 class="mt-3">Other</h6>
+    <a href="#kiosk">Attendance Kiosk</a>
+    <a href="#how-it-connects">How It All Connects</a>
+  </nav>
+
+  <main class="doc-content">
+
+    <h1>JETMS User Manual</h1>
+    <p>Complete walkthrough of every screen in JETMS — every CRUD screen, every process, with real screenshots captured from the running app. Organized by role: <strong>Admin</strong>, <strong>Teacher</strong>, <strong>Student</strong>, plus the standalone <strong>Attendance Kiosk</strong>.</p>
+
+    <h2 id="login">Logging In</h2>
+    <p><strong>Where:</strong> <code>index.html</code> — the app's front door, reachable without a session.</p>
+    <img class="doc-shot" src="manual/login.png" alt="Login page">
+    <ol>
+      <li>Pick your role at the top: <strong>Admin</strong>, <strong>Teacher</strong>, or <strong>Student</strong>.</li>
+      <li>Enter your username (admin: a chosen username; teacher: their email; student: their LRN) and password.</li>
+      <li>Click <strong>Log in</strong>.</li>
+    </ol>
+    <p>Wrong role/username/password combinations are rejected with an error — the app checks the account exists in that role's table, is not archived/deactivated, and the password matches. On success you land on <code>mainpage.php</code>, which is guarded server-side: no session, no access, full stop.</p>
+
+    <h2 id="school-calendar">School Calendar</h2>
+    <p><strong>Where:</strong> top navigation bar → <strong>School Calendar</strong>. Available to every logged-in role — Admin, Teacher, and Student all see the same calendar.</p>
+    <img class="doc-shot" src="manual/calendar_admin.png" alt="School Calendar">
+    <p>A month-grid view with Prev/Next/Today navigation. Events are color-coded by type (see the legend: Holiday, Exam, Meeting, Deadline, Other), and days with events show them as small chips directly in the grid. Click any day to see everything scheduled on it:</p>
+    <img class="doc-shot" src="manual/calendar_day_modal.png" alt="Day detail modal">
+    <div class="doc-note"><strong>Only Admin can create, edit, or delete events</strong> — the Edit/Delete icons and the Add Event button only appear for an Admin session. Teachers and Students get the exact same calendar, read-only.</div>
+    <ol>
+      <li>Click <strong>Add Event</strong> (top-right) or click a specific day, then <strong>Add Event on This Day</strong>.</li>
+      <li>Give it a title, a start date, and optionally an end date for multi-day events — leave End Date blank for a single-day event.</li>
+      <li>Pick a type and, optionally, a description.</li>
+      <li>Save — it immediately shows up in the grid and in anyone's Upcoming Events list (including the Admin Dashboard's widget).</li>
+    </ol>
+
+    <span class="section-tag tag-admin">Admin Panel</span>
+
+    <h2 id="dashboard">Dashboard</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>Dashboard</strong> (also the default landing screen after login).</p>
+    <img class="doc-shot" src="manual/dashboard.png" alt="Dashboard">
+    <p>An at-a-glance overview, all pulled live from real data:</p>
+    <ul>
+      <li>Four stat tiles: students enrolled in the active school year, total collected, outstanding balance (tuition minus payments, active year), and today's attendance count.</li>
+      <li><strong>Recent Payments</strong>, <strong>Recent Enrollments</strong>, and <strong>Recent Announcements</strong> — the latest few of each.</li>
+      <li><strong>Upcoming Events</strong> — the next few items from the School Calendar, with a View Full Calendar shortcut.</li>
+    </ul>
+
+    <h2 id="students">Students (CRUD)</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>Students</strong>.</p>
+    <img class="doc-shot" src="manual/students_list.png" alt="Students list">
+    <p>A DataTable of every student on record, with search, sort, and pagination built in. Each row has a <strong>profile</strong> button (opens the student's full read-only profile in a new tab) and an <strong>edit</strong> button (pencil icon).</p>
+
+    <h3>Add a Student</h3>
+    <p>Click <strong>Add</strong>:</p>
+    <img class="doc-shot" src="manual/students_add.png" alt="Add Student modal">
+    <ul>
+      <li>Upload a 2x2 photo (or use <strong>Open Camera</strong> to capture one live) — auto-cropped and compressed.</li>
+      <li>Fill in personal info, parent/contact info, and address (Province → City/Municipality → Barangay cascades).</li>
+      <li><strong>CP No.</strong> and <strong>Contact Number</strong> are restricted to exactly 11 digits — non-digit characters strip as you type.</li>
+      <li>Click <strong>Save</strong>. A duplicate LRN is rejected with a clear error.</li>
+    </ul>
+    <p>Editing works the same way — the same modal opens pre-filled, and <strong>Save</strong> updates instead of inserting.</p>
+
+    <h3>View Full Profile</h3>
+    <p>Click the profile icon on any row to open a dedicated, read-only page in a new tab:</p>
+    <img class="doc-shot" src="manual/student_full_profile.png" alt="Student full profile">
+    <p>Shows everything on file for that student in one place — useful for printing or a quick look without opening the edit modal.</p>
+
+    <h2 id="enrollment">Enrollment</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>Enrollment</strong>.</p>
+    <img class="doc-shot" src="manual/enrollment_list.png" alt="Enrollment list">
+    <p>Lists every enrollment record for every school year, with each row's status badge (Enrolled / Dropped / Transferred / Completed) and balance.</p>
+
+    <h3>Add Enrollment</h3>
+    <p>Click <strong>Add Enrollment</strong>:</p>
+    <img class="doc-shot" src="manual/enrollment_add.png" alt="Add Enrollment modal">
+    <ol>
+      <li>Pick the student and the level — the section list and subject list both populate based on the level chosen.</li>
+      <li>For levels with a fixed curriculum, every subject is auto-assigned; for levels that allow subject selection (Senior High), pick individually.</li>
+      <li>Set the tuition fee, and optionally record a downpayment right there (mode, amount, reference number).</li>
+      <li>Save — this creates the enrollment record for the <strong>active school year only</strong> (there's always exactly one active year at a time).</li>
+    </ol>
+    <div class="doc-note">Subject and section <strong>names are frozen at enrollment time</strong> — renaming a subject or section later never rewrites a student's already-recorded enrollment history.</div>
+
+    <h3>How to Make / Record a Payment</h3>
+    <p>Payments are recorded from the <strong>Enrollment Detail</strong> modal, against a specific enrollment — click the eye icon on any Enrollment row:</p>
+    <img class="doc-shot" src="manual/enrollment_detail.png" alt="Enrollment detail modal">
+    <p>Three stacked sections in one scrollable modal:</p>
+    <ol>
+      <li><strong>Current Enrollment</strong> — school year, level, section, status, subject list, and three action buttons:
+        <ul>
+          <li><strong>Drop / Transfer</strong> — relabels the enrollment as dropped/transferred and preserves all history.</li>
+          <li><strong>Cancel Enrollment</strong> — only allowed if <strong>zero payments</strong> have been recorded against it. If payments exist, cancel is blocked and Drop/Transfer is the only option.</li>
+          <li><strong>View Full Profile</strong> — jumps to the student's full profile page.</li>
+        </ul>
+      </li>
+      <li><strong>Payment History</strong> — running Tuition / Paid / Balance summary, and an <strong>Add Payment</strong> button. To record a payment: click it, fill in the date, amount, mode (Cash / GCash / Bank Transfer), and reference number (always shown regardless of mode), then submit. It appears instantly in the table below and updates the Balance.</li>
+      <li><strong>Enrollment History</strong> — every enrollment this student has ever had, across every school year, with status and remarks.</li>
+    </ol>
+
+    <h3>Reactivate</h3>
+    <p>If a student was dropped/transferred/cancelled in error, reactivating restores an <code>enrolled</code> status — surfaced from the same detail view once a record is in a non-active state.</p>
+
+    <h2 id="payments">Payments</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>Payments</strong>. A school-wide, read-only ledger — separate from the per-enrollment payment history above.</p>
+    <img class="doc-shot" src="manual/payments_ledger.png" alt="Payments ledger">
+    <ul>
+      <li><strong>TOTAL COLLECTED</strong> tile — sums whatever's currently filtered/shown.</li>
+      <li>Three combinable filters: <strong>School Year</strong>, <strong>From Date</strong>, <strong>To Date</strong>. Set any combination and click <strong>Apply Filters</strong>; <strong>Clear</strong> resets everything.</li>
+      <li>The <strong>Transactions</strong> tab is the full row-by-row ledger: Date, Student, LRN, Level/Section, School Year, Amount, Mode, Reference #, and who recorded it.</li>
+    </ul>
+    <p>Click the <strong>Totals per Date</strong> tab to switch to a per-day rollup:</p>
+    <img class="doc-shot" src="manual/payments_daily.png" alt="Payments totals per date">
+    <p>One row per calendar date — how many payments came in and their combined total — respecting the same filters. Useful for "how much did we collect today/this week" without manually adding rows.</p>
+    <p>New payments are recorded from the Enrollment Detail modal above, against a specific enrollment — but existing ones can be corrected right here. Click the pencil icon on any row:</p>
+    <img class="doc-shot" src="manual/payments_edit.png" alt="Edit Payment modal">
+    <p>The same Date / Amount / Mode / Reference # fields, pre-filled, plus a <strong>Reason for Edit</strong> field that's required. Every edit is logged (old values, new values, who, when, why) to an internal audit trail.</p>
+
+    <h2 id="attendance">Attendance</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>Attendance</strong>. This is a <strong>lookup</strong> screen, not the scanning terminal (that's the separate Kiosk — see below).</p>
+    <img class="doc-shot" src="manual/attendance_lookup.png" alt="Attendance lookup">
+    <ol>
+      <li>Pick a student from the searchable dropdown.</li>
+      <li>Their attendance log loads below — Date, Time, Type (Time In / Time Out), and Source (<code>manual</code> today, ready for <code>rfid</code> later).</li>
+    </ol>
+    <p>The <strong>Open Gate Kiosk</strong> button at top-right jumps to the standalone scanning page in a new tab.</p>
+
+    <h2 id="announcements-admin">Announcements (CRUD)</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>Announcements</strong>. Facebook-style feed, admin-authored, visible (read-only) to Teachers and Students too.</p>
+    <img class="doc-shot" src="manual/announcements_admin.png" alt="Admin announcements feed">
+    <p>Each post shows the poster's current photo and name, how long ago it was posted, an audience badge, and — for the admin who's logged in — Edit/Delete controls.</p>
+
+    <h3>New Post</h3>
+    <p>Click <strong>New Post</strong>:</p>
+    <img class="doc-shot" src="manual/announcements_add.png" alt="New announcement modal">
+    <ul>
+      <li>Title, content (multi-line supported), and an <strong>Audience</strong> selector: All / Teachers Only / Students Only.</li>
+      <li>Attach any number of photos — each gets its own delete control, and clicking a photo in the feed opens a lightbox instead of a new tab.</li>
+      <li>Posting immediately counts toward the unread badge (a red pill on the Announcements nav item) for every Teacher/Student it's targeted at, until they open the feed.</li>
+    </ul>
+
+    <h2 id="settings">Settings</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>Admin Settings</strong>. A single hub for every reference/structural table in the app.</p>
+    <img class="doc-shot" src="manual/settings_menu.png" alt="Settings menu">
+    <p>Each item on the left loads its own management screen into the same content area — all follow the same List → Add/Edit modal → Delete pattern.</p>
+
+    <h3 id="settings-users">Users</h3>
+    <img class="doc-shot" src="manual/settings_users.png" alt="Users list">
+    <p>A unified view across all three account tables (Admin/Teacher/Student logins).</p>
+    <div class="doc-note">You don't usually need to create accounts here — adding a Teacher or Student automatically creates their login account with a default password of <code>admin</code>. This screen is for the exceptions: extra admin accounts, or manually creating a login for someone whose record already exists but has none yet.</div>
+    <img class="doc-shot" src="manual/settings_users_add.png" alt="Add Account modal">
+
+    <h3 id="settings-offices">Offices</h3>
+    <img class="doc-shot" src="manual/settings_offices.png" alt="Offices list">
+    <p>Departments teachers can be assigned to (e.g. "Senior High Department"). Simple name + description CRUD.</p>
+    <img class="doc-shot" src="manual/settings_offices_add.png" alt="Add Office modal">
+
+    <h3 id="settings-positions">Positions</h3>
+    <img class="doc-shot" src="manual/settings_positions.png" alt="Positions list">
+    <p>Job titles teachers can hold (e.g. "Principal", "Subject Teacher"). Same simple CRUD pattern.</p>
+    <img class="doc-shot" src="manual/settings_positions_add.png" alt="Add Position modal">
+
+    <h3 id="settings-teachers">Teachers</h3>
+    <img class="doc-shot" src="manual/settings_teachers.png" alt="Teachers list">
+    <p>Teacher records — separate from their login account (auto-created, as noted under Users above).</p>
+    <img class="doc-shot" src="manual/settings_teachers_add.png" alt="Add Teacher modal">
+    <p><strong>Phone Number</strong> is restricted to exactly 11 digits, same rule and same live input-stripping as the Student form.</p>
+
+    <h3 id="settings-schoolyear">School Year</h3>
+    <img class="doc-shot" src="manual/settings_schoolyear.png" alt="School Year list">
+    <p>There's always exactly <strong>one active school year</strong> — activating a new one automatically flips every still-<code>enrolled</code> record from the previous active year to <code>completed</code>, so history stays accurate without manual cleanup.</p>
+    <img class="doc-shot" src="manual/settings_schoolyear_add.png" alt="Add School Year modal">
+
+    <h3 id="settings-levels">Levels (and their Sections/Subjects)</h3>
+    <img class="doc-shot" src="manual/settings_levels.png" alt="Levels list">
+    <p>Each level (Kinder 1 through Grade 12) has an order (controls sort/progression), a flag for whether students can pick their own subjects (Senior High) vs. a fixed curriculum (everything else), and counts of its sections/subjects.</p>
+    <p>Click the diagram icon on any level row to manage its Sections and Subjects:</p>
+    <img class="doc-shot" src="manual/settings_levels_manage.png" alt="Manage Sections and Subjects modal">
+    <p>Two independent lists in one modal — add a section name, or a subject name + optional code, each with its own delete control. These are what populate the dropdowns everywhere else in the app.</p>
+
+    <h3 id="settings-assignments">Assignments</h3>
+    <img class="doc-shot" src="manual/settings_assignments.png" alt="Assignments list">
+    <p>This is where a <strong>Teacher</strong> gets connected to a <strong>Subject</strong> + <strong>Section</strong> for the active school year — the prerequisite for that class showing up anywhere (Teacher's My Classes, Student's My Subjects/My Grades).</p>
+    <img class="doc-shot" src="manual/settings_assignments_add.png" alt="Add Assignment modal">
+    <ol>
+      <li>Pick a Level — Section and Subject dropdowns populate from it.</li>
+      <li>Pick the Section, Subject, and Teacher.</li>
+      <li>Save. The app blocks assigning the same subject+section twice in one school year (edit the existing assignment instead, to change who teaches it).</li>
+    </ol>
+    <p>Deleting an assignment here doesn't delete any grades already recorded — it's a soft-remove that just stops it appearing as active.</p>
+
+    <span class="section-tag tag-teacher">Teacher's Panel</span>
+
+    <h2 id="my-classes">My Classes (and the Gradebook)</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>My Classes</strong>.</p>
+    <img class="doc-shot" src="manual/teacher_my_classes.png" alt="My Classes list">
+    <p>Every class this teacher is assigned to, with a live student count pulled from actual enrollment data. Click <strong>Manage</strong> on any row to open its gradebook.</p>
+    <img class="doc-shot" src="manual/teacher_gradebook.png" alt="Gradebook">
+    <ul>
+      <li><strong>Quarter tabs</strong> (Q1–Q4) — everything below is scoped to whichever quarter is selected.</li>
+      <li><strong>Components</strong> — the quizzes/activities/exams for this quarter, shown as chips (each labeled with its max score). Click <strong>Add Component</strong>:</li>
+    </ul>
+    <img class="doc-shot" src="manual/teacher_add_component.png" alt="Add Component modal">
+    <p>Pick a type (Quiz / Activity / Exam), give it a title, a max score, and optionally a date. It immediately appears as a chip and opens a new score-entry column in the grid for every enrolled student.</p>
+    <ul>
+      <li><strong>The grid</strong> — one row per enrolled student (pulled live from actual enrollment + subject records, no separate roster to maintain), one column per component, plus a <strong>Final Grade</strong> column at the end.</li>
+      <li>Type a score directly into any cell — it saves automatically when you click away (on blur). A score outside the component's max is rejected with an inline error.</li>
+      <li><strong>Final Grade is typed in manually</strong>, per student, per quarter — it is <strong>not</strong> auto-averaged from the component scores above. Those scores are reference material; the Final Grade is your own official entry.</li>
+      <li><strong>Editing an already-recorded score or Final Grade</strong> (changing a value that's already there, not the first entry) pops up a required reason prompt before it saves:</li>
+    </ul>
+    <img class="doc-shot" src="manual/gradebook_edit_reason.png" alt="Reason for edit prompt">
+    <ul>
+      <li>Cancel and the cell reverts; confirm with a reason and it saves, with the old value, new value, reason, and editor all logged internally.</li>
+      <li>Removing a component (the × on its chip) hides it and its scores without deleting the underlying data — a safety net, not a hard delete.</li>
+    </ul>
+
+    <h2 id="announcements-teacher">Announcements</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>Announcements</strong>. Same feed a Teacher sees as everyone else, filtered to posts targeted at "All" or "Teachers" — read-only (no New Post button).</p>
+    <img class="doc-shot" src="manual/teacher_announcements.png" alt="Teacher announcements view">
+
+    <span class="section-tag tag-student">Student's Panel</span>
+
+    <h2 id="my-subjects">My Subjects</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>My subjects</strong>.</p>
+    <img class="doc-shot" src="manual/student_my_subjects.png" alt="My Subjects">
+    <p>One card per subject the student is currently enrolled in. Each shows the section, school year, and either the assigned teacher's name or <strong>"Teacher not yet assigned"</strong> if Admin hasn't set up that Assignment yet. Subjects with a teacher get a <strong>View Grades</strong> shortcut straight into the next screen, pre-selected.</p>
+
+    <h2 id="my-grades">My Grades</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>My Grades</strong>.</p>
+    <img class="doc-shot" src="manual/student_my_grades.png" alt="My Grades">
+    <ol>
+      <li>Pick a subject from the dropdown (only subjects with an assigned teacher/class appear here).</li>
+      <li>One panel per quarter that has any activity — a <strong>Final Grade</strong> badge (green with the number once released, gray "Not yet released" until then), and a table of every quiz/activity/exam for that quarter with its score, or "Not yet recorded" if the teacher hasn't graded it yet.</li>
+    </ol>
+    <div class="doc-note">Everything here is read-only and scoped to the logged-in student's own account — verified that a crafted request for someone else's class is rejected server-side, not just hidden in the UI.</div>
+
+    <h2 id="payment-history">Payment History</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>Payment History</strong>.</p>
+    <img class="doc-shot" src="manual/student_payment_history.png" alt="Payment History">
+    <p>The same style of table as Admin's Payments ledger, but scoped to only this student's own payments.</p>
+
+    <h2 id="announcements-student">Announcements</h2>
+    <p><strong>Where:</strong> left sidebar → <strong>Announcements</strong>. Read-only feed filtered to "All" or "Students" posts.</p>
+    <img class="doc-shot" src="manual/student_announcements.png" alt="Student announcements view">
+
+    <span class="section-tag tag-kiosk">Standalone</span>
+
+    <h2 id="kiosk">Attendance Kiosk (no login required)</h2>
+    <p><strong>Where:</strong> <code>attendance_kiosk.html</code> — a completely separate page, reachable without any session, meant to run on a gate-side tablet/terminal.</p>
+    <img class="doc-shot" src="manual/attendance_kiosk.png" alt="Attendance kiosk">
+    <ul>
+      <li>Enter/scan the LRN.</li>
+      <li>The system automatically figures out whether this is a Time In or Time Out — it toggles based on that student's most recent scan <strong>today</strong>.</li>
+      <li>No admin/teacher/student login is needed or checked here by design — it's meant to sit at a physical gate, not behind the app's normal auth wall.</li>
+      <li><code>source</code> is recorded as <code>manual</code> for now; the same log structure is ready for an RFID reader to feed it directly later.</li>
+    </ul>
+
+    <h2 id="how-it-connects">How It All Connects</h2>
+    <ol>
+      <li><strong>Admin</strong> creates Students and Teachers (Settings), sets up Levels/Sections/Subjects (Settings), and activates a School Year.</li>
+      <li><strong>Admin</strong> enrolls a student (Enrollment) — subjects get assigned based on the level's curriculum rules, tuition is set, payments can start.</li>
+      <li><strong>Admin</strong> assigns a Teacher to teach a Subject in a Section (Settings → Assignments) — this is what turns an enrolled subject into an actual "class" with a gradebook.</li>
+      <li><strong>Teacher</strong> adds quiz/activity/exam components and enters scores + Final Grades per quarter (My Classes).</li>
+      <li><strong>Student</strong> sees their subjects (My Subjects), their grades (My Grades), and their payment history — all read-only, all automatically scoped to their own account.</li>
+      <li><strong>Admin</strong> posts Announcements anytime, visible to whichever audience is picked, with unread badges for Teachers/Students until they check the feed.</li>
+      <li>Attendance happens two ways: the no-login <strong>Kiosk</strong> for gate scans, and the in-app <strong>Attendance</strong> lookup for reviewing a specific student's history.</li>
+    </ol>
+
+  </main>
+</div>
+
+</body>
+</html>

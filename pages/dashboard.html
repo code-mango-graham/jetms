@@ -1,40 +1,107 @@
 <div class="app-content-header">
-          <!--begin::Container-->
-          <div class="container-fluid">
-            <!--begin::Row-->
-            <div class="row">
-              <div class="col-sm-6">
-                <h3 class="mb-0">Dashboard</h3>
-              </div>
-              <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-end">
-                  <li class="breadcrumb-item"><a href="#">Home</a></li>
-                  <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
-                </ol>
-              </div>
-            </div>
-            <!--end::Row-->
-          </div>
-          <!--end::Container-->
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-sm-6">
+        <h3 class="mb-0">Dashboard</h3>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-end">
+          <li class="breadcrumb-item"><a href="#">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="app-content">
+  <div class="container-fluid">
+
+    <div class="row g-3 mb-1">
+      <div class="col-6 col-lg-3">
+        <div class="subpanel p-3 text-center h-100">
+          <div class="text-muted small">ENROLLED <span id="dashActiveYear"></span></div>
+          <div class="fs-3 fw-bold" id="dashTotalEnrolled">-</div>
         </div>
-        <!--end::App Content Header-->
-        <!--begin::App Content-->
-        <div class="app-content">
-          <!--begin::Container-->
-          <div class="container-fluid">
-            <!--begin::Row-->
-            <div class="row">
-              <div class="col-12">
-                <div class="card">
-                  <div class="card-body text-center text-muted py-5">
-                    <i class="bi bi-speedometer2 fs-1 d-block mb-2"></i>
-                    Content coming soon.
-                  </div>
-                </div>
-              </div>
-            </div>
-            <!--end::Row-->
-          </div>
-          <!--end::Container-->
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="subpanel p-3 text-center h-100">
+          <div class="text-muted small">TOTAL COLLECTED</div>
+          <div class="fs-3 fw-bold text-success" id="dashTotalCollected">-</div>
         </div>
-        <!--end::App Content-->
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="subpanel p-3 text-center h-100">
+          <div class="text-muted small">OUTSTANDING BALANCE</div>
+          <div class="fs-3 fw-bold text-danger" id="dashTotalBalance">-</div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="subpanel p-3 text-center h-100">
+          <div class="text-muted small">ATTENDANCE TODAY</div>
+          <div class="fs-3 fw-bold" id="dashAttendanceToday">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-lg-4">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-cash-coin me-1"></i>Recent Payments</div>
+          <div class="card-body p-0">
+            <ul class="list-group list-group-flush" id="dashRecentPayments">
+              <li class="list-group-item text-muted">Loading...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-person-plus me-1"></i>Recent Enrollments</div>
+          <div class="card-body p-0">
+            <ul class="list-group list-group-flush" id="dashRecentEnrollments">
+              <li class="list-group-item text-muted">Loading...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="card h-100">
+          <div class="card-header"><i class="bi bi-megaphone me-1"></i>Recent Announcements</div>
+          <div class="card-body p-0">
+            <ul class="list-group list-group-flush" id="dashRecentAnnouncements">
+              <li class="list-group-item text-muted">Loading...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1 mb-3">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-calendar-event me-1"></i>Upcoming Events</span>
+            <a href="#" id="dashViewCalendar" class="small">View Full Calendar &rarr;</a>
+          </div>
+          <div class="card-body">
+            <div id="dashUpcomingEvents" class="row g-2">
+              <div class="col-12 text-muted">Loading...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/dashboard.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>
