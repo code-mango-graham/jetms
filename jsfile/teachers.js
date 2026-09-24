@@ -37,13 +37,14 @@ $(document).ready(function () {
         return $.ajax({
             url: 'config/position.php',
             type: 'POST',
-            data: { action: 'load' },
+            data: { action: 'load', include_id: selectedId || 0 },
             dataType: 'json',
             success: function (res) {
                 let options = '<option value="">-- Select Position --</option>';
 
                 (res.data || []).forEach(function (row) {
-                    options += `<option value="${row.position_id}">${row.position_title}</option>`;
+                    const archived = String(row.position_remarks) === '0' ? ' (archived)' : '';
+                    options += `<option value="${row.position_id}">${esc(row.position_title)}${archived}</option>`;
                 });
 
                 $('#position_id').html(options);
@@ -61,13 +62,14 @@ $(document).ready(function () {
         return $.ajax({
             url: 'config/office.php',
             type: 'POST',
-            data: { action: 'load' },
+            data: { action: 'load', include_id: selectedId || 0 },
             dataType: 'json',
             success: function (res) {
                 let options = '<option value="">-- Select Office --</option>';
 
                 (res.data || []).forEach(function (row) {
-                    options += `<option value="${row.office_id}">${row.office_name}</option>`;
+                    const archived = String(row.office_remarks) === '0' ? ' (archived)' : '';
+                    options += `<option value="${row.office_id}">${esc(row.office_name)}${archived}</option>`;
                 });
 
                 $('#department_id').html(options);

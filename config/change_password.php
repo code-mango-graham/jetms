@@ -1,6 +1,7 @@
 <?php
-session_start();
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
 
 header('Content-Type: application/json');
 
@@ -24,11 +25,13 @@ if ($current_password === '' || $new_password === '') {
     exit;
 }
 
-if (strlen($new_password) < 4) {
-    echo json_encode([
-        "status" => "error",
-        "message" => "New password must be at least 4 characters"
-    ]);
+$policyError = password_policy_error($new_password, isset($auth['username']) ? $auth['username'] : '');
+if ($policyError !== null) {
+    echo json_encode(["status" => "error", "message" => $policyError]);
+    exit;
+}
+if ($new_password === $current_password) {
+    echo json_encode(["status" => "error", "message" => "The new password must be different from the current one"]);
     exit;
 }
 
@@ -51,6 +54,7 @@ $row = $result ? $result->fetch_assoc() : null;
 mysqli_stmt_close($stmt);
 
 if (!$row || !password_verify($current_password, $row['password'])) {
+    audit_log($conn, 'auth_failed', 'password_change', $auth['id'], 'Wrong current password while trying to change own password');
     echo json_encode([
         "status" => "error",
         "message" => "Current password is incorrect"
@@ -64,6 +68,8 @@ $update = mysqli_prepare($conn, "UPDATE $table SET password = ? WHERE $idCol = ?
 mysqli_stmt_bind_param($update, "si", $newHash, $auth['id']);
 mysqli_stmt_execute($update);
 mysqli_stmt_close($update);
+$_SESSION['auth']['must_change'] = false;
+audit_log($conn, 'password_change', $table, $auth['id'], 'User changed their own password');
 
 echo json_encode([
     "status" => "success",

@@ -25,11 +25,11 @@ $(document).ready(function () {
             let html = '';
             subjects.forEach(function (s) {
                 const teacherLine = s.teacher_name
-                    ? `<div class="text-muted small"><i class="bi bi-person-badge me-1"></i>${s.teacher_name}</div>`
+                    ? `<div class="text-muted small"><i class="bi bi-person-badge me-1"></i>${esc(s.teacher_name)}</div>`
                     : `<div class="text-muted small"><i class="bi bi-person-dash me-1"></i>Teacher not yet assigned</div>`;
 
                 const gradesBtn = s.class_id
-                    ? `<button class="btn btn-outline-primary btn-sm mt-2 btnViewGrades" data-class-id="${s.class_id}" data-subject="${s.subject_name}">
+                    ? `<button class="btn btn-outline-primary btn-sm mt-2 btnViewGrades" data-class-id="${s.class_id}" data-subject="${esc(s.subject_name)}">
                            <i class="bi bi-journal-text me-1"></i>View Grades
                        </button>`
                     : '';
@@ -40,10 +40,10 @@ $(document).ready(function () {
                     <div class="col-md-4">
                         <div class="subpanel p-3 h-100">
                             <div class="d-flex justify-content-between align-items-start">
-                                <div class="fw-bold">${s.subject_name}${s.subject_code ? ` <span class="text-muted small">(${s.subject_code})</span>` : ''}</div>
+                                <div class="fw-bold">${esc(s.subject_name)}${s.subject_code ? ` <span class="text-muted small">(${esc(s.subject_code)})</span>` : ''}</div>
                                 ${badge}
                             </div>
-                            <div class="text-muted small">${s.section_name} &middot; S.Y. ${s.schoolyear_name}</div>
+                            <div class="text-muted small">${esc(s.section_name)} &middot; S.Y. ${esc(s.schoolyear_name)}</div>
                             ${teacherLine}
                             ${gradesBtn}
                         </div>

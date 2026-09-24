@@ -1,6 +1,7 @@
 <?php
-session_start();
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
 
 header('Content-Type: application/json');
 
@@ -13,7 +14,25 @@ function classBelongsToTeacher($conn, $class_id) {
     mysqli_stmt_execute($stmt);
     $row = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
     mysqli_stmt_close($stmt);
-    return $row && (int) $row['teacher_id'] === (int) $_SESSION['auth']['id'];
+    return $row && (int) $row['teacher_id'] === (int) $_SESSION['auth']['ref_id'];
+}
+
+// A student may only be graded in a class they actually took: enrolled in that
+// class's section + school year with that subject. Any enrollment status counts
+// (dropped / transferred / completed stay gradeable so history can be corrected).
+function studentInClass($conn, $class_id, $student_id) {
+    $stmt = mysqli_prepare($conn, "
+        SELECT 1 FROM tbl_class c
+        JOIN tbl_enrollment e ON e.section_id = c.section_id AND e.schoolyear_id = c.schoolyear_id
+        JOIN tbl_enrollment_subject es ON es.enrollment_id = e.enrollment_id AND es.subject_id = c.subject_id
+        WHERE c.class_id = ? AND e.student_id = ? LIMIT 1
+    ");
+    mysqli_stmt_bind_param($stmt, "ii", $class_id, $student_id);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_store_result($stmt);
+    $ok = mysqli_stmt_num_rows($stmt) > 0;
+    mysqli_stmt_close($stmt);
+    return $ok;
 }
 
 $action = isset($_POST['action']) ? $_POST['action'] : '';
@@ -68,7 +87,12 @@ switch ($action) {
             break;
         }
 
-        if (!in_array($quarter, ['Q1', 'Q2', 'Q3', 'Q4'], true) || !in_array($component_type, ['quiz', 'activity', 'exam'], true) || $title === '' || $max_score <= 0) {
+        if ($date_given !== null && !valid_date($date_given)) {
+            echo json_encode(["status" => "error", "message" => "Enter a valid date"]);
+            break;
+        }
+
+        if (!in_array($quarter, ['Q1', 'Q2', 'Q3', 'Q4'], true) || !in_array($component_type, ['quiz', 'activity', 'exam'], true) || $title === '' || $max_score <= 0 || $max_score > 1000) {
             echo json_encode(["status" => "error", "message" => "All fields are required and max score must be greater than 0"]);
             break;
         }
@@ -79,7 +103,9 @@ switch ($action) {
         ");
         mysqli_stmt_bind_param($stmt, "isssds", $class_id, $quarter, $component_type, $title, $max_score, $date_given);
         mysqli_stmt_execute($stmt);
+        $newComponentId = mysqli_insert_id($conn);
         mysqli_stmt_close($stmt);
+        audit_log($conn, 'create', 'tbl_grade_component', $newComponentId, 'Grade component added: ' . $title . ' (' . $component_type . ', ' . $quarter . ', class #' . $class_id . ')', null, audit_snapshot($conn, 'tbl_grade_component', 'component_id', $newComponentId));
 
         echo json_encode(["status" => "success", "message" => "Component added"]);
         break;
@@ -102,10 +128,12 @@ switch ($action) {
             break;
         }
 
+        $auditOld = audit_snapshot($conn, 'tbl_grade_component', 'component_id', $component_id);
         $stmt = mysqli_prepare($conn, "UPDATE tbl_grade_component SET component_remarks = 0 WHERE component_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $component_id);
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
+        audit_log($conn, 'archive', 'tbl_grade_component', $component_id, 'Grade component removed: ' . ($auditOld['title'] ?? ''), $auditOld);
 
         echo json_encode(["status" => "success", "message" => "Component removed"]);
         break;
@@ -221,6 +249,11 @@ switch ($action) {
             break;
         }
 
+        if (!studentInClass($conn, (int) $classRow['class_id'], $student_id)) {
+            echo json_encode(["status" => "error", "message" => "That student is not in this class"]);
+            break;
+        }
+
         if ($score !== null && ($score < 0 || $score > (float) $classRow['max_score'])) {
             echo json_encode(["status" => "error", "message" => "Score must be between 0 and " . $classRow['max_score']]);
             break;
@@ -250,7 +283,7 @@ switch ($action) {
 
         if ($isEdit) {
             $gradeId = $existing['grade_id'];
-            $teacherId = $_SESSION['auth']['id'];
+            $teacherId = $_SESSION['auth']['ref_id'];
             $teacherName = $_SESSION['auth']['name'];
             $log = mysqli_prepare($conn, "
                 INSERT INTO tbl_grade_edit_log (grade_id, old_score, new_score, reason, teacher_id, teacher_name)
@@ -259,6 +292,9 @@ switch ($action) {
             mysqli_stmt_bind_param($log, "iddsis", $gradeId, $existing['score'], $score, $reason, $teacherId, $teacherName);
             mysqli_stmt_execute($log);
             mysqli_stmt_close($log);
+            audit_log($conn, 'update', 'tbl_grade', $gradeId, 'Score changed for student #' . $student_id . ' (component #' . $component_id . '): ' . $existing['score'] . ' -> ' . $score . ' - reason: ' . $reason, null, null, ['reason' => $reason]);
+        } elseif ($score !== null && (!$existing || $existing['score'] === null)) {
+            audit_log($conn, 'create', 'tbl_grade', $existing ? $existing['grade_id'] : mysqli_insert_id($conn), 'Score recorded for student #' . $student_id . ' (component #' . $component_id . '): ' . $score);
         }
 
         echo json_encode(["status" => "success"]);
@@ -284,6 +320,11 @@ switch ($action) {
 
         if (!in_array($quarter, ['Q1', 'Q2', 'Q3', 'Q4'], true)) {
             echo json_encode(["status" => "error", "message" => "Invalid quarter"]);
+            break;
+        }
+
+        if (!studentInClass($conn, $class_id, $student_id)) {
+            echo json_encode(["status" => "error", "message" => "That student is not in this class"]);
             break;
         }
 
@@ -316,7 +357,7 @@ switch ($action) {
 
         if ($isEdit) {
             $finalGradeId = $existing['final_grade_id'];
-            $teacherId = $_SESSION['auth']['id'];
+            $teacherId = $_SESSION['auth']['ref_id'];
             $teacherName = $_SESSION['auth']['name'];
             $log = mysqli_prepare($conn, "
                 INSERT INTO tbl_final_grade_edit_log (final_grade_id, old_final_grade, new_final_grade, reason, teacher_id, teacher_name)
@@ -325,6 +366,9 @@ switch ($action) {
             mysqli_stmt_bind_param($log, "iddsis", $finalGradeId, $existing['final_grade'], $final_grade, $reason, $teacherId, $teacherName);
             mysqli_stmt_execute($log);
             mysqli_stmt_close($log);
+            audit_log($conn, 'update', 'tbl_final_grade', $finalGradeId, 'Final grade changed for student #' . $student_id . ' (class #' . $class_id . ', ' . $quarter . '): ' . $existing['final_grade'] . ' -> ' . $final_grade . ' - reason: ' . $reason, null, null, ['reason' => $reason]);
+        } elseif ($final_grade !== null && (!$existing || $existing['final_grade'] === null)) {
+            audit_log($conn, 'create', 'tbl_final_grade', $existing ? $existing['final_grade_id'] : mysqli_insert_id($conn), 'Final grade recorded for student #' . $student_id . ' (class #' . $class_id . ', ' . $quarter . '): ' . $final_grade);
         }
 
         echo json_encode(["status" => "success"]);
@@ -342,7 +386,7 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Not authorized"]);
             break;
         }
-        $student_id = $_SESSION['auth']['id'];
+        $student_id = $_SESSION['auth']['ref_id'];
 
         $stmt = mysqli_prepare($conn, "
             SELECT es.subject_id, es.subject_name, es.subject_code,
@@ -376,7 +420,7 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Not authorized"]);
             break;
         }
-        $student_id = $_SESSION['auth']['id'];
+        $student_id = $_SESSION['auth']['ref_id'];
         $class_id = isset($_POST['class_id']) ? (int) $_POST['class_id'] : 0;
 
         // Confirm this class corresponds to one of the student's own subjects —

@@ -209,7 +209,7 @@ $(document).ready(function () {
                 (res.data || []).forEach(function (row) {
                     rows += `
                         <tr>
-                            <td>${row.section_name}</td>
+                            <td>${esc(row.section_name)}</td>
                             <td class="text-center">
                                 <button class="btn btn-outline-danger btn-sm btnDeleteSection" data-id="${row.section_id}">
                                     <i class="bi bi-trash"></i>
@@ -237,8 +237,8 @@ $(document).ready(function () {
                 (res.data || []).forEach(function (row) {
                     rows += `
                         <tr>
-                            <td>${row.subject_name}</td>
-                            <td>${row.subject_code || '-'}</td>
+                            <td>${esc(row.subject_name)}</td>
+                            <td>${esc(row.subject_code) || '-'}</td>
                             <td class="text-center">
                                 <button class="btn btn-outline-danger btn-sm btnDeleteSubject" data-id="${row.subject_id}">
                                     <i class="bi bi-trash"></i>

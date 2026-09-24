@@ -1,5 +1,8 @@
 <?php
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+require_admin();
 
 header('Content-Type: application/json');
 
@@ -31,8 +34,14 @@ function createStudentAccount($conn, $student_id, $lrn) {
     $passwordHash = password_hash('admin', PASSWORD_BCRYPT);
     $save = mysqli_prepare($conn, "INSERT INTO tbl_student_account (student_id, username, password) VALUES (?, ?, ?)");
     mysqli_stmt_bind_param($save, "iss", $student_id, $lrn, $passwordHash);
-    mysqli_stmt_execute($save);
+    if (!mysqli_stmt_execute($save)) {
+        error_log('createStudentAccount failed: ' . mysqli_stmt_error($save));
+        mysqli_stmt_close($save);
+        return ' Login account could NOT be created (that username is already used by another account). Create it in Settings > Users.';
+    }
+    $newAccountId = mysqli_insert_id($conn);
     mysqli_stmt_close($save);
+    audit_log($conn, 'create', 'tbl_student_account', $newAccountId, "Login account auto-created for student #{$student_id} (username: {$lrn})");
 
     return " Login account created (username: {$lrn}, password: admin).";
 }
@@ -71,7 +80,7 @@ function handleStudentPhotoUpload($fileInputName, $existingPhoto = '') {
         'image/webp' => 'webp'
     ];
 
-    if (!isset($allowed[$mime])) {
+    if (!isset($allowed[$mime]) || !is_real_image($file['tmp_name'])) {
         throw new Exception('Only JPG, PNG, and WEBP photos are allowed');
     }
 
@@ -89,6 +98,33 @@ function handleStudentPhotoUpload($fileInputName, $existingPhoto = '') {
     return $filename;
 }
 
+// When a student's LRN is corrected, keep the login username (the LRN) in step.
+function syncStudentLoginName($conn, $student_id, $oldLrn, $newLrn) {
+    if ($newLrn === null || $newLrn === '' || (string) $oldLrn === (string) $newLrn) {
+        return '';
+    }
+    $find = mysqli_prepare($conn, "SELECT student_account_id FROM tbl_student_account WHERE student_id = ? AND account_remarks = 1 LIMIT 1");
+    mysqli_stmt_bind_param($find, "i", $student_id);
+    mysqli_stmt_execute($find);
+    $acct = mysqli_fetch_assoc(mysqli_stmt_get_result($find));
+    mysqli_stmt_close($find);
+    if (!$acct) {
+        return '';
+    }
+    if (isUsernameTaken($conn, $newLrn)) {
+        return ' The login username was NOT changed (that LRN is already a username elsewhere).';
+    }
+    $upd = mysqli_prepare($conn, "UPDATE tbl_student_account SET username = ? WHERE student_account_id = ?");
+    mysqli_stmt_bind_param($upd, "si", $newLrn, $acct['student_account_id']);
+    $ok = mysqli_stmt_execute($upd);
+    mysqli_stmt_close($upd);
+    if (!$ok) {
+        return ' The login username could not be updated.';
+    }
+    audit_log($conn, 'update', 'tbl_student_account', $acct['student_account_id'], 'Login username changed with the LRN: ' . $oldLrn . ' -> ' . $newLrn);
+    return ' Login username updated to the new LRN.';
+}
+
 $action = isset($_POST['action']) ? $_POST['action'] : '';
 
 switch ($action) {
@@ -104,7 +140,7 @@ switch ($action) {
             $result = $conn->query($sql);
 
             if (!$result) {
-                throw new Exception('Query failed: ' . $conn->error);
+                throw new Exception(db_fail('Query: ' . $conn->error));
             }
 
             while ($row = $result->fetch_assoc()) {
@@ -133,13 +169,13 @@ switch ($action) {
 
             $stmt = $conn->prepare("SELECT * FROM tbl_student WHERE student_id = ?");
             if (!$stmt) {
-                throw new Exception('Prepare failed: ' . $conn->error);
+                throw new Exception(db_fail('Prepare: ' . $conn->error));
             }
 
             $stmt->bind_param("i", $student_id);
 
             if (!$stmt->execute()) {
-                throw new Exception('Execute failed: ' . $stmt->error);
+                throw new Exception(db_fail('Execute: ' . $stmt->error));
             }
 
             $result = $stmt->get_result();
@@ -175,13 +211,13 @@ switch ($action) {
 
             $stmt = $conn->prepare("SELECT * FROM tbl_student WHERE student_id = ?");
             if (!$stmt) {
-                throw new Exception('Prepare failed: ' . $conn->error);
+                throw new Exception(db_fail('Prepare: ' . $conn->error));
             }
 
             $stmt->bind_param('i', $student_id);
 
             if (!$stmt->execute()) {
-                throw new Exception('Execute failed: ' . $stmt->error);
+                throw new Exception(db_fail('Execute: ' . $stmt->error));
             }
 
             $result = $stmt->get_result();
@@ -300,6 +336,7 @@ switch ($action) {
         }
 
         $isNewStudent = empty($student_id);
+        $auditOld = $isNewStudent ? null : audit_snapshot($conn, 'tbl_student', 'student_id', $student_id);
 
         if ($isNewStudent) {
             $save = mysqli_prepare($conn, "INSERT INTO tbl_student (
@@ -362,9 +399,14 @@ switch ($action) {
 
         mysqli_stmt_close($save);
 
+        $auditNew = audit_snapshot($conn, 'tbl_student', 'student_id', $student_id);
+        audit_log($conn, $isNewStudent ? 'create' : 'update', 'tbl_student', $student_id, 'Student: ' . ($auditNew['last_name'] ?? '') . ', ' . ($auditNew['first_name'] ?? '') . ' (LRN ' . ($auditNew['lrn'] ?? '-') . ')', $auditOld, $auditNew);
+
         $accountMessage = '';
         if ($isNewStudent) {
             $accountMessage = createStudentAccount($conn, $student_id, $lrn);
+        } else {
+            $accountMessage = syncStudentLoginName($conn, $student_id, $auditOld['lrn'] ?? '', $lrn);
         }
 
         echo json_encode([
@@ -390,16 +432,18 @@ switch ($action) {
 
             $stmt = $conn->prepare("UPDATE tbl_student SET student_status = 'archived' WHERE student_id = ?");
             if (!$stmt) {
-                throw new Exception('Prepare failed: ' . $conn->error);
+                throw new Exception(db_fail('Prepare: ' . $conn->error));
             }
 
+            $auditOld = audit_snapshot($conn, 'tbl_student', 'student_id', $student_id);
             $stmt->bind_param("i", $student_id);
 
             if (!$stmt->execute()) {
-                throw new Exception('Execute failed: ' . $stmt->error);
+                throw new Exception(db_fail('Execute: ' . $stmt->error));
             }
 
             if ($stmt->affected_rows > 0) {
+                audit_log($conn, 'archive', 'tbl_student', $student_id, 'Student archived: ' . ($auditOld['last_name'] ?? '') . ', ' . ($auditOld['first_name'] ?? ''), $auditOld);
                 $response['success'] = true;
                 $response['message'] = 'Student archived successfully';
             } else {

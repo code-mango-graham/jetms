@@ -526,6 +526,55 @@ CREATE TABLE `tbl_event` (
 
 
 -- =====================================================================
+-- SECURITY LOGS (who logged in / who changed what — written by
+-- config/security.php; viewed in Settings > Security Logs. These two tables
+-- are deliberately PRESERVED across a database restore so a restore can
+-- never erase its own trail — see config/backup_lib.php BACKUP_LOG_TABLES)
+-- =====================================================================
+
+CREATE TABLE `tbl_login_log` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `event` enum('login_success','login_failed','logout') NOT NULL,
+  `role_attempted` varchar(20) DEFAULT NULL,
+  `username` varchar(100) DEFAULT NULL,
+  `user_ref_id` int(11) DEFAULT NULL,
+  `failure_reason` varchar(100) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`log_id`),
+  KEY `idx_login_created` (`created_at`),
+  KEY `idx_login_username` (`username`),
+  KEY `idx_login_event` (`event`)
+  -- failure_reason ('wrong password' / 'unknown or inactive account') is
+  -- recorded here only; the person logging in always sees the same message
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `tbl_audit_log` (
+  `log_id` int(11) NOT NULL AUTO_INCREMENT,
+  `actor_role` varchar(20) NOT NULL,
+  `actor_id` int(11) DEFAULT NULL,
+  `actor_name` varchar(200) NOT NULL,
+  `action` varchar(30) NOT NULL,
+  `entity` varchar(60) NOT NULL,
+  `entity_id` int(11) DEFAULT NULL,
+  `summary` varchar(255) NOT NULL,
+  `details` mediumtext DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`log_id`),
+  KEY `idx_audit_created` (`created_at`),
+  KEY `idx_audit_actor` (`actor_role`,`actor_id`),
+  KEY `idx_audit_entity` (`entity`,`entity_id`),
+  KEY `idx_audit_action` (`action`)
+  -- actor_role is admin/teacher/student, or 'system' (cron) / 'anonymous'
+  -- (e.g. the public gate kiosk). details is JSON: {"changes":{field:{from,to}}}
+  -- for edits, {"new":{...}} for creates, {"old":{...}} for removals.
+  -- Password columns are never captured.
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- =====================================================================
 -- ATTENDANCE (gate scan log — see attendance_kiosk.html, no login required)
 -- =====================================================================
 

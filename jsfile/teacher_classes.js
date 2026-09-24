@@ -93,7 +93,7 @@ $(document).ready(function () {
         components.forEach(function (c) {
             const icon = c.component_type === 'quiz' ? 'bi-question-circle' : (c.component_type === 'exam' ? 'bi-file-earmark-text' : 'bi-pencil-square');
             html += `<span class="badge bg-secondary me-1 mb-1" style="font-size:0.85rem;">
-                <i class="bi ${icon} me-1"></i>${c.title} (/${parseFloat(c.max_score)})
+                <i class="bi ${icon} me-1"></i>${esc(c.title)} (/${parseFloat(c.max_score)})
                 <a href="#" class="text-white btnDeleteComponent ms-1" data-id="${c.component_id}" title="Remove"><i class="bi bi-x-circle"></i></a>
             </span>`;
         });
@@ -103,7 +103,7 @@ $(document).ready(function () {
     function renderGradebook(components, roster) {
         let headerRow = '<th>Student</th>';
         components.forEach(function (c) {
-            headerRow += `<th class="text-center">${c.title}<br><small class="text-muted">/${parseFloat(c.max_score)}</small></th>`;
+            headerRow += `<th class="text-center">${esc(c.title)}<br><small class="text-muted">/${parseFloat(c.max_score)}</small></th>`;
         });
         headerRow += '<th width="120">Final Grade</th>';
         $('#gradebookHeaderRow').html(headerRow);
@@ -122,7 +122,7 @@ $(document).ready(function () {
         let body = '';
         roster.forEach(function (student) {
             const badge = statusBadge[student.enrollment_status] || '';
-            body += `<tr><td>${student.last_name}, ${student.first_name}${badge}</td>`;
+            body += `<tr><td>${esc(student.last_name)}, ${esc(student.first_name)}${badge}</td>`;
             components.forEach(function (c) {
                 const val = student.scores && student.scores[c.component_id] !== null && student.scores[c.component_id] !== undefined ? student.scores[c.component_id] : '';
                 body += `<td><input type="number" class="form-control form-control-sm gradebook-score-input" style="width:80px;" min="0" max="${c.max_score}" step="0.01"

@@ -1,0 +1,78 @@
+<!-- ============================= -->
+<!-- BEGIN SECURITY LOGS -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline">
+
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">SECURITY LOGS</h3>
+    </div>
+
+    <div class="card-body">
+
+        <div class="row g-2 mb-3 align-items-end">
+            <div class="col-md-3">
+                <label class="small" for="log_date_from">From Date</label>
+                <input type="date" class="form-control form-control-sm" id="log_date_from">
+            </div>
+            <div class="col-md-3">
+                <label class="small" for="log_date_to">To Date</label>
+                <input type="date" class="form-control form-control-sm" id="log_date_to">
+            </div>
+            <div class="col-md-6 d-flex gap-2">
+                <button class="btn btn-primary btn-sm" id="btnApplyLogFilters"><i class="bi bi-funnel me-1"></i>Apply</button>
+                <button class="btn btn-outline-secondary btn-sm" id="btnClearLogFilters"><i class="bi bi-x-circle me-1"></i>Clear</button>
+                <span class="text-muted small align-self-center">Newest 5,000 entries shown - narrow the dates for older history.</span>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs mb-3" id="logTabs">
+            <li class="nav-item"><a class="nav-link active" href="#" data-view="audit">Change Log</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" data-view="login">Login Records</a></li>
+        </ul>
+
+        <div id="auditView">
+            <table id="auditTable" class="table table-bordered table-hover nowrap w-100">
+                <thead>
+                    <tr>
+                        <th>WHEN</th>
+                        <th>WHO</th>
+                        <th>ACTION</th>
+                        <th>WHAT</th>
+                        <th>IP</th>
+                        <th width="60">DETAILS</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+
+        <div id="loginView" class="d-none">
+            <table id="loginTable" class="table table-bordered table-hover nowrap w-100">
+                <thead>
+                    <tr>
+                        <th>WHEN</th>
+                        <th>EVENT</th>
+                        <th>ROLE</th>
+                        <th>USERNAME</th>
+                        <th>REASON</th>
+                        <th>IP</th>
+                        <th>BROWSER</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- ============================= -->
+<!-- END SECURITY LOGS -->
+<!-- ============================= -->
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/security_logs.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

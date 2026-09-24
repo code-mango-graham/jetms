@@ -131,50 +131,44 @@ $(document).ready(function () {
     $(document).on('click', '.btnActivateSchoolYear', function () {
         let schoolyear_id = $(this).data('id');
 
-        Swal.fire({
-            title: 'Set as Active School Year?',
-            text: 'This will deactivate the currently active school year.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#12a480',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Activate',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (!result.isConfirmed) {
+        const yearName = $(this).closest('tr').find('td:first').text().trim();
+
+        window.jetmsConfirm({
+            title: 'Activate School Year ' + yearName + '?',
+            warning: '<b>This change affects the whole school year.</b><br>' +
+                     'Every student still <i>enrolled</i> in the current school year will be marked <b>completed</b>, ' +
+                     'and new enrollments, payments and class assignments will belong to the new year. ' +
+                     'A full backup of the database is taken automatically first.',
+            confirmText: 'Activate School Year',
+            confirmColor: '#12a480'
+        }).then(function (confirmed) {
+            if (!confirmed) {
                 return;
             }
+
+            Swal.fire({ title: 'Creating backup and activating...', allowOutsideClick: false, didOpen: function () { Swal.showLoading(); } });
 
             $.ajax({
                 url: 'config/schoolyear.php',
                 type: 'POST',
                 data: {
                     action: 'activate',
-                    schoolyear_id: schoolyear_id
+                    schoolyear_id: schoolyear_id,
+                    confirm_password: confirmed.password
                 },
                 dataType: 'json',
                 success: function (res) {
                     if (res.status === "error") {
-                        Swal.fire({
-                            icon: 'error',
-                            title: res.message,
-                            timer: 3000,
-                            showConfirmButton: false
-                        });
+                        Swal.fire({ icon: 'error', title: res.message });
                         return;
                     }
 
                     document.activeElement.blur();
                     $('#schoolYearTable').DataTable().ajax.reload(null, false);
-                    Swal.fire({
-                        toast: true,
-                        position: 'top-end',
-                        icon: 'success',
-                        title: 'School Year Activated',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        timerProgressBar: true
-                    });
+                    Swal.fire({ icon: 'success', title: 'School Year Activated', text: res.message });
+                },
+                error: function () {
+                    Swal.fire({ icon: 'error', title: 'Request failed. Please log in again and retry.' });
                 }
             });
         });

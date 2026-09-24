@@ -1,5 +1,8 @@
 <?php
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+require_admin();
 
 header('Content-Type: application/json');
 
@@ -11,10 +14,12 @@ switch ($action) {
     // LOAD (DataTable list)
     // =======================
     case 'load': {
+        // include_id: also return one archived row (a teacher's current value) so the edit form can keep it
+        $includeId = isset($_POST['include_id']) ? (int) $_POST['include_id'] : 0;
         $query = mysqli_query($conn, "
-            SELECT office_id, office_name, office_description
+            SELECT office_id, office_name, office_description, office_remarks
             FROM tbl_office
-            WHERE office_remarks = 1
+            WHERE office_remarks = 1 OR office_id = $includeId
             ORDER BY office_id ASC
         ");
 
@@ -97,6 +102,7 @@ switch ($action) {
 
         mysqli_stmt_close($check);
 
+        $auditOld = empty($office_id) ? null : audit_snapshot($conn, 'tbl_office', 'office_id', $office_id);
         if (empty($office_id)) {
             $save = mysqli_prepare($conn, "INSERT INTO tbl_office (office_name, office_description) VALUES (?, ?)");
             mysqli_stmt_bind_param($save, "ss", $office_name, $office_description);
@@ -115,6 +121,10 @@ switch ($action) {
         }
 
         mysqli_stmt_close($save);
+
+        $auditId = empty($office_id) ? mysqli_insert_id($conn) : $office_id;
+        $auditNew = audit_snapshot($conn, 'tbl_office', 'office_id', $auditId);
+        audit_log($conn, empty($office_id) ? 'create' : 'update', 'tbl_office', $auditId, 'Office: ' . ($auditNew['office_name'] ?? ''), $auditOld, $auditNew);
 
         echo json_encode([
             "status" => "success",
@@ -137,12 +147,14 @@ switch ($action) {
             break;
         }
 
+        $auditOld = audit_snapshot($conn, 'tbl_office', 'office_id', $office_id);
         $stmt = mysqli_prepare($conn, "UPDATE tbl_office SET office_remarks = 0 WHERE office_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $office_id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'archive', 'tbl_office', $office_id, 'Office archived: ' . ($auditOld['office_name'] ?? ''), $auditOld);
             echo json_encode([
                 "status" => "success",
                 "message" => "Office archived successfully"

@@ -1,0 +1,11 @@
+# Uploaded photos: serve as images only, never run anything from here.
+Options -Indexes -ExecCGI
+<FilesMatch "\.(?i:php|phtml|php3|php4|php5|php7|php8|phps|phar|pl|py|cgi|sh|asp|aspx|jsp)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>

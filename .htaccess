@@ -1,0 +1,40 @@
+# JETMS - web server rules (Apache; needs AllowOverride enabled, which is normal on shared hosting)
+
+Options -Indexes
+
+# ---- security headers ----
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "same-origin"
+  # camera is allowed for our own pages only (student photo capture)
+  Header always set Permissions-Policy "camera=(self), microphone=(), geolocation=()"
+</IfModule>
+
+# ---- never serve configuration, notes, dumps or logs ----
+<FilesMatch "^(config\.php|config\.local\.php|config\.local\.sample\.php|\.gitignore)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+<FilesMatch "\.(md|txt|sql|log|bak|sh|lock|ini)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ---- turn this on once the site has an SSL certificate (then also enable HSTS) ----
+# RewriteEngine On
+# RewriteCond %{HTTPS} !=on
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+# <IfModule mod_headers.c>
+#   Header always set Strict-Transport-Security "max-age=31536000"
+# </IfModule>

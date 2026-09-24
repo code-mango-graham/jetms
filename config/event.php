@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
 
 header('Content-Type: application/json');
@@ -128,6 +128,11 @@ switch ($action) {
             break;
         }
 
+        if (!valid_date($start_date) || ($end_date !== '' && !valid_date($end_date))) {
+            echo json_encode(["status" => "error", "message" => "Enter valid dates"]);
+            break;
+        }
+
         if (!in_array($event_type, ['Holiday', 'Exam', 'Meeting', 'Deadline', 'Other'], true)) {
             echo json_encode(["status" => "error", "message" => "Invalid event type"]);
             break;
@@ -142,6 +147,8 @@ switch ($action) {
         $descValue = ($description === '') ? null : $description;
         $adminId = $_SESSION['auth']['id'];
         $adminName = $_SESSION['auth']['name'];
+
+        $auditOld = empty($event_id) ? null : audit_snapshot($conn, 'tbl_event', 'event_id', $event_id);
 
         if (empty($event_id)) {
             $save = mysqli_prepare($conn, "
@@ -164,6 +171,10 @@ switch ($action) {
         }
         mysqli_stmt_close($save);
 
+        $auditId = empty($event_id) ? mysqli_insert_id($conn) : $event_id;
+        $auditNew = audit_snapshot($conn, 'tbl_event', 'event_id', $auditId);
+        audit_log($conn, empty($event_id) ? 'create' : 'update', 'tbl_event', $auditId, 'Calendar event: ' . $title . ' (' . $start_date . ')', $auditOld, $auditNew);
+
         echo json_encode(["status" => "success", "message" => "Event saved successfully"]);
         break;
     }
@@ -184,10 +195,12 @@ switch ($action) {
             break;
         }
 
+        $auditOld = audit_snapshot($conn, 'tbl_event', 'event_id', $event_id);
         $stmt = mysqli_prepare($conn, "UPDATE tbl_event SET event_remarks = 0 WHERE event_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $event_id);
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
+        audit_log($conn, 'archive', 'tbl_event', $event_id, 'Calendar event removed: ' . ($auditOld['title'] ?? ''), $auditOld);
 
         echo json_encode(["status" => "success", "message" => "Event removed successfully"]);
         break;

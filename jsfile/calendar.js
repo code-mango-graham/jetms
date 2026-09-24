@@ -113,7 +113,7 @@ $(document).ready(function () {
             let chipsHtml = '';
             dayEvents.slice(0, 3).forEach(function (ev) {
                 const color = typeColors[ev.event_type] || typeColors.Other;
-                chipsHtml += `<div class="cal-day-event-chip" style="background:${color};" title="${ev.title}">${ev.title}</div>`;
+                chipsHtml += `<div class="cal-day-event-chip" style="background:${color};" title="${esc(ev.title)}">${esc(ev.title)}</div>`;
             });
             if (dayEvents.length > 3) {
                 chipsHtml += `<div class="text-muted" style="font-size:0.65rem;">+${dayEvents.length - 3} more</div>`;
@@ -166,10 +166,10 @@ $(document).ready(function () {
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <span class="badge" style="background:${color};">${ev.event_type}</span>
-                                <strong class="ms-1">${ev.title}</strong>
+                                <strong class="ms-1">${esc(ev.title)}</strong>
                                 <div class="text-muted small">${rangeLabel}</div>
-                                ${ev.description ? `<div class="mt-1 small">${ev.description}</div>` : ''}
-                                ${ev.admin_name ? `<div class="text-muted small mt-1">Posted by ${ev.admin_name}</div>` : ''}
+                                ${ev.description ? `<div class="mt-1 small">${esc(ev.description)}</div>` : ''}
+                                ${ev.admin_name ? `<div class="text-muted small mt-1">Posted by ${esc(ev.admin_name)}</div>` : ''}
                             </div>
                             ${isAdmin ? `
                             <div class="btn-group btn-group-sm">

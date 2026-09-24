@@ -16,6 +16,10 @@ Complete walkthrough of every screen in JETMS (JET Montessori School of Ramon, I
 
 Wrong role/username/password combinations are rejected with an error — the app checks the account exists in that role's table, is not archived/deactivated, and the password matches. On success you land on `mainpage.php`, which is guarded server-side: no session, no access, full stop (hitting the URL directly without logging in redirects back here).
 
+**Default passwords must be replaced.** New accounts start with the password `admin`. The first time someone logs in with it, a *Change Password* window opens that cannot be closed until a new password is set; nothing else in the system works until then. New passwords need at least 8 characters with both letters and numbers, cannot be a common password (`password`, `12345678`...) and cannot equal the username. (On a local test machine this can be switched off with `SEC_FORCE_PASSWORD_CHANGE` in `config.local.php`.)
+
+**Too many wrong passwords** temporarily lock the account and the network address that was guessing; wait a few minutes and try again. Every attempt (good or bad) is recorded under Settings > Security Logs. You are logged out automatically after 2 hours without activity.
+
 ---
 
 ## School Calendar
@@ -120,10 +124,21 @@ Three stacked sections in one scrollable modal:
 
 1. **Current Enrollment** — school year, level, section, status, subject list, and three action buttons:
    - **Drop / Transfer** — relabels the enrollment as dropped/transferred and preserves all history (payments, subjects, everything stays on record).
+   - **Edit** — corrects the current year's enrollment for a student who is still enrolled: the **tuition**, the **section** (another section of the same level: a mid-year move), and, for levels with subject selection (Senior High), the **subjects** ticked. A short **reason** is required and is recorded in the audit log. Limits: tuition cannot go below what the student has already paid; once grades exist in the current section, the section can no longer be changed, and a subject with grades cannot be removed (Drop/Transfer or keep it). Fixed-curriculum levels cannot pick subjects: they always get every subject of the level.
    - **Cancel Enrollment** — only allowed if **zero payments** have been recorded against it; this is for undoing a mistaken enrollment, not a real withdrawal. If payments exist, cancel is blocked and Drop/Transfer is the only option.
    - **View Full Profile** — jumps to the student's full profile page (same as the Students list).
 2. **Payment History** — running Tuition / Paid / Balance summary, an **Add Payment** button (date, amount, mode, reference number — reference number is always shown regardless of mode), and the full payment table for this enrollment.
 3. **Enrollment History** — every enrollment this student has ever had, across every school year, with status and remarks — so you can see the whole story (e.g. enrolled → dropped → re-enrolled) at a glance.
+
+### Rules that protect grades and balances
+
+- **Cancelling** an enrollment is refused once the student has any grades in that year and section; use *Drop* or *Transfer* instead, which keep the record.
+- **Reactivating** only works for an enrollment of the **active** school year (last year's dropped students must be enrolled again).
+- Grades can only be entered for students who belong to that class, and a score cannot exceed its maximum.
+- Amounts (tuition, payments) and dates are validated: real calendar dates only, and an upper limit on amounts.
+- **A student can never pay more than the tuition.** Payments (new or edited) and the downpayment on the enrollment form are refused when the total would exceed the tuition, and the message says how much room is left.
+- **New subjects reach students already enrolled.** When you add a subject to a fixed-curriculum level (Settings > Levels), every student of that level enrolled in the current school year gets it automatically (the confirmation message says how many). For Senior High, tick the subject in the student's **Edit** window.
+- **Archived offices and positions** still appear (marked "(archived)") when you edit a teacher who has them, so the teacher can be saved without changing them.
 
 ### Reactivate
 
@@ -201,7 +216,7 @@ Each item on the left loads its own management screen into the same content area
 
 ![Users list](docs/manual/settings_users.png)
 
-A unified view across all three account tables (Admin/Teacher/Student logins). Note: **you don't usually need to create accounts here** — adding a Teacher or Student (above) automatically creates their login account with a default password of `admin`. This screen is for the exceptions: extra admin accounts, or manually creating an account for someone whose record already exists but has no login yet.
+A unified view across all three account tables (Admin/Teacher/Student logins). Note: **you don't usually need to create accounts here** — adding a Teacher or Student (above) automatically creates their login account with a default password of `admin`. Everyone created this way is asked to choose their own password at first login. This screen is for the exceptions: extra admin accounts, or manually creating an account for someone whose record already exists but has no login yet.
 
 ![Add Account modal](docs/manual/settings_users_add.png)
 
@@ -235,7 +250,13 @@ Teacher records — separate from their login account (which gets auto-created, 
 
 ![School Year list](docs/manual/settings_schoolyear.png)
 
-There's always exactly **one active school year** — activating a new one automatically flips every still-`enrolled` record from the previous active year to `completed`, so history stays accurate without manual cleanup.
+There's always exactly **one active school year** (names must look like `2026-2027`, and you cannot activate an earlier year than the current one or delete a year that already has enrollments or classes) — activating a new one automatically flips every still-`enrolled` record from the previous active year to `completed`, so history stays accurate without manual cleanup.
+
+**Activating a year is a protected action.** Clicking the green check asks you to re-enter your **admin password**, and warns that the change affects the whole school year:
+
+![Activate school year](docs/manual/activate_year_dialog.png)
+
+A full database backup is taken automatically *before* anything changes; if that backup fails, the activation is cancelled. Wrong password: nothing happens (and the attempt is logged).
 
 ![Add School Year modal](docs/manual/settings_schoolyear_add.png)
 
@@ -263,7 +284,42 @@ This is where a **Teacher** gets connected to a **Subject** + **Section** for th
 2. Pick the Section, Subject, and Teacher.
 3. Save. The app blocks assigning the same subject+section twice in one school year (you'd edit the existing assignment instead, to change who teaches it).
 
+Rules the system enforces: only assignments of the **active** school year can be edited; once a class has grades its subject and section can no longer be changed (you may still change the teacher); re-adding an assignment you previously deleted simply brings the old one back, with its grades.
+
 Deleting an assignment here doesn't delete any grades already recorded — it's a soft-remove that just stops it appearing as active.
+
+### Backup & Restore
+
+![Backup and Restore](docs/manual/backups_page.png)
+
+A list of every backup file on the server, newest first, with its type: **Weekly (automatic)** every Sunday at 2:00 AM (the newest 12, about 3 months, are kept), **Manual**, **Before school-year activation**, and **Before a restore**. Each row has a download button and a restore button.
+
+- **Backup Now** asks for your admin password, then saves a full copy of the database:
+
+![Backup confirmation](docs/manual/backup_confirm_dialog.png)
+
+- **Restore** (the red arrow) is the most serious action in the system. It asks you to type `RESTORE` **and** enter your password, and warns that the change affects the whole school year:
+
+![Restore confirmation](docs/manual/restore_confirm_dialog.png)
+
+  The database goes back **exactly** as it was when that backup was made — everything entered since (enrollments, payments, grades, students, accounts) is lost. A safety backup of the current data is saved first, and if the restore fails it is loaded back automatically. You are logged out afterwards. Do it outside school hours. The Security Logs are never rolled back by a restore.
+
+- After 5 wrong passwords within 15 minutes these confirmations lock for 15 minutes.
+- Backups don't include uploaded photos — copy the `assets/img` folders separately. Download backups regularly and keep a copy off the server.
+
+### Security Logs
+
+Two tabs, visible to Admin only:
+
+**Change Log** — every create, edit, archive and delete in the system: when, who (name and role), what, and from which IP address. Click the eye icon on a row for the details — for an edit, the exact fields that changed with their before and after values (passwords are never recorded). Payment and grade edits show the reason that was given. Also recorded: backups, restores, school-year activations, password resets and changes, wrong-password confirmation attempts, and any time a teacher or student tries an admin-only action (`denied`).
+
+![Change Log](docs/manual/security_logs_audit.png)
+
+**Login Records** — every login, logout and **failed** login (the username that was tried, IP address and browser). The reason for a failure ("wrong password" vs "no such account") is visible here only; the person logging in always just sees "Invalid username or password".
+
+![Login Records](docs/manual/security_logs_login.png)
+
+Use the date filters to narrow the list (the newest 5,000 entries are shown). The logs have no edit or delete option.
 
 ---
 
@@ -353,7 +409,7 @@ The same style of table as Admin's Payments ledger, but scoped to only this stud
 Built for scanning a student's LRN in and out at the gate:
 - Enter/scan the LRN.
 - The system automatically figures out whether this is a Time In or Time Out — it toggles based on that student's most recent scan **today**.
-- No admin/teacher/student login is needed or checked here by design — it's meant to sit at a physical gate, not behind the app's normal auth wall.
+- No admin/teacher/student login is needed or checked here by design — it's meant to sit at a physical gate, not behind the app's normal auth wall. To stop outsiders using it over the internet, set the school's public IP in `KIOSK_ALLOWED_IPS` (`config.local.php`). Scans are limited to 30 per minute per device, and failed scans are written to the audit log.
 - `source` is recorded as `manual` for now; the same log structure is ready for an RFID reader to feed it directly later.
 
 ---

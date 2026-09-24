@@ -1,6 +1,9 @@
 <?php
-session_start();
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+include 'enrollment_lib.php';
+require_admin();
 
 header('Content-Type: application/json');
 
@@ -31,7 +34,7 @@ function fetchEnrollmentDetail($conn, $enrollment_id) {
 
     $enrollment['balance'] = $enrollment['tuition_fee'] - $enrollment['total_paid'];
 
-    $subStmt = mysqli_prepare($conn, "SELECT subject_name, subject_code FROM tbl_enrollment_subject WHERE enrollment_id = ? ORDER BY subject_name");
+    $subStmt = mysqli_prepare($conn, "SELECT subject_id, subject_name, subject_code FROM tbl_enrollment_subject WHERE enrollment_id = ? ORDER BY subject_name");
     mysqli_stmt_bind_param($subStmt, "i", $enrollment_id);
     mysqli_stmt_execute($subStmt);
     $subResult = mysqli_stmt_get_result($subStmt);
@@ -178,6 +181,19 @@ switch ($action) {
             break;
         }
 
+        if ($tuition_fee < 0 || $tuition_fee > 9999999.99) {
+            echo json_encode(["status" => "error", "message" => "Tuition must be between 0 and 9,999,999.99"]);
+            break;
+        }
+        if ($downpayment_amount !== '' && ((float) $downpayment_amount < 0 || (float) $downpayment_amount > 9999999.99)) {
+            echo json_encode(["status" => "error", "message" => "Downpayment must be between 0 and 9,999,999.99"]);
+            break;
+        }
+        if ($downpayment_amount !== '' && round((float) $downpayment_amount, 2) > round($tuition_fee, 2)) {
+            echo json_encode(["status" => "error", "message" => "The downpayment cannot be more than the tuition (" . number_format($tuition_fee, 2) . ")."]);
+            break;
+        }
+
         $activeYear = getActiveSchoolYear($conn);
         if (!$activeYear) {
             echo json_encode(["status" => "error", "message" => "No active school year. Please activate one in Settings first."]);
@@ -290,6 +306,9 @@ switch ($action) {
 
             mysqli_commit($conn);
 
+            $auditNew = audit_snapshot($conn, 'tbl_enrollment', 'enrollment_id', $enrollment_id);
+            audit_log($conn, 'create', 'tbl_enrollment', $enrollment_id, 'Enrolled student #' . $student_id . ' in ' . ($auditNew['level_name'] ?? '') . ' - ' . ($auditNew['section_name'] ?? '') . ' (' . ($auditNew['schoolyear_name'] ?? '') . ')', null, $auditNew, ['downpayment' => ($downpayment_amount !== '' && (float) $downpayment_amount > 0) ? (float) $downpayment_amount : 0]);
+
             echo json_encode([
                 "status" => "success",
                 "message" => "Student enrolled successfully",
@@ -299,6 +318,145 @@ switch ($action) {
             mysqli_rollback($conn);
             echo json_encode(["status" => "error", "message" => $e->getMessage()]);
         }
+        break;
+    }
+
+    // =======================
+    // UPDATE (correct tuition, move to another section of the same level, change subjects)
+    // Only for a student who is currently enrolled in the ACTIVE school year.
+    // =======================
+    case 'update': {
+        $enrollment_id = isset($_POST['enrollment_id']) ? (int) $_POST['enrollment_id'] : 0;
+        $tuition_fee = isset($_POST['tuition_fee']) ? (float) $_POST['tuition_fee'] : -1;
+        $section_id = isset($_POST['section_id']) ? (int) $_POST['section_id'] : 0;
+        $subjectsSent = isset($_POST['subjects_sent']) && $_POST['subjects_sent'] === '1';
+        $subject_ids = (isset($_POST['subject_ids']) && is_array($_POST['subject_ids'])) ? array_values(array_unique(array_map('intval', $_POST['subject_ids']))) : [];
+        $reason = isset($_POST['reason']) ? trim($_POST['reason']) : '';
+
+        if ($enrollment_id <= 0 || $section_id <= 0) {
+            echo json_encode(["status" => "error", "message" => "Invalid request"]);
+            break;
+        }
+        if ($tuition_fee < 0 || $tuition_fee > 9999999.99) {
+            echo json_encode(["status" => "error", "message" => "Tuition must be between 0 and 9,999,999.99"]);
+            break;
+        }
+        if ($reason === '') {
+            echo json_encode(["status" => "error", "message" => "A reason for this change is required"]);
+            break;
+        }
+
+        $activeYear = getActiveSchoolYear($conn);
+        $enr = audit_snapshot($conn, 'tbl_enrollment', 'enrollment_id', $enrollment_id);
+        if (!$enr) {
+            echo json_encode(["status" => "error", "message" => "Enrollment not found"]);
+            break;
+        }
+        if ($enr['status'] !== 'enrolled' || !$activeYear || (int) $enr['schoolyear_id'] !== (int) $activeYear['schoolyear_id']) {
+            echo json_encode(["status" => "error", "message" => "Only a currently enrolled student in the active school year can be edited."]);
+            break;
+        }
+
+        $student_id = (int) $enr['student_id'];
+        $level_id = (int) $enr['level_id'];
+        $yearId = (int) $enr['schoolyear_id'];
+        $oldSectionId = (int) $enr['section_id'];
+
+        $level = mysqli_fetch_assoc(mysqli_query($conn, "SELECT allows_subject_selection FROM tbl_level WHERE level_id = $level_id LIMIT 1"));
+        if (!$level) {
+            echo json_encode(["status" => "error", "message" => "The level of this enrollment no longer exists"]);
+            break;
+        }
+        $selectable = (int) $level['allows_subject_selection'] === 1;
+
+        mysqli_begin_transaction($conn);
+        try {
+            // --- tuition: never below what has already been paid
+            $money = enrollment_money_locked($conn, $enrollment_id);
+            if (round($tuition_fee, 2) < round($money['paid_others'], 2)) {
+                throw new Exception("Tuition cannot be less than what the student has already paid (" . number_format($money['paid_others'], 2) . ").");
+            }
+
+            // --- section: same level only, and not once grades exist in the old section
+            $sectionName = $enr['section_name'];
+            if ($section_id !== $oldSectionId) {
+                $sec = mysqli_prepare($conn, "SELECT section_name FROM tbl_section WHERE section_id = ? AND level_id = ? AND section_remarks = 1 LIMIT 1");
+                mysqli_stmt_bind_param($sec, "ii", $section_id, $level_id);
+                mysqli_stmt_execute($sec);
+                $secRow = mysqli_fetch_assoc(mysqli_stmt_get_result($sec));
+                mysqli_stmt_close($sec);
+                if (!$secRow) {
+                    throw new Exception("That section does not belong to this student's level.");
+                }
+                if (enrollment_has_grades($conn, $student_id, $yearId, $oldSectionId)) {
+                    throw new Exception("Grades have already been recorded for this student in the current section, so the section can no longer be changed (their grades belong to that section's classes).");
+                }
+                $sectionName = $secRow['section_name'];
+            }
+
+            $upd = mysqli_prepare($conn, "UPDATE tbl_enrollment SET tuition_fee = ?, section_id = ?, section_name = ? WHERE enrollment_id = ?");
+            mysqli_stmt_bind_param($upd, "disi", $tuition_fee, $section_id, $sectionName, $enrollment_id);
+            if (!mysqli_stmt_execute($upd)) {
+                throw new Exception('Failed to save the changes');
+            }
+            mysqli_stmt_close($upd);
+
+            // --- subjects
+            $added = [];
+            $removed = [];
+            if ($selectable && $subjectsSent) {
+                $existing = [];
+                $res = mysqli_query($conn, "SELECT subject_id, subject_name FROM tbl_enrollment_subject WHERE enrollment_id = $enrollment_id");
+                while ($r = mysqli_fetch_assoc($res)) {
+                    $existing[(int) $r['subject_id']] = $r['subject_name'];
+                }
+
+                $toRemove = array_diff(array_keys($existing), $subject_ids);
+                foreach ($toRemove as $sid) {
+                    if ($sid <= 0) {
+                        continue; // subject was deleted from the level; keep the frozen row
+                    }
+                    if (enrollment_has_grades($conn, $student_id, $yearId, $oldSectionId, $sid)) {
+                        throw new Exception("Cannot remove " . $existing[$sid] . " - grades were already recorded for it.");
+                    }
+                    $del = mysqli_prepare($conn, "DELETE FROM tbl_enrollment_subject WHERE enrollment_id = ? AND subject_id = ?");
+                    mysqli_stmt_bind_param($del, "ii", $enrollment_id, $sid);
+                    mysqli_stmt_execute($del);
+                    mysqli_stmt_close($del);
+                    $removed[] = $existing[$sid];
+                }
+
+                foreach (array_diff($subject_ids, array_keys($existing)) as $sid) {
+                    $sub = mysqli_prepare($conn, "SELECT subject_name, subject_code FROM tbl_subject WHERE subject_id = ? AND level_id = ? AND subject_remarks = 1 LIMIT 1");
+                    mysqli_stmt_bind_param($sub, "ii", $sid, $level_id);
+                    mysqli_stmt_execute($sub);
+                    $subRow = mysqli_fetch_assoc(mysqli_stmt_get_result($sub));
+                    mysqli_stmt_close($sub);
+                    if (!$subRow) {
+                        continue; // not a subject of this level
+                    }
+                    $ins = mysqli_prepare($conn, "INSERT INTO tbl_enrollment_subject (enrollment_id, subject_id, subject_name, subject_code) VALUES (?, ?, ?, ?)");
+                    mysqli_stmt_bind_param($ins, "iiss", $enrollment_id, $sid, $subRow['subject_name'], $subRow['subject_code']);
+                    mysqli_stmt_execute($ins);
+                    mysqli_stmt_close($ins);
+                    $added[] = $subRow['subject_name'];
+                }
+            } elseif (!$selectable) {
+                // fixed curriculum: make sure every subject of the level is attached
+                enrollment_sync_fixed_subjects($conn, $enrollment_id);
+            }
+
+            mysqli_commit($conn);
+        } catch (Exception $e) {
+            mysqli_rollback($conn);
+            echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+            break;
+        }
+
+        $auditNew = audit_snapshot($conn, 'tbl_enrollment', 'enrollment_id', $enrollment_id);
+        audit_log($conn, 'update', 'tbl_enrollment', $enrollment_id, 'Enrollment edited (student #' . $student_id . ') - reason: ' . $reason, $enr, $auditNew, ['reason' => $reason, 'subjects_added' => $added, 'subjects_removed' => $removed]);
+
+        echo json_encode(["status" => "success", "message" => "Enrollment updated"]);
         break;
     }
 
@@ -324,12 +482,22 @@ switch ($action) {
             break;
         }
 
+        // Grades are keyed to the student + class, not the enrollment row. Deleting an
+        // enrollment that already has grades would leave those scores orphaned.
+        $enr = audit_snapshot($conn, 'tbl_enrollment', 'enrollment_id', $enrollment_id);
+        if ($enr && enrollment_has_grades($conn, (int) $enr['student_id'], (int) $enr['schoolyear_id'], (int) $enr['section_id'])) {
+            echo json_encode(["status" => "error", "message" => "Cannot cancel - grades have already been recorded for this student. Use Drop/Transfer instead."]);
+            break;
+        }
+
+        $auditOld = audit_snapshot($conn, 'tbl_enrollment', 'enrollment_id', $enrollment_id);
         $stmt = mysqli_prepare($conn, "DELETE FROM tbl_enrollment WHERE enrollment_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $enrollment_id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'delete', 'tbl_enrollment', $enrollment_id, 'Enrollment cancelled (deleted) for student #' . ($auditOld['student_id'] ?? '') . ' - ' . ($auditOld['schoolyear_name'] ?? ''), $auditOld);
             echo json_encode(["status" => "success", "message" => "Enrollment cancelled"]);
             break;
         }
@@ -355,12 +523,14 @@ switch ($action) {
         $today = date('Y-m-d');
         $remarksValue = ($remarks === '') ? null : $remarks;
 
+        $auditOld = audit_snapshot($conn, 'tbl_enrollment', 'enrollment_id', $enrollment_id);
         $stmt = mysqli_prepare($conn, "UPDATE tbl_enrollment SET status = ?, remarks = ?, status_date = ? WHERE enrollment_id = ? AND status = 'enrolled'");
         mysqli_stmt_bind_param($stmt, "sssi", $status, $remarksValue, $today, $enrollment_id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'update', 'tbl_enrollment', $enrollment_id, 'Enrollment marked ' . $status . ' (student #' . ($auditOld['student_id'] ?? '') . ')', $auditOld, audit_snapshot($conn, 'tbl_enrollment', 'enrollment_id', $enrollment_id));
             echo json_encode(["status" => "success", "message" => ucfirst($status) . " recorded"]);
             break;
         }
@@ -381,12 +551,21 @@ switch ($action) {
             break;
         }
 
+        $enrToReactivate = audit_snapshot($conn, 'tbl_enrollment', 'enrollment_id', $enrollment_id);
+        $activeYearNow = getActiveSchoolYear($conn);
+        if ($enrToReactivate && (!$activeYearNow || (int) $enrToReactivate['schoolyear_id'] !== (int) $activeYearNow['schoolyear_id'])) {
+            echo json_encode(["status" => "error", "message" => "Only enrollments in the current school year can be reactivated. To bring this student back, enroll them for the current year."]);
+            break;
+        }
+
+        $auditOld = audit_snapshot($conn, 'tbl_enrollment', 'enrollment_id', $enrollment_id);
         $stmt = mysqli_prepare($conn, "UPDATE tbl_enrollment SET status = 'enrolled', remarks = NULL, status_date = NULL WHERE enrollment_id = ? AND status IN ('dropped', 'transferred')");
         mysqli_stmt_bind_param($stmt, "i", $enrollment_id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'update', 'tbl_enrollment', $enrollment_id, 'Enrollment reactivated (student #' . ($auditOld['student_id'] ?? '') . ')', $auditOld, audit_snapshot($conn, 'tbl_enrollment', 'enrollment_id', $enrollment_id));
             echo json_encode(["status" => "success", "message" => "Enrollment reactivated"]);
             break;
         }

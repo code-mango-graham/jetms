@@ -8,6 +8,8 @@ $(document).ready(function () {
     $(document).off('click', '#positions');
     $(document).off('click', '#levels');
     $(document).off('click', '#assignments');
+    $(document).off('click', '#backups');
+    $(document).off('click', '#security_logs');
 
 $("#users").on("click", function()
 		{
@@ -64,6 +66,20 @@ $("#assignments").on("click", function()
 			$("#content_settings").empty();
 			$("#content_settings").load("pages/assignments.html?v=" + Date.now());
         });
+$("#backups").on("click", function()
+		{
+            setActiveMenu("#backups");
+			$("#content_settings").removeClass("d-none");
+			$("#content_settings").empty();
+			$("#content_settings").load("pages/backups.html?v=" + Date.now());
+        });
+$("#security_logs").on("click", function()
+		{
+            setActiveMenu("#security_logs");
+			$("#content_settings").removeClass("d-none");
+			$("#content_settings").empty();
+			$("#content_settings").load("pages/security_logs.html?v=" + Date.now());
+        });
         function setActiveMenu(activeId) {
             $("#users").removeClass("active");
             $("#school_year").removeClass("active");
@@ -72,6 +88,8 @@ $("#assignments").on("click", function()
             $("#positions").removeClass("active");
             $("#levels").removeClass("active");
             $("#assignments").removeClass("active");
+            $("#backups").removeClass("active");
+            $("#security_logs").removeClass("active");
 
             $("#content_settings").addClass("d-none");
             $("#content_level").addClass("d-none");

@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/config/session_boot.php';
 if (!isset($_SESSION['auth'])) {
     header('Location: index.html');
     exit;
@@ -485,8 +485,11 @@ if ($auth['role'] === 'admin') {
     <script src="plugins/sweetalert/sweetalert2.min.js"></script>
     <script>
       window.__jetms_role = <?php echo json_encode($auth['role']); ?>;
+      window.__jetms_must_change = <?php echo !empty($auth['must_change']) ? 'true' : 'false'; ?>;
     </script>
+    <script src="jsfile/esc.js?v=<?php echo time(); ?>"></script>
     <script src="jsfile/main.js?v=<?php echo time(); ?>"></script>
+    <script src="jsfile/confirm_password.js?v=<?php echo time(); ?>"></script>
     <script src="jsfile/navi.js?v=<?php echo time(); ?>"></script>
     <script src="jsfile/change_password.js?v=<?php echo time(); ?>"></script>
     <script src="jsfile/profile_photo.js?v=<?php echo time(); ?>"></script>

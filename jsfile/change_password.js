@@ -55,6 +55,12 @@ $(document).ready(function () {
                 document.activeElement.blur();
                 $('#changePasswordForm')[0].reset();
 
+                if (window.__jetms_must_change) {
+                    Swal.fire({ icon: 'success', title: 'Password changed', text: 'Loading your account...', timer: 1500, showConfirmButton: false })
+                        .then(function () { window.location.reload(); });
+                    return;
+                }
+
                 Swal.fire({
                     toast: true,
                     position: 'top-end',
@@ -76,4 +82,14 @@ $(document).ready(function () {
             }
         });
     });
+
+    // Still on the default password: the dialog cannot be dismissed until it is changed.
+    if (window.__jetms_must_change) {
+        const el = document.getElementById('changePasswordModal');
+        $(el).find('.btn-close, [data-bs-dismiss="modal"]').hide();
+        if (!$(el).find('.jetms-must-change').length) {
+            $(el).find('.modal-body').prepend('<div class="alert alert-warning jetms-must-change">You are still using the default password. Choose a new one (8 or more characters, with letters and numbers) to continue.</div>');
+        }
+        bootstrap.Modal.getOrCreateInstance(el, { backdrop: 'static', keyboard: false }).show();
+    }
 });

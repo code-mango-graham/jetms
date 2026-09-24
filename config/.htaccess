@@ -1,0 +1,10 @@
+# Internal libraries - only ever included by other PHP files, never requested directly.
+<FilesMatch "^(security|backup_lib|session_boot|enrollment_lib)\.php$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>

@@ -1,6 +1,12 @@
 <?php
-session_start();
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+include 'enrollment_lib.php';
+// Everything except a student's own my_history is admin-only.
+if (!isset($_POST['action']) || $_POST['action'] !== 'my_history') {
+    require_admin();
+}
 
 header('Content-Type: application/json');
 
@@ -69,7 +75,7 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Not authorized"]);
             break;
         }
-        $student_id = $_SESSION['auth']['id'];
+        $student_id = $_SESSION['auth']['ref_id'];
 
         $stmt = mysqli_prepare($conn, "
             SELECT p.payment_id, p.payment_date, p.amount, p.payment_mode, p.reference_no, e.schoolyear_name
@@ -238,21 +244,32 @@ switch ($action) {
             break;
         }
 
+        if (!valid_date($payment_date)) {
+            echo json_encode(["status" => "error", "message" => "Enter a valid payment date"]);
+            break;
+        }
+        if ($amount > 9999999.99) {
+            echo json_encode(["status" => "error", "message" => "Amount is too large"]);
+            break;
+        }
+
         if (!in_array($payment_mode, ['Cash', 'GCash', 'Bank Transfer'], true)) {
             echo json_encode(["status" => "error", "message" => "Please select a valid payment mode"]);
             break;
         }
 
-        $check = mysqli_prepare($conn, "SELECT enrollment_id FROM tbl_enrollment WHERE enrollment_id = ? LIMIT 1");
-        mysqli_stmt_bind_param($check, "i", $enrollment_id);
-        mysqli_stmt_execute($check);
-        mysqli_stmt_store_result($check);
-        if (mysqli_stmt_num_rows($check) === 0) {
-            mysqli_stmt_close($check);
+        mysqli_begin_transaction($conn);
+        $money = enrollment_money_locked($conn, $enrollment_id);
+        if ($money === null) {
+            mysqli_rollback($conn);
             echo json_encode(["status" => "error", "message" => "Enrollment not found"]);
             break;
         }
-        mysqli_stmt_close($check);
+        if (round($money['paid_others'] + $amount, 2) > round($money['tuition'], 2)) {
+            mysqli_rollback($conn);
+            echo json_encode(["status" => "error", "message" => enrollment_overpay_message($money['tuition'], $money['paid_others'])]);
+            break;
+        }
 
         $adminId = $_SESSION['auth']['id'];
         $adminName = $_SESSION['auth']['name'];
@@ -266,11 +283,15 @@ switch ($action) {
 
         if (!mysqli_stmt_execute($save)) {
             mysqli_stmt_close($save);
+            mysqli_rollback($conn);
             echo json_encode(["status" => "error", "message" => "Failed to record payment"]);
             break;
         }
 
+        $newPaymentId = mysqli_insert_id($conn);
         mysqli_stmt_close($save);
+        mysqli_commit($conn);
+        audit_log($conn, 'create', 'tbl_payment', $newPaymentId, 'Payment recorded: ' . number_format($amount, 2) . ' (' . $payment_mode . ') for enrollment #' . $enrollment_id, null, audit_snapshot($conn, 'tbl_payment', 'payment_id', $newPaymentId));
 
         echo json_encode(["status" => "success", "message" => "Payment recorded successfully"]);
         break;
@@ -323,6 +344,15 @@ switch ($action) {
             break;
         }
 
+        if (!valid_date($payment_date)) {
+            echo json_encode(["status" => "error", "message" => "Enter a valid payment date"]);
+            break;
+        }
+        if ($amount > 9999999.99) {
+            echo json_encode(["status" => "error", "message" => "Amount is too large"]);
+            break;
+        }
+
         if (!in_array($payment_mode, ['Cash', 'GCash', 'Bank Transfer'], true)) {
             echo json_encode(["status" => "error", "message" => "Please select a valid payment mode"]);
             break;
@@ -333,7 +363,7 @@ switch ($action) {
             break;
         }
 
-        $oldStmt = mysqli_prepare($conn, "SELECT payment_date, amount, payment_mode, reference_no FROM tbl_payment WHERE payment_id = ? LIMIT 1");
+        $oldStmt = mysqli_prepare($conn, "SELECT enrollment_id, payment_date, amount, payment_mode, reference_no FROM tbl_payment WHERE payment_id = ? LIMIT 1");
         mysqli_stmt_bind_param($oldStmt, "i", $payment_id);
         mysqli_stmt_execute($oldStmt);
         $old = mysqli_fetch_assoc(mysqli_stmt_get_result($oldStmt));
@@ -343,6 +373,15 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Payment not found"]);
             break;
         }
+
+        mysqli_begin_transaction($conn);
+        $money = enrollment_money_locked($conn, (int) $old['enrollment_id'], $payment_id);
+        if ($money !== null && round($money['paid_others'] + $amount, 2) > round($money['tuition'], 2)) {
+            mysqli_rollback($conn);
+            echo json_encode(["status" => "error", "message" => enrollment_overpay_message($money['tuition'], $money['paid_others'])]);
+            break;
+        }
+        unset($old['enrollment_id']);
 
         $refValue = ($reference_no === '') ? null : $reference_no;
         $adminId = $_SESSION['auth']['id'];
@@ -356,10 +395,12 @@ switch ($action) {
 
         if (!mysqli_stmt_execute($update)) {
             mysqli_stmt_close($update);
+            mysqli_rollback($conn);
             echo json_encode(["status" => "error", "message" => "Failed to update payment"]);
             break;
         }
         mysqli_stmt_close($update);
+        mysqli_commit($conn);
 
         $log = mysqli_prepare($conn, "
             INSERT INTO tbl_payment_edit_log
@@ -375,6 +416,10 @@ switch ($action) {
         );
         mysqli_stmt_execute($log);
         mysqli_stmt_close($log);
+
+        audit_log($conn, 'update', 'tbl_payment', $payment_id, 'Payment #' . $payment_id . ' edited - reason: ' . $reason,
+            $old, ['payment_date' => $payment_date, 'amount' => number_format($amount, 2, '.', ''), 'payment_mode' => $payment_mode, 'reference_no' => $refValue],
+            ['reason' => $reason]);
 
         echo json_encode(["status" => "success", "message" => "Payment updated successfully"]);
         break;

@@ -56,7 +56,7 @@ $(document).ready(function () {
                     $('#scanResult').html(`
                         <div class="alert alert-danger d-flex align-items-center mb-0">
                             <i class="bi bi-x-circle fs-3 me-2"></i>
-                            <div>${res.message}</div>
+                            <div>${esc(res.message)}</div>
                         </div>
                     `);
                     return;
@@ -70,8 +70,8 @@ $(document).ready(function () {
                     <div class="alert ${isIn ? 'alert-success' : 'alert-secondary'} d-flex align-items-center mb-0">
                         <img src="${photo}" class="rounded-circle me-3" style="width:56px;height:56px;object-fit:cover;">
                         <div class="flex-grow-1">
-                            <div class="fw-bold fs-5">${d.student_name}</div>
-                            <div>${d.log_time}</div>
+                            <div class="fw-bold fs-5">${esc(d.student_name)}</div>
+                            <div>${esc(d.log_time)}</div>
                         </div>
                         <div class="fs-4 fw-bold">${isIn ? 'TIME IN' : 'TIME OUT'}</div>
                     </div>

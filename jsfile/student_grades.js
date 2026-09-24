@@ -32,7 +32,7 @@ $(document).ready(function () {
                 html += '<table class="table table-sm table-bordered mb-0"><thead><tr><th>Type</th><th>Title</th><th class="text-center">Score</th></tr></thead><tbody>';
                 qComponents.forEach(function (c) {
                     const scoreDisplay = c.score !== null && c.score !== undefined ? `${money(c.score)} / ${money(c.max_score)}` : '<span class="text-muted">Not yet recorded</span>';
-                    html += `<tr><td class="text-capitalize">${c.component_type}</td><td>${c.title}</td><td class="text-center">${scoreDisplay}</td></tr>`;
+                    html += `<tr><td class="text-capitalize">${c.component_type}</td><td>${esc(c.title)}</td><td class="text-center">${scoreDisplay}</td></tr>`;
                 });
                 html += '</tbody></table>';
             }
@@ -56,7 +56,7 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (res) {
                 if (res.status === 'error') {
-                    $('#gradesDetailBody').html(`<div class="text-center text-danger py-4">${res.message}</div>`);
+                    $('#gradesDetailBody').html(`<div class="text-center text-danger py-4">${esc(res.message)}</div>`);
                     return;
                 }
                 renderGrades(res.components || [], res.final_grades || []);

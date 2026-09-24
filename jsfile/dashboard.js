@@ -42,8 +42,8 @@ $(document).ready(function () {
             $('#dashRecentPayments').html(payments.length ? payments.map(function (p) {
                 return `<li class="list-group-item d-flex justify-content-between align-items-center">
                     <div>
-                        <div>${p.last_name}, ${p.first_name}</div>
-                        <div class="text-muted small">${p.payment_date} &middot; ${p.payment_mode}</div>
+                        <div>${esc(p.last_name)}, ${esc(p.first_name)}</div>
+                        <div class="text-muted small">${p.payment_date} &middot; ${esc(p.payment_mode)}</div>
                     </div>
                     <strong class="text-success">${money(p.amount)}</strong>
                 </li>`;
@@ -53,8 +53,8 @@ $(document).ready(function () {
             const enrollments = res.recent_enrollments || [];
             $('#dashRecentEnrollments').html(enrollments.length ? enrollments.map(function (e) {
                 return `<li class="list-group-item">
-                    <div>${e.last_name}, ${e.first_name}</div>
-                    <div class="text-muted small">${e.level_name} - ${e.section_name} &middot; ${e.enrollment_date}</div>
+                    <div>${esc(e.last_name)}, ${esc(e.first_name)}</div>
+                    <div class="text-muted small">${esc(e.level_name)} - ${esc(e.section_name)} &middot; ${e.enrollment_date}</div>
                 </li>`;
             }).join('') : '<li class="list-group-item text-muted">No enrollments yet.</li>');
 
@@ -62,8 +62,8 @@ $(document).ready(function () {
             const announcements = res.recent_announcements || [];
             $('#dashRecentAnnouncements').html(announcements.length ? announcements.map(function (a) {
                 return `<li class="list-group-item">
-                    <div>${a.title}</div>
-                    <div class="text-muted small">${a.admin_name} &middot; ${timeAgo(a.created_at)}</div>
+                    <div>${esc(a.title)}</div>
+                    <div class="text-muted small">${esc(a.admin_name)} &middot; ${timeAgo(a.created_at)}</div>
                 </li>`;
             }).join('') : '<li class="list-group-item text-muted">No announcements yet.</li>');
 
@@ -77,8 +77,8 @@ $(document).ready(function () {
                     const rangeLabel = ev.end_date && ev.end_date !== ev.start_date ? `${ev.start_date} - ${ev.end_date}` : ev.start_date;
                     return `<div class="col-md-6 col-lg-4">
                         <div class="subpanel p-2" style="border-left:4px solid ${color};">
-                            <span class="badge" style="background:${color};">${ev.event_type}</span>
-                            <strong class="ms-1">${ev.title}</strong>
+                            <span class="badge" style="background:${color};">${esc(ev.event_type)}</span>
+                            <strong class="ms-1">${esc(ev.title)}</strong>
                             <div class="text-muted small">${rangeLabel}</div>
                         </div>
                     </div>`;

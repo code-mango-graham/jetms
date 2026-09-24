@@ -1,5 +1,8 @@
 <?php
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+require_admin();
 
 header('Content-Type: application/json');
 
@@ -31,10 +34,44 @@ function createTeacherAccount($conn, $teacher_id, $email) {
     $passwordHash = password_hash('admin', PASSWORD_BCRYPT);
     $save = mysqli_prepare($conn, "INSERT INTO tbl_teacher_account (teacher_id, username, password) VALUES (?, ?, ?)");
     mysqli_stmt_bind_param($save, "iss", $teacher_id, $email, $passwordHash);
-    mysqli_stmt_execute($save);
+    if (!mysqli_stmt_execute($save)) {
+        error_log('createTeacherAccount failed: ' . mysqli_stmt_error($save));
+        mysqli_stmt_close($save);
+        return ' Login account could NOT be created (that username is already used by another account). Create it in Settings > Users.';
+    }
+    $newAccountId = mysqli_insert_id($conn);
     mysqli_stmt_close($save);
+    audit_log($conn, 'create', 'tbl_teacher_account', $newAccountId, "Login account auto-created for teacher #{$teacher_id} (username: {$email})");
 
     return " Login account created (username: {$email}, password: admin).";
+}
+
+// When a teacher's email is corrected, keep the login username in step so they can
+// still sign in with the address on file.
+function syncTeacherLoginName($conn, $teacher_id, $oldEmail, $newEmail) {
+    if ($newEmail === null || $newEmail === '' || strcasecmp((string) $oldEmail, $newEmail) === 0) {
+        return '';
+    }
+    $find = mysqli_prepare($conn, "SELECT teacher_account_id FROM tbl_teacher_account WHERE teacher_id = ? AND account_remarks = 1 LIMIT 1");
+    mysqli_stmt_bind_param($find, "i", $teacher_id);
+    mysqli_stmt_execute($find);
+    $acct = mysqli_fetch_assoc(mysqli_stmt_get_result($find));
+    mysqli_stmt_close($find);
+    if (!$acct) {
+        return '';
+    }
+    if (isUsernameTaken($conn, $newEmail)) {
+        return ' The login username was NOT changed (that email is already a username elsewhere).';
+    }
+    $upd = mysqli_prepare($conn, "UPDATE tbl_teacher_account SET username = ? WHERE teacher_account_id = ?");
+    mysqli_stmt_bind_param($upd, "si", $newEmail, $acct['teacher_account_id']);
+    $ok = mysqli_stmt_execute($upd);
+    mysqli_stmt_close($upd);
+    if (!$ok) {
+        return ' The login username could not be updated.';
+    }
+    audit_log($conn, 'update', 'tbl_teacher_account', $acct['teacher_account_id'], 'Login username changed with the teacher email: ' . $oldEmail . ' -> ' . $newEmail);
+    return ' Login username updated to the new email.';
 }
 
 $action = isset($_POST['action']) ? $_POST['action'] : '';
@@ -176,6 +213,7 @@ switch ($action) {
         $phoneNumberValue = ($phone_number === '') ? null : $phone_number;
 
         $isNewTeacher = empty($teacher_id);
+        $auditOld = $isNewTeacher ? null : audit_snapshot($conn, 'tbl_teacher', 'teacher_id', $teacher_id);
 
         if ($isNewTeacher) {
             $save = mysqli_prepare($conn, "INSERT INTO tbl_teacher (first_name, middle_name, last_name, extension_name, nick_name, gender, birthday, phone_number, email, position_id, department_id, date_hired) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULLIF(?, ''), ?, ?, NULLIF(?, ''))");
@@ -200,9 +238,14 @@ switch ($action) {
 
         mysqli_stmt_close($save);
 
+        $auditNew = audit_snapshot($conn, 'tbl_teacher', 'teacher_id', $teacher_id);
+        audit_log($conn, $isNewTeacher ? 'create' : 'update', 'tbl_teacher', $teacher_id, 'Teacher: ' . ($auditNew['last_name'] ?? '') . ', ' . ($auditNew['first_name'] ?? ''), $auditOld, $auditNew);
+
         $accountMessage = '';
         if ($isNewTeacher) {
             $accountMessage = createTeacherAccount($conn, $teacher_id, $emailValue);
+        } else {
+            $accountMessage = syncTeacherLoginName($conn, $teacher_id, $auditOld['email'] ?? '', $emailValue);
         }
 
         echo json_encode([
@@ -226,12 +269,14 @@ switch ($action) {
             break;
         }
 
+        $auditOld = audit_snapshot($conn, 'tbl_teacher', 'teacher_id', $teacher_id);
         $update = mysqli_prepare($conn, "UPDATE tbl_teacher SET teacher_remarks = 0 WHERE teacher_id = ?");
         mysqli_stmt_bind_param($update, "i", $teacher_id);
         mysqli_stmt_execute($update);
 
         if (mysqli_stmt_affected_rows($update) > 0) {
             mysqli_stmt_close($update);
+            audit_log($conn, 'archive', 'tbl_teacher', $teacher_id, 'Teacher archived: ' . ($auditOld['last_name'] ?? '') . ', ' . ($auditOld['first_name'] ?? ''), $auditOld);
             echo json_encode([
                 "status" => "success",
                 "message" => "Teacher archived successfully"

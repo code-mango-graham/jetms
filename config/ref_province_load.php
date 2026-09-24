@@ -9,7 +9,7 @@ try {
     $result = $conn->query($sql);
     
     if (!$result) {
-        throw new Exception('Query failed: ' . $conn->error);
+        throw new Exception(db_fail('Query: ' . $conn->error));
     }
     
     while ($row = $result->fetch_assoc()) {

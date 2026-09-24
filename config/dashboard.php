@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
 
 header('Content-Type: application/json');
@@ -44,8 +44,18 @@ switch ($action) {
                 WHERE e.schoolyear_id = $schoolyearId
             "));
 
+            // Outstanding = what the CURRENTLY ENROLLED students still owe: their tuition minus
+            // THEIR OWN payments (a dropped student's payment must not reduce anyone else's balance).
+            $owedRow = mysqli_fetch_assoc(mysqli_query($conn, "
+                SELECT COALESCE(SUM(GREATEST(e.tuition_fee - COALESCE(p.paid, 0), 0)), 0) AS owed
+                FROM tbl_enrollment e
+                LEFT JOIN (SELECT enrollment_id, SUM(amount) AS paid FROM tbl_payment GROUP BY enrollment_id) p
+                       ON p.enrollment_id = e.enrollment_id
+                WHERE e.schoolyear_id = $schoolyearId AND e.status = 'enrolled'
+            "));
+
             $totals['total_collected'] = (float) $paidRow['paid_sum'];
-            $totals['total_balance'] = (float) $enrolledRow['tuition_sum'] - (float) $paidRow['paid_sum'];
+            $totals['total_balance'] = (float) $owedRow['owed'];
         }
 
         $attendanceRow = mysqli_fetch_assoc(mysqli_query($conn, "

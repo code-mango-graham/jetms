@@ -1,5 +1,8 @@
 <?php
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+require_admin();
 
 header('Content-Type: application/json');
 
@@ -98,6 +101,7 @@ switch ($action) {
 
         mysqli_stmt_close($check);
 
+        $auditOld = empty($level_id) ? null : audit_snapshot($conn, 'tbl_level', 'level_id', $level_id);
         if (empty($level_id)) {
             $save = mysqli_prepare($conn, "INSERT INTO tbl_level (level_name, level_order, allows_subject_selection) VALUES (?, ?, ?)");
             mysqli_stmt_bind_param($save, "sii", $level_name, $level_order, $allows_subject_selection);
@@ -116,6 +120,10 @@ switch ($action) {
         }
 
         mysqli_stmt_close($save);
+
+        $auditId = empty($level_id) ? mysqli_insert_id($conn) : $level_id;
+        $auditNew = audit_snapshot($conn, 'tbl_level', 'level_id', $auditId);
+        audit_log($conn, empty($level_id) ? 'create' : 'update', 'tbl_level', $auditId, 'Level: ' . ($auditNew['level_name'] ?? ''), $auditOld, $auditNew);
 
         echo json_encode([
             "status" => "success",
@@ -138,12 +146,14 @@ switch ($action) {
             break;
         }
 
+        $auditOld = audit_snapshot($conn, 'tbl_level', 'level_id', $level_id);
         $stmt = mysqli_prepare($conn, "UPDATE tbl_level SET level_remarks = 0 WHERE level_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $level_id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'archive', 'tbl_level', $level_id, 'Level archived: ' . ($auditOld['level_name'] ?? ''), $auditOld);
             echo json_encode([
                 "status" => "success",
                 "message" => "Level archived successfully"

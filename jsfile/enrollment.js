@@ -64,7 +64,7 @@ $(document).ready(function () {
             levelsCache = res.data || [];
             let options = '<option value="">-- Select Level --</option>';
             levelsCache.forEach(function (lvl) {
-                options += `<option value="${lvl.level_id}">${lvl.level_name}</option>`;
+                options += `<option value="${lvl.level_id}">${esc(lvl.level_name)}</option>`;
             });
             $('#enroll_level_id').html(options);
         }
@@ -162,7 +162,7 @@ $(document).ready(function () {
             success: function (res) {
                 let options = '<option value="">-- Select Section --</option>';
                 (res.data || []).forEach(function (sec) {
-                    options += `<option value="${sec.section_id}">${sec.section_name}</option>`;
+                    options += `<option value="${sec.section_id}">${esc(sec.section_name)}</option>`;
                 });
                 $('#enroll_section_id').html(options).prop('disabled', false);
             }
@@ -183,7 +183,7 @@ $(document).ready(function () {
                             <div class="col-md-6">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="subject_ids[]" value="${sub.subject_id}" id="sub_${sub.subject_id}">
-                                    <label class="form-check-label" for="sub_${sub.subject_id}">${sub.subject_name}${sub.subject_code ? ' (' + sub.subject_code + ')' : ''}</label>
+                                    <label class="form-check-label" for="sub_${sub.subject_id}">${esc(sub.subject_name)}${sub.subject_code ? ' (' + esc(sub.subject_code) + ')' : ''}</label>
                                 </div>
                             </div>
                         `;
@@ -256,6 +256,9 @@ $(document).ready(function () {
         let actions = '';
         if (e.status === 'enrolled') {
             actions = `
+                <button class="btn btn-outline-primary btn-sm btnEditEnrollment" data-id="${e.enrollment_id}">
+                    <i class="bi bi-pencil-square me-1"></i>Edit
+                </button>
                 <button class="btn btn-outline-warning btn-sm btnDropTransferEnrollment" data-id="${e.enrollment_id}">
                     <i class="bi bi-box-arrow-right me-1"></i>Drop / Transfer
                 </button>
@@ -276,9 +279,9 @@ $(document).ready(function () {
 
         $('#currentEnrollmentBody').html(`
             <div class="row g-2 mb-2">
-                <div class="col-md-4"><strong>School Year:</strong> ${e.schoolyear_name}</div>
-                <div class="col-md-4"><strong>Level:</strong> ${e.level_name}</div>
-                <div class="col-md-4"><strong>Section:</strong> ${e.section_name}</div>
+                <div class="col-md-4"><strong>School Year:</strong> ${esc(e.schoolyear_name)}</div>
+                <div class="col-md-4"><strong>Level:</strong> ${esc(e.level_name)}</div>
+                <div class="col-md-4"><strong>Section:</strong> ${esc(e.section_name)}</div>
                 <div class="col-md-4"><strong>Status:</strong> ${badge}</div>
                 <div class="col-md-8">${e.remarks ? '<strong>Remarks:</strong> ' + e.remarks : ''}</div>
                 <div class="col-12"><strong>Subjects:</strong> ${(e.subjects || []).map(function (s) { return s.subject_name; }).join(', ') || '-'}</div>
@@ -419,6 +422,119 @@ $(document).ready(function () {
         const student_id = $('#detail_student_id').val();
         if (!student_id) return;
         window.open('student_profile.html?student_id=' + encodeURIComponent(student_id), '_blank');
+    });
+
+    // ===========================================================
+    // Edit Enrollment (tuition / section / subjects)
+    // ===========================================================
+    $(document).on('click', '.btnEditEnrollment', function () {
+        const enrollment_id = $(this).data('id');
+
+        $.ajax({
+            url: 'config/enrollment.php',
+            type: 'POST',
+            data: { action: 'get', enrollment_id: enrollment_id },
+            dataType: 'json',
+            success: function (res) {
+                if (res.status === 'error') {
+                    Swal.fire({ icon: 'error', title: res.message, timer: 3000, showConfirmButton: false });
+                    return;
+                }
+                const e = res.data;
+                const level = levelsCache.find(function (l) { return String(l.level_id) === String(e.level_id); });
+                const selectable = level && level.allows_subject_selection == 1;
+
+                $('#edit_enrollment_id').val(e.enrollment_id);
+                $('#edit_level_display').val(e.level_name);
+                $('#edit_tuition_fee').val(parseFloat(e.tuition_fee));
+                $('#edit_paid_hint').text('Already paid: ' + money(e.total_paid));
+                $('#edit_reason').val('');
+                $('#edit_section_id').html('<option value="">Loading...</option>');
+                $('#editSubjectsPick').empty();
+                $('#editSubjectsFixed').addClass('d-none').text('');
+                $('#editEnrollmentForm').data('selectable', selectable ? 1 : 0);
+
+                $.ajax({
+                    url: 'config/section.php', type: 'POST', dataType: 'json',
+                    data: { action: 'load', level_id: e.level_id },
+                    success: function (sr) {
+                        let options = '';
+                        (sr.data || []).forEach(function (sec) {
+                            options += `<option value="${sec.section_id}">${esc(sec.section_name)}</option>`;
+                        });
+                        if (!(sr.data || []).some(function (sec) { return String(sec.section_id) === String(e.section_id); })) {
+                            options = `<option value="${e.section_id}">${esc(e.section_name)} (archived)</option>` + options;
+                        }
+                        $('#edit_section_id').html(options).val(String(e.section_id));
+                    }
+                });
+
+                $.ajax({
+                    url: 'config/subject.php', type: 'POST', dataType: 'json',
+                    data: { action: 'load', level_id: e.level_id },
+                    success: function (sr) {
+                        const subjects = sr.data || [];
+                        const have = (e.subjects || []).map(function (s) { return String(s.subject_id); });
+                        if (selectable) {
+                            let boxes = '';
+                            subjects.forEach(function (sub) {
+                                boxes += `
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input edit-subject-box" type="checkbox" value="${sub.subject_id}" id="esub_${sub.subject_id}" ${have.indexOf(String(sub.subject_id)) !== -1 ? 'checked' : ''}>
+                                            <label class="form-check-label" for="esub_${sub.subject_id}">${esc(sub.subject_name)}${sub.subject_code ? ' (' + esc(sub.subject_code) + ')' : ''}</label>
+                                        </div>
+                                    </div>`;
+                            });
+                            $('#editSubjectsPick').html(boxes || '<div class="text-muted small">No subjects configured for this level.</div>');
+                        } else {
+                            $('#editSubjectsFixed').removeClass('d-none').text(
+                                (subjects.map(function (s) { return s.subject_name; }).join(', ') || 'None') +
+                                '  - all of this level\'s subjects, kept up to date automatically.');
+                        }
+                    }
+                });
+
+                $('#editEnrollmentModal').modal('show');
+            }
+        });
+    });
+
+    $('#editEnrollmentForm').submit(function (ev) {
+        ev.preventDefault();
+        const enrollment_id = $('#edit_enrollment_id').val();
+        const payload = {
+            action: 'update',
+            enrollment_id: enrollment_id,
+            section_id: $('#edit_section_id').val(),
+            tuition_fee: $('#edit_tuition_fee').val(),
+            reason: $('#edit_reason').val()
+        };
+        if ($(this).data('selectable') == 1) {
+            payload.subjects_sent = '1';
+            payload.subject_ids = $('.edit-subject-box:checked').map(function () { return this.value; }).get();
+        }
+
+        $.ajax({
+            url: 'config/enrollment.php',
+            type: 'POST',
+            data: $.param(payload, true),
+            dataType: 'json',
+            success: function (res) {
+                if (res.status === 'error') {
+                    Swal.fire({ icon: 'error', title: res.message, timer: 5000, showConfirmButton: false });
+                    return;
+                }
+                $('#editEnrollmentModal').modal('hide');
+                enrollmentTable.ajax.reload(null, false);
+                refreshCurrentEnrollment(enrollment_id);
+                refreshDetailTables();
+                Swal.fire({
+                    toast: true, position: 'top-end', icon: 'success',
+                    title: res.message, showConfirmButton: false, timer: 3000, timerProgressBar: true
+                });
+            }
+        });
     });
 
     // ===========================================================

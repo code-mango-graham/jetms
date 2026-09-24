@@ -107,14 +107,14 @@ $(document).ready(function () {
                             <div class="d-flex align-items-center mb-2">
                                 ${avatar}
                                 <div class="ms-2">
-                                    <div class="fw-bold">${p.admin_name}</div>
+                                    <div class="fw-bold">${esc(p.admin_name)}</div>
                                     <div class="text-muted small" title="${fullDateTime(p.created_at)}">${timeAgo(p.created_at)}</div>
                                 </div>
                                 ${audienceBadge}
                                 ${adminControls}
                             </div>
-                            <h6 class="fw-bold mb-1 ps-4">${p.title}</h6>
-                            <div class="ps-4" style="white-space: pre-wrap;">${p.content}</div>
+                            <h6 class="fw-bold mb-1 ps-4">${esc(p.title)}</h6>
+                            <div class="ps-4" style="white-space: pre-wrap;">${esc(p.content)}</div>
                             ${photoHtml}
                         </div>
                     `;

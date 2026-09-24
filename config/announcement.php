@@ -1,6 +1,10 @@
 <?php
-session_start();
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+if (isset($_POST['action']) && in_array($_POST['action'], ['load', 'get', 'unread_count', 'mark_viewed'], true)) {
+    require_login();
+}
 
 header('Content-Type: application/json');
 
@@ -33,7 +37,7 @@ function handleAnnouncementPhotosUpload($fileInputName) {
         $tmpName = $files['tmp_name'][$i];
         $mime = mime_content_type($tmpName);
 
-        if (!isset($allowed[$mime])) {
+        if (!isset($allowed[$mime]) || !is_real_image($tmpName)) {
             throw new Exception('Only JPG, PNG, and WEBP photos are allowed');
         }
 
@@ -229,6 +233,9 @@ switch ($action) {
             $audience = 'all';
         }
 
+        $auditWasNew = empty($announcement_id);
+        $auditOld = $auditWasNew ? null : audit_snapshot($conn, 'tbl_announcement', 'announcement_id', $announcement_id);
+
         try {
             $newPhotos = handleAnnouncementPhotosUpload('photos');
         } catch (Exception $e) {
@@ -265,6 +272,9 @@ switch ($action) {
             mysqli_stmt_close($photoStmt);
         }
 
+        $auditNew = audit_snapshot($conn, 'tbl_announcement', 'announcement_id', $announcement_id);
+        audit_log($conn, $auditWasNew ? 'create' : 'update', 'tbl_announcement', $announcement_id, 'Announcement: ' . ($auditNew['title'] ?? ''), $auditOld, $auditNew, !empty($newPhotos) ? ['photos_added' => count($newPhotos)] : null);
+
         echo json_encode(["status" => "success", "message" => "Announcement posted successfully"]);
         break;
     }
@@ -280,12 +290,14 @@ switch ($action) {
 
         $photo_id = isset($_POST['photo_id']) ? (int) $_POST['photo_id'] : 0;
 
+        $auditOld = audit_snapshot($conn, 'tbl_announcement_photo', 'photo_id', $photo_id);
         $stmt = mysqli_prepare($conn, "DELETE FROM tbl_announcement_photo WHERE photo_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $photo_id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'delete', 'tbl_announcement_photo', $photo_id, 'Announcement photo removed (announcement #' . ($auditOld['announcement_id'] ?? '') . ')', $auditOld);
             echo json_encode(["status" => "success", "message" => "Photo removed"]);
             break;
         }
@@ -306,12 +318,14 @@ switch ($action) {
 
         $id = isset($_POST['announcement_id']) ? (int) $_POST['announcement_id'] : 0;
 
+        $auditOld = audit_snapshot($conn, 'tbl_announcement', 'announcement_id', $id);
         $stmt = mysqli_prepare($conn, "UPDATE tbl_announcement SET announcement_remarks = 0 WHERE announcement_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'archive', 'tbl_announcement', $id, 'Announcement removed: ' . ($auditOld['title'] ?? ''), $auditOld);
             echo json_encode(["status" => "success", "message" => "Announcement removed"]);
             break;
         }

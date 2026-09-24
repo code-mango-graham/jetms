@@ -1,0 +1,48 @@
+<!-- ============================= -->
+<!-- BEGIN BACKUP & RESTORE -->
+<!-- ============================= -->
+
+<div class="card card-primary card-outline">
+
+    <div class="card-header">
+        <h3 class="card-title fs-3 fw-bold">BACKUP &amp; RESTORE</h3>
+        <div class="card-tools">
+            <button class="btn btn-primary btn-sm" id="btnBackupNow">
+                <i class="bi bi-database-add me-1"></i><b>Backup Now</b>
+            </button>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="alert alert-info small">
+            <i class="bi bi-info-circle me-1"></i>
+            A backup is taken <b>automatically every Sunday at 2:00 AM</b> (the newest 12 weekly backups, about 3 months, are kept)
+            and <b>before every school-year activation</b> and <b>before every restore</b>. Backups can only be restored or created
+            after re-entering your admin password.
+        </div>
+
+        <table id="backupTable" class="table table-bordered table-hover nowrap w-100">
+            <thead>
+                <tr>
+                    <th>FILE</th>
+                    <th>TYPE</th>
+                    <th>CREATED</th>
+                    <th>SIZE</th>
+                    <th width="120">ACTIONS</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+
+<!-- ============================= -->
+<!-- END BACKUP & RESTORE -->
+<!-- ============================= -->
+
+<script>
+(function () {
+    var s = document.createElement('script');
+    s.src = 'jsfile/backups.js?v=' + Date.now();
+    document.body.appendChild(s);
+})();
+</script>

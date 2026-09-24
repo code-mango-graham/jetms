@@ -191,6 +191,8 @@
       <a href="#settings-schoolyear">School Year</a>
       <a href="#settings-levels">Levels</a>
       <a href="#settings-assignments">Assignments</a>
+      <a href="#settings-backups">Backup &amp; Restore</a>
+      <a href="#settings-logs">Security Logs</a>
     </div>
 
     <h6 class="mt-3">Teacher's Panel</h6>
@@ -222,6 +224,7 @@
       <li>Click <strong>Log in</strong>.</li>
     </ol>
     <p>Wrong role/username/password combinations are rejected with an error — the app checks the account exists in that role's table, is not archived/deactivated, and the password matches. On success you land on <code>mainpage.php</code>, which is guarded server-side: no session, no access, full stop.</p>
+    <p><strong>Default passwords must be replaced.</strong> New accounts start with the password <code>admin</code>; at the first login a Change Password window opens that cannot be closed until a new password (8+ characters, letters and numbers) is set. Repeated wrong passwords temporarily lock the account and the guessing address, and every attempt is recorded under Settings &rarr; Security Logs. Sessions expire after 2 hours of inactivity.</p>
 
     <h2 id="school-calendar">School Calendar</h2>
     <p><strong>Where:</strong> top navigation bar → <strong>School Calendar</strong>. Available to every logged-in role — Admin, Teacher, and Student all see the same calendar.</p>
@@ -294,12 +297,20 @@
         <ul>
           <li><strong>Drop / Transfer</strong> — relabels the enrollment as dropped/transferred and preserves all history.</li>
           <li><strong>Cancel Enrollment</strong> — only allowed if <strong>zero payments</strong> have been recorded against it. If payments exist, cancel is blocked and Drop/Transfer is the only option.</li>
+          <li><strong>Edit</strong> — corrects the current year's enrollment of a student who is still enrolled: tuition, section (another section of the same level, i.e. a mid-year move) and, for Senior High, the chosen subjects. A reason is required and goes to the audit log. Tuition cannot go below what was already paid; once grades exist in the current section, the section can't be changed and a subject with grades can't be removed.</li>
           <li><strong>View Full Profile</strong> — jumps to the student's full profile page.</li>
         </ul>
       </li>
       <li><strong>Payment History</strong> — running Tuition / Paid / Balance summary, and an <strong>Add Payment</strong> button. To record a payment: click it, fill in the date, amount, mode (Cash / GCash / Bank Transfer), and reference number (always shown regardless of mode), then submit. It appears instantly in the table below and updates the Balance.</li>
       <li><strong>Enrollment History</strong> — every enrollment this student has ever had, across every school year, with status and remarks.</li>
     </ol>
+
+    <h3>Balance and subject rules</h3>
+    <ul>
+      <li>A student can never pay more than the tuition: payments (new or edited) and the enrollment downpayment are refused when the total would exceed it.</li>
+      <li>Subjects added later to a fixed-curriculum level are attached automatically to students of that level already enrolled this year; for Senior High, tick them in the student's Edit window.</li>
+      <li>Archived offices/positions still show as "(archived)" when editing a teacher who has them.</li>
+    </ul>
 
     <h3>Reactivate</h3>
     <p>If a student was dropped/transferred/cancelled in error, reactivating restores an <code>enrolled</code> status — surfaced from the same detail view once a record is in a non-active state.</p>
@@ -372,6 +383,8 @@
     <h3 id="settings-schoolyear">School Year</h3>
     <img class="doc-shot" src="manual/settings_schoolyear.png" alt="School Year list">
     <p>There's always exactly <strong>one active school year</strong> — activating a new one automatically flips every still-<code>enrolled</code> record from the previous active year to <code>completed</code>, so history stays accurate without manual cleanup.</p>
+    <div class="doc-note"><strong>Activating a year is a protected action.</strong> Clicking the green check asks you to re-enter your admin password and warns that the change affects the whole school year. A full database backup is taken automatically before anything changes; if that backup fails, the activation is cancelled.</div>
+    <img class="doc-shot" src="manual/activate_year_dialog.png" alt="Activate school year dialog">
     <img class="doc-shot" src="manual/settings_schoolyear_add.png" alt="Add School Year modal">
 
     <h3 id="settings-levels">Levels (and their Sections/Subjects)</h3>
@@ -391,6 +404,26 @@
       <li>Save. The app blocks assigning the same subject+section twice in one school year (edit the existing assignment instead, to change who teaches it).</li>
     </ol>
     <p>Deleting an assignment here doesn't delete any grades already recorded — it's a soft-remove that just stops it appearing as active.</p>
+
+    <h3 id="settings-backups">Backup &amp; Restore</h3>
+    <img class="doc-shot" src="manual/backups_page.png" alt="Backup and Restore">
+    <p>A list of every backup on the server with its type: <strong>Weekly (automatic)</strong> every Sunday at 2:00 AM (the newest 12, about 3 months, are kept), <strong>Manual</strong>, <strong>Before school-year activation</strong>, and <strong>Before a restore</strong>. Each row has a download and a restore button.</p>
+    <ul>
+      <li><strong>Backup Now</strong> asks for your admin password, then saves a full copy of the database.</li>
+    </ul>
+    <img class="doc-shot" src="manual/backup_confirm_dialog.png" alt="Backup confirmation">
+    <ul>
+      <li><strong>Restore</strong> is the most serious action in the system: type <code>RESTORE</code> <em>and</em> enter your password.</li>
+    </ul>
+    <img class="doc-shot" src="manual/restore_confirm_dialog.png" alt="Restore confirmation">
+    <div class="doc-note">The database goes back <strong>exactly</strong> as it was when that backup was made — everything entered since is lost. A safety backup of the current data is saved first (and reloaded automatically if the restore fails), and you are logged out afterwards. Do it outside school hours. Security Logs are never rolled back. After 5 wrong passwords in 15 minutes these confirmations lock for 15 minutes. Backups don't include uploaded photos, so copy the <code>assets/img</code> folders separately and keep a copy of backups off the server.</div>
+
+    <h3 id="settings-logs">Security Logs</h3>
+    <p>Admin only, two tabs. <strong>Change Log</strong> — every create, edit, archive and delete: when, who, what, and from which IP. The eye icon shows exactly which fields changed, before and after (passwords are never recorded); payment and grade edits show the reason given. It also records backups, restores, school-year activations, password resets, wrong-password confirmations, and any time a teacher or student tries an admin-only action (<code>denied</code>).</p>
+    <img class="doc-shot" src="manual/security_logs_audit.png" alt="Change Log">
+    <p><strong>Login Records</strong> — every login, logout and <strong>failed</strong> login with username tried, IP and browser. The failure reason ("wrong password" vs "no such account") is shown here only; the person logging in always sees the same message.</p>
+    <img class="doc-shot" src="manual/security_logs_login.png" alt="Login Records">
+    <p>Use the date filters to narrow the list (newest 5,000 shown). The logs cannot be edited or deleted.</p>
 
     <span class="section-tag tag-teacher">Teacher's Panel</span>
 

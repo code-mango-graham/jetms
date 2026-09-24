@@ -1,6 +1,11 @@
 <?php
-session_start();
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+// update_my_photo does its own "any logged-in user" check; account management is admin-only.
+if (!isset($_POST['action']) || $_POST['action'] !== 'update_my_photo') {
+    require_admin();
+}
 
 header('Content-Type: application/json');
 
@@ -30,13 +35,13 @@ switch ($action) {
 
         $mime = mime_content_type($file['tmp_name']);
         $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-        if (!isset($allowed[$mime])) {
+        if (!isset($allowed[$mime]) || !is_real_image($file['tmp_name'])) {
             echo json_encode(["status" => "error", "message" => "Only JPG, PNG, and WEBP photos are allowed"]);
             break;
         }
 
         $role = $_SESSION['auth']['role'];
-        $id = $_SESSION['auth']['id'];
+        $id = $_SESSION['auth']['ref_id'];
 
         if ($role === 'admin') {
             $table = 'tbl_admin';
@@ -69,6 +74,7 @@ switch ($action) {
         mysqli_stmt_bind_param($stmt, "si", $filename, $id);
         mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
+        audit_log($conn, 'update', $table, $id, 'Profile photo changed (' . $role . ')', null, null, ['photo' => $filename]);
 
         echo json_encode(["status" => "success", "message" => "Profile photo updated", "photo" => $filename, "role" => $role]);
         break;
@@ -106,7 +112,7 @@ switch ($action) {
             $result = $conn->query($sql);
 
             if (!$result) {
-                throw new Exception('Query failed: ' . $conn->error);
+                throw new Exception(db_fail('Query: ' . $conn->error));
             }
 
             while ($row = $result->fetch_assoc()) {
@@ -156,6 +162,12 @@ switch ($action) {
             break;
         }
         mysqli_stmt_close($check);
+
+        $policyError = password_policy_error($password, $username);
+        if ($policyError !== null) {
+            echo json_encode(["status" => "error", "message" => $policyError]);
+            break;
+        }
 
         $passwordHash = password_hash($password, PASSWORD_BCRYPT);
 
@@ -226,6 +238,10 @@ switch ($action) {
 
         mysqli_stmt_close($save);
 
+        $auditEntity = $role === 'admin' ? 'tbl_admin' : $table;
+        $auditId = (isset($existingRow) && $existingRow) ? (int) $existingRow[$idCol] : mysqli_insert_id($conn);
+        audit_log($conn, 'create', $auditEntity, $auditId, 'Login account created: ' . $role . ' "' . $username . '"' . ((isset($existingRow) && $existingRow) ? ' (re-activated existing account)' : ''));
+
         echo json_encode([
             "status" => "success",
             "message" => "Account created successfully"
@@ -257,16 +273,17 @@ switch ($action) {
 
             $stmt = $conn->prepare($sql);
             if (!$stmt) {
-                throw new Exception('Prepare failed: ' . $conn->error);
+                throw new Exception(db_fail('Prepare: ' . $conn->error));
             }
 
             $stmt->bind_param("i", $account_id);
 
             if (!$stmt->execute()) {
-                throw new Exception('Execute failed: ' . $stmt->error);
+                throw new Exception(db_fail('Execute: ' . $stmt->error));
             }
 
             if ($stmt->affected_rows > 0) {
+                audit_log($conn, 'archive', $role === 'admin' ? 'tbl_admin' : ($role === 'teacher' ? 'tbl_teacher_account' : 'tbl_student_account'), $account_id, 'Login account removed (' . $role . ' account #' . $account_id . ')');
                 $response['success'] = true;
                 $response['message'] = 'Account removed successfully';
             } else {
@@ -298,11 +315,9 @@ switch ($action) {
             break;
         }
 
-        if (strlen($password) < 4) {
-            echo json_encode([
-                "status" => "error",
-                "message" => "Password must be at least 4 characters"
-            ]);
+        $policyError = password_policy_error($password);
+        if ($policyError !== null) {
+            echo json_encode(["status" => "error", "message" => $policyError]);
             break;
         }
 
@@ -322,6 +337,7 @@ switch ($action) {
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'password_reset', $role === 'admin' ? 'tbl_admin' : ($role === 'teacher' ? 'tbl_teacher_account' : 'tbl_student_account'), $account_id, 'Password reset by admin for ' . $role . ' account #' . $account_id);
             echo json_encode([
                 "status" => "success",
                 "message" => "Password reset successfully"

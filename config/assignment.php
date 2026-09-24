@@ -1,6 +1,11 @@
 <?php
-session_start();
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+// teacher_classes / roster do their own teacher-or-admin checks; the rest is admin-only.
+if (!isset($_POST['action']) || !in_array($_POST['action'], ['teacher_classes', 'roster'], true)) {
+    require_admin();
+}
 
 header('Content-Type: application/json');
 
@@ -101,23 +106,59 @@ switch ($action) {
         $subject_code = $subjectRow['subject_code'];
         $teacher_name = $teacherRow['last_name'] . ', ' . $teacherRow['first_name'];
 
-        // Uniqueness: one teacher-subject-section assignment per school year
-        if (empty($class_id)) {
-            $check = mysqli_prepare($conn, "SELECT 1 FROM tbl_class WHERE schoolyear_id = ? AND subject_id = ? AND section_id = ? AND class_remarks = 1 LIMIT 1");
-            mysqli_stmt_bind_param($check, "iii", $schoolyear_id, $subject_id, $section_id);
-        } else {
-            $check = mysqli_prepare($conn, "SELECT 1 FROM tbl_class WHERE schoolyear_id = ? AND subject_id = ? AND section_id = ? AND class_remarks = 1 AND class_id != ? LIMIT 1");
-            mysqli_stmt_bind_param($check, "iiii", $schoolyear_id, $subject_id, $section_id, $class_id);
+        // ---- EDIT rules: only the current year's assignment, and never move graded work
+        if (!empty($class_id)) {
+            $existingClass = audit_snapshot($conn, 'tbl_class', 'class_id', (int) $class_id);
+            if (!$existingClass || (int) $existingClass['class_remarks'] !== 1) {
+                echo json_encode(["status" => "error", "message" => "Assignment not found"]);
+                break;
+            }
+            if ((int) $existingClass['schoolyear_id'] !== (int) $schoolyear_id) {
+                echo json_encode(["status" => "error", "message" => "Only the current school year's assignments can be changed. Past years are kept as history."]);
+                break;
+            }
+            if ((int) $existingClass['subject_id'] !== $subject_id || (int) $existingClass['section_id'] !== $section_id) {
+                $graded = mysqli_fetch_row(mysqli_query($conn, "SELECT
+                    (SELECT COUNT(*) FROM tbl_grade_component WHERE class_id = " . (int) $class_id . " AND component_remarks = 1) +
+                    (SELECT COUNT(*) FROM tbl_final_grade WHERE class_id = " . (int) $class_id . ")"))[0];
+                if ((int) $graded > 0) {
+                    echo json_encode(["status" => "error", "message" => "Grades are already recorded for this class, so only the teacher can be changed. If the subject or section is wrong, remove this assignment and create a new one."]);
+                    break;
+                }
+            }
         }
-        mysqli_stmt_execute($check);
-        mysqli_stmt_store_result($check);
 
-        if (mysqli_stmt_num_rows($check) > 0) {
-            mysqli_stmt_close($check);
+        // ---- Uniqueness: one teacher-subject-section assignment per school year.
+        // The database key also counts REMOVED rows, so a removed assignment is
+        // brought back (with its grade setup) instead of failing on a duplicate.
+        $dup = mysqli_prepare($conn, "SELECT class_id, class_remarks FROM tbl_class WHERE schoolyear_id = ? AND subject_id = ? AND section_id = ? AND class_id != ? LIMIT 1");
+        $selfId = empty($class_id) ? 0 : (int) $class_id;
+        mysqli_stmt_bind_param($dup, "iiii", $schoolyear_id, $subject_id, $section_id, $selfId);
+        mysqli_stmt_execute($dup);
+        $dupRow = mysqli_fetch_assoc(mysqli_stmt_get_result($dup));
+        mysqli_stmt_close($dup);
+
+        if ($dupRow && (int) $dupRow['class_remarks'] === 1) {
             echo json_encode(["status" => "error", "message" => "This subject is already assigned for that section this school year"]);
             break;
         }
-        mysqli_stmt_close($check);
+
+        if ($dupRow && empty($class_id)) {
+            $revive = mysqli_prepare($conn, "UPDATE tbl_class SET class_remarks = 1, level_id = ?, level_name = ?, section_name = ?, subject_name = ?, subject_code = ?, teacher_id = ?, teacher_name = ? WHERE class_id = ?");
+            mysqli_stmt_bind_param($revive, "issssisi", $level_id, $level_name, $section_name, $subject_name, $subject_code, $teacher_id, $teacher_name, $dupRow['class_id']);
+            mysqli_stmt_execute($revive);
+            mysqli_stmt_close($revive);
+            audit_log($conn, 'update', 'tbl_class', $dupRow['class_id'], 'Assignment restored: ' . $subject_name . ' / ' . $section_name . ' (' . $schoolyear_name . ') -> ' . $teacher_name, null, audit_snapshot($conn, 'tbl_class', 'class_id', $dupRow['class_id']));
+            echo json_encode(["status" => "success", "message" => "Assignment saved successfully"]);
+            break;
+        }
+
+        if ($dupRow) {
+            echo json_encode(["status" => "error", "message" => "That subject and section combination is used by a removed assignment. Add it as a new assignment instead."]);
+            break;
+        }
+
+        $auditOld = empty($class_id) ? null : audit_snapshot($conn, 'tbl_class', 'class_id', $class_id);
 
         if (empty($class_id)) {
             $save = mysqli_prepare($conn, "
@@ -152,6 +193,10 @@ switch ($action) {
         }
         mysqli_stmt_close($save);
 
+        $auditId = empty($class_id) ? mysqli_insert_id($conn) : $class_id;
+        $auditNew = audit_snapshot($conn, 'tbl_class', 'class_id', $auditId);
+        audit_log($conn, empty($class_id) ? 'create' : 'update', 'tbl_class', $auditId, 'Assignment: ' . $subject_name . ' / ' . $section_name . ' (' . $schoolyear_name . ') -> ' . $teacher_name, $auditOld, $auditNew);
+
         echo json_encode(["status" => "success", "message" => "Assignment saved successfully"]);
         break;
     }
@@ -167,12 +212,14 @@ switch ($action) {
             break;
         }
 
+        $auditOld = audit_snapshot($conn, 'tbl_class', 'class_id', $class_id);
         $stmt = mysqli_prepare($conn, "UPDATE tbl_class SET class_remarks = 0 WHERE class_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $class_id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'archive', 'tbl_class', $class_id, 'Assignment removed: ' . ($auditOld['subject_name'] ?? '') . ' / ' . ($auditOld['section_name'] ?? '') . ' -> ' . ($auditOld['teacher_name'] ?? ''), $auditOld);
             echo json_encode(["status" => "success", "message" => "Assignment removed successfully"]);
             break;
         }
@@ -190,7 +237,7 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Not authorized"]);
             break;
         }
-        $teacher_id = $_SESSION['auth']['id'];
+        $teacher_id = $_SESSION['auth']['ref_id'];
 
         $stmt = mysqli_prepare($conn, "
             SELECT c.class_id, c.schoolyear_name, c.level_name, c.section_name, c.subject_name, c.subject_code,
@@ -221,6 +268,11 @@ switch ($action) {
     case 'roster': {
         $class_id = isset($_POST['class_id']) ? (int) $_POST['class_id'] : 0;
 
+        if (!isset($_SESSION['auth']) || !in_array($_SESSION['auth']['role'], ['admin', 'teacher'], true)) {
+            echo json_encode(["status" => "error", "message" => "Not authorized"]);
+            break;
+        }
+
         $classRow = mysqli_fetch_assoc(mysqli_prepared_get($conn, "SELECT * FROM tbl_class WHERE class_id = ?", "i", [$class_id]));
         if (!$classRow) {
             echo json_encode(["status" => "error", "message" => "Class not found"]);
@@ -228,7 +280,7 @@ switch ($action) {
         }
 
         // Authorization: teachers may only view their own class rosters
-        if (isset($_SESSION['auth']) && $_SESSION['auth']['role'] === 'teacher' && (int) $classRow['teacher_id'] !== (int) $_SESSION['auth']['id']) {
+        if (isset($_SESSION['auth']) && $_SESSION['auth']['role'] === 'teacher' && (int) $classRow['teacher_id'] !== (int) $_SESSION['auth']['ref_id']) {
             echo json_encode(["status" => "error", "message" => "Not authorized"]);
             break;
         }

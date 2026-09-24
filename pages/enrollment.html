@@ -225,6 +225,58 @@
         </div>
     </div>
     <!-- ============================= -->
+    <!-- EDIT ENROLLMENT MODAL -->
+    <!-- ============================= -->
+    <div class="modal fade" id="editEnrollmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="editEnrollmentForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Enrollment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_enrollment_id">
+                        <div class="alert alert-info py-2 small mb-3">
+                            Corrects the <strong>current</strong> school year's enrollment. The level cannot be changed here.
+                            Tuition can't go below what was already paid, and the section can't be changed (or a subject removed)
+                            once grades have been recorded for it.
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Level</label>
+                                <input type="text" class="form-control" id="edit_level_display" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Section <span class="text-danger">*</span></label>
+                                <select class="form-select" id="edit_section_id" required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tuition Fee <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="edit_tuition_fee" min="0" step="0.01" required>
+                                <div class="form-text" id="edit_paid_hint"></div>
+                            </div>
+                            <div class="col-12" id="editSubjectsWrap">
+                                <label class="form-label">Subjects</label>
+                                <div id="editSubjectsFixed" class="form-control-plaintext d-none"></div>
+                                <div class="row g-2" id="editSubjectsPick"></div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Reason for this change <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="edit_reason" rows="2" maxlength="200" required placeholder="e.g. Moved to Section B at parent's request"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================= -->
     <!-- END STUDENT DETAIL MODAL -->
     <!-- ============================= -->
 

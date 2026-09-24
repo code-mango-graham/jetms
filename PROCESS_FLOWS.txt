@@ -1,0 +1,576 @@
+=====================================================================
+JETMS - PROCESS & DATA MOVEMENT REFERENCE
+=====================================================================
+What happens, step by step, when you do something in the system:
+which screen -> which backend file -> which tables get READ / WRITTEN
+-> what side effects fire automatically.
+
+Everything below was checked against the actual code (config/*.php),
+not written from memory. Legend:
+    [R]  reads a table            [W]  inserts/updates a table
+    [DEL] soft-delete = the row stays, its *_remarks flag becomes 0
+          (the app hides it; nothing is physically removed)
+
+Backend pattern: every screen posts to one file in config/, with an
+"action" field (load / get / add / delete / ...). "add" is used for
+BOTH creating and editing - if the form sends an id it updates,
+otherwise it inserts.
+
+
+=====================================================================
+0. HOW LOGIN AND SESSIONS WORK  (used by everything else)
+=====================================================================
+Login (index.html -> config/auth_login.php)
+  1. Pick role tab (Admin / Teacher / Student), enter username + password.
+  2. Looks up the account in the matching table:
+       Admin   : tbl_admin                    (must have admin_remarks = 1)
+       Teacher : tbl_teacher_account JOIN tbl_teacher
+                 (account_remarks = 1 AND teacher_remarks = 1)
+       Student : tbl_student_account JOIN tbl_student
+                 (account_remarks = 1 AND student_status != 'archived')
+  2b. Before anything else: throttle check - too many recent failures for
+     this username or from this IP (counted in tbl_login_log) -> refused
+     with the same generic wording.  An unknown username still runs a
+     dummy password_verify() so timing does not reveal which accounts exist.
+  3. password_verify() against the bcrypt hash.
+     Every attempt is written to tbl_login_log: success, or failure with
+     the real reason ('wrong password' / 'unknown or inactive account')
+     kept in the log only - the person always sees the same message.
+  4. session_regenerate_id() (new session id at login), then writes the
+     PHP session:
+        $_SESSION['auth'] = {
+            role    : admin | teacher | student
+            id      : the LOGIN ACCOUNT row id
+                      (tbl_teacher_account.teacher_account_id, etc.)
+            ref_id  : the REAL PERSON id
+                      (tbl_teacher.teacher_id / tbl_student.student_id /
+                       tbl_admin.admin_id)
+            username: what they typed (used by the logout record)
+            name    : full name, shown in the top bar
+        }
+     must_change : true when the password is still the default 'admin'
+                   (and SEC_FORCE_PASSWORD_CHANGE is on)
+  5. Redirects to mainpage.php.  While must_change is true,
+     config/session_boot.php answers every other endpoint with HTTP 403
+     "You must change your default password first" (only change_password,
+     logout and auth_login pass); mainpage.php opens a modal that cannot be
+     dismissed.  change_password.php applies password_policy_error() and
+     clears the flag.
+
+Every request, every endpoint  (config.php + config/session_boot.php)
+  - session cookie JETMSSESS: HttpOnly, SameSite=Lax, Secure on HTTPS,
+    strict mode; idle timeout SEC_IDLE_TIMEOUT (2h).
+  - POST must carry header X-Requested-With: XMLHttpRequest and a
+    same-host Origin (CSRF); otherwise 403.  Any script/test tool that posts
+    to config/*.php must send that header (jQuery adds it to every $.ajax
+    call by itself).
+  - $_POST text has < > stripped and " turned into ' (passwords exempt);
+    JS screens additionally esc() text before drawing it.
+  - Database failures are logged, the user only sees a generic message
+    (db_fail()).  Server settings come from config.local.php.
+
+  Why two ids?  "id" is used for things that belong to the login
+  account (change password, announcement "last viewed" marker).
+  "ref_id" is used for everything about the person (their classes,
+  grades, payments).  These two numbers are NOT the same as soon as
+  one teacher/student exists without a login account, so all data
+  queries use ref_id.  (This was a real bug found and fixed while
+  writing this document: a teacher with account #5 but teacher #8
+  saw an empty "My Classes".)
+
+Guarding  (config/security.php)
+  - mainpage.php: no session -> redirected to index.html.
+  - require_admin() sits at the top of every admin endpoint (students,
+    teachers, offices, positions, levels, sections, subjects, school
+    years, accounts, enrollment, payments, assignments, backups, logs,
+    dashboard...).  No session -> HTTP 401; logged in but not admin ->
+    HTTP 403 and a 'denied' row in the audit log.
+    (Before this was added, many of these files had NO login check: a
+    stranger could list accounts or reset the admin password.)
+  - Teacher-only: grading writes.  Student-only: my_subjects / my_grades
+    / my_history (scoped to ref_id).  Announcement reads need any login.
+  - The attendance kiosk is public on purpose but limited to two
+    actions: 'scan' and 'load' (today's scans).  Its other actions
+    (per-student history, delete) are admin-only.
+
+Change password (any role)  config/change_password.php
+  [R] account table row for session "id" -> password_verify(current)
+  [W] same row: password = bcrypt(new)
+
+Profile photo (admin, student)  config/user.php action=update_my_photo
+  Saves a file in assets/img/admins|students, then
+  [W] tbl_admin.photo  or  tbl_student.student_photo
+  (teachers have no photo column yet)
+
+Default credentials created by the system:
+  Admin seed ........ admin / admin
+  New teacher ....... username = email,  password = admin
+  New student ....... username = LRN,    password = admin
+
+
+=====================================================================
+1. ADD A TEACHER  (Settings > Teachers > Add)   <-- your example
+=====================================================================
+Screen: pages/teachers.html + jsfile/teachers.js
+Backend: config/teacher.php  action=add
+
+Validation first:
+  - first name, last name, gender, birthday, position, office required
+  - phone number (if given) must be exactly 11 digits
+  - email (if given) must not already belong to another teacher
+
+Then, in order:
+  1. [W] INSERT tbl_teacher  (the person record)
+  2. Gets the new teacher_id from that insert.
+  3. AUTOMATIC SIDE EFFECT - createTeacherAccount():
+       - No email on the form?  -> NO login account is created.
+         Message: "Login account was NOT created (teacher has no
+         email on file)."
+       - Email already used as a username by ANY admin/teacher/
+         student account?  -> NO account created.
+       - Otherwise:
+         [W] INSERT tbl_teacher_account
+                 teacher_id = the new teacher
+                 username   = the email
+                 password   = bcrypt('admin')
+         Message: "Login account created (username: <email>,
+         password: admin)."
+  4. Response tells the admin exactly what happened to the account.
+
+  So: one form -> two tables (tbl_teacher, tbl_teacher_account).
+
+Editing a teacher (same form, id present)
+  [W] UPDATE tbl_teacher only.
+  The login account is NOT touched: changing the email later does not
+  change the login username, and adding an email to a teacher who had
+  none does not create an account (use Settings > Users for that).
+
+Deleting a teacher
+  [DEL] tbl_teacher.teacher_remarks = 0.  The login account row stays,
+  but login now fails (the login query requires teacher_remarks = 1).
+  Existing classes/grades that reference the teacher are untouched.
+
+
+=====================================================================
+2. ADD A STUDENT  (Students > Add)
+=====================================================================
+Backend: config/student.php  action=add
+  Validation: last + first name required; CP No. and Contact Number
+  (if given) exactly 11 digits; LRN must be unique.
+  1. Photo (optional): validated as JPG/PNG/WEBP, saved under
+     assets/img/students/ with a random name.
+  2. [W] INSERT tbl_student   (address stores the NAMES, not PSGC codes)
+  3. AUTOMATIC SIDE EFFECT - createStudentAccount():
+       - No LRN -> no login account.
+       - LRN already used as a username -> no account.
+       - Otherwise [W] INSERT tbl_student_account
+                          username = LRN, password = bcrypt('admin')
+  Edit: [W] UPDATE tbl_student only (account untouched, same as teachers).
+  Delete: sets tbl_student.student_status = 'archived'
+          (hidden from lists; login is blocked for archived students).
+
+Address dropdowns: Province -> City/Municipality -> Barangay read
+  refprovince / refcitymun / refbrgy (read-only PSGC reference tables).
+
+
+=====================================================================
+3. LOGIN ACCOUNTS DIRECTLY  (Settings > Users)
+=====================================================================
+Backend: config/user.php
+  load ............ [R] tbl_admin + tbl_teacher_account +
+                        tbl_student_account, merged into one list
+  add ............. creates a login for a person who already exists:
+                    admin   -> [W] INSERT tbl_admin (needs name fields)
+                    teacher/student -> if that person already has an
+                    (archived) account row it is re-activated with the
+                    new username/password, else [W] INSERT a new row.
+  reset_password .. [W] sets a new password (min 4 chars) on the
+                    chosen account row.
+  delete .......... [DEL] account_remarks = 0 (admin: admin_remarks = 0).
+Usernames must be unique across all three account tables.
+
+
+=====================================================================
+4. SCHOOL YEAR, LEVELS, SECTIONS, SUBJECTS  (Settings)
+=====================================================================
+School Year  config/schoolyear.php
+  add ......... [W] INSERT tbl_schoolyear (status 'inactive')
+  activate .... the important one (admin, and it is protected):
+     1. [R] checks the target exists and is not already active
+     2. The admin must re-enter their PASSWORD (the screen warns that
+        this affects the whole school year).  Wrong password: nothing
+        happens, the attempt is logged; 5 wrong in 15 min = locked 15 min.
+     3. A full database BACKUP (type 'pre_activate') is taken FIRST.
+        If the backup fails, the activation is cancelled.
+     4. One database transaction (all-or-nothing):
+          [W] all years inactive, the chosen year active
+          [W] tbl_enrollment: every row of the PREVIOUS year still
+              'enrolled' becomes 'completed' (today's date)
+     5. [W] tbl_audit_log 'activate' entry: previous year, how many
+        students were completed, and the backup file name.
+     Exactly one year is active at a time (enforced here in code).
+     Nothing else is copied forward: no enrollments, no teacher
+     assignments, no balances (see sections 6 and 8).
+  delete ...... removes the year.
+
+Levels  config/level.php      [W] tbl_level (soft delete)
+  Flag allows_subject_selection: 0 = fixed curriculum (every subject
+  auto-assigned at enrollment), 1 = student picks (Senior High).
+Sections config/section.php   [W] tbl_section (belongs to a level)
+Subjects config/subject.php   [W] tbl_subject (belongs to a level)
+Offices / Positions           [W] tbl_office / tbl_position (soft delete)
+  (used only as dropdown values on the Teacher form)
+
+
+=====================================================================
+5. ASSIGNING A TEACHER TO A CLASS  (Settings > Assignments)
+=====================================================================
+Backend: config/assignment.php  action=add
+  A "class" = one teacher + one subject + one section, in the ACTIVE
+  school year.
+  1. [R] active school year (error if none)
+  2. [R] level, section, subject, teacher names
+  3. Blocks a duplicate (same subject + section + year).
+  4. [W] INSERT tbl_class.  The NAMES (school year, level, section,
+     subject, teacher) are copied into the row as a frozen snapshot,
+     so later renames never rewrite history.
+  Edit: [W] UPDATE tbl_class (re-snapshots names).
+  Delete: [DEL] class_remarks = 0.  Grades already recorded stay.
+
+There is NO automatic link from enrollment to classes.  A student sees
+a teacher on "My Subjects" only when a tbl_class row exists matching
+their enrollment's (section + subject + school year).  Assignments are
+per school year, so they must be re-created every new year.
+
+
+=====================================================================
+6. ENROLLING A STUDENT  (Enrollment > Add Enrollment)
+=====================================================================
+Backend: config/enrollment.php  action=add   (admin only)
+  Blocks: no active school year; student already enrolled that year.
+  Runs as ONE database transaction (all-or-nothing):
+   1. [R] level (fixed vs selectable subjects) and section names
+   2. [W] INSERT tbl_enrollment  - school year / level / section names
+          are frozen copies, plus tuition_fee, date, status='enrolled'
+   3. Subjects:
+        fixed-curriculum level -> [R] every active subject of the level
+        selectable level       -> only the ones ticked on the form
+        [W] INSERT tbl_enrollment_subject for each (name + code frozen)
+   4. Optional downpayment on the same form:
+        [W] INSERT tbl_payment (admin id + name recorded)
+   5. Any failure -> ROLLBACK, nothing is saved.
+
+Balance = tuition_fee - SUM(payments of THAT enrollment).
+  Each enrollment stands alone.  A new school year = a new enrollment
+  = a fresh balance.  Unpaid balance from a previous year is NOT
+  carried forward or added (tested: old year 10,000 unpaid + new year
+  16,000 tuition shows 16,000, not 26,000).
+
+Other enrollment actions
+  Edit .......... action=update  (admin; only status 'enrolled' AND the
+                  active school year).  Reason required (audit log).
+                  One transaction:
+                   - tuition_fee: not below SUM(payments) (row locked)
+                   - section: another section of the SAME level; refused
+                     if any grade exists for the student in the old
+                     section (grades belong to the class = subject +
+                     section).  [W] tbl_enrollment.section_id/name
+                   - subjects (selectable levels only): add ticked ones,
+                     remove unticked ones unless graded.  [W] tbl_enrollment_subject
+                   - fixed-curriculum levels: missing subjects are attached.
+  Subject sync .. config/enrollment_lib.php enrollment_sync_fixed_subjects():
+                  runs when a subject is saved (config/subject.php) and on
+                  Edit; gives every non-completed enrollment of the ACTIVE
+                  year in a fixed-curriculum level any level subject it
+                  lacks.
+  Cancel ........ only if the enrollment has ZERO payments (checked in
+                  code).  Then [W] DELETE tbl_enrollment; its subject
+                  rows go with it (cascade).  Purpose: undo a mistake.
+  Drop/Transfer . [W] status -> 'dropped' or 'transferred', remarks +
+                  today's date.  Nothing is deleted; payments and
+                  grades stay.  Only from 'enrolled'.
+  Reactivate .... [W] dropped/transferred -> 'enrolled' again.
+  History ....... [R] every enrollment of one student, all years.
+  Student profile page (student_profile.html) combines: student data,
+  current enrollment, payment history, enrollment history.
+
+
+=====================================================================
+7. PAYMENTS
+=====================================================================
+Record a payment (Enrollment > eye icon > Add Payment)
+  config/payment.php action=add (admin only)
+  Needs date, amount > 0, mode Cash/GCash/Bank Transfer (reference no.
+  optional).  [W] INSERT tbl_payment with the admin's id + name.
+  Overpayment guard: inside a transaction the enrollment row is locked and
+  SUM(other payments) + this amount must be <= tuition_fee, else refused
+  (same rule for Edit and for the downpayment on Add Enrollment).
+  The balance shown next to it is recomputed from all payments.
+
+Edit a payment (Payments > pencil icon)  action=edit  (admin only)
+  A REASON IS REQUIRED - rejected without one.
+  1. [R] current values of the payment
+  2. [W] UPDATE tbl_payment (date, amount, mode, reference)
+  3. [W] INSERT tbl_payment_edit_log: old values, new values, reason,
+     admin id/name, timestamp.  (The log has no screen yet; it is in
+     the database for audit.)
+  There is no delete-payment action.
+
+Views (read only, no writes)
+  Ledger ......... [R] tbl_payment + tbl_enrollment + tbl_student,
+                   filterable by school year and date range;
+                   also returns the total for the header tile.
+  Totals per Date  same filters, grouped by payment_date
+                   (count + sum).
+  Student's own history  action=my_history
+                   [R] only payments whose enrollment belongs to
+                   the logged-in student (session ref_id).
+
+
+=====================================================================
+8. GRADING  (Teacher > My Classes)
+=====================================================================
+My Classes list  (assignment.php action=teacher_classes)
+  [R] tbl_class rows where teacher_id = session ref_id.
+  The student count on the list counts only currently 'enrolled'
+  students (a live headcount).
+
+Opening a class  (grading.php action=scores)
+  Security: the class must belong to the logged-in teacher.
+  ROSTER is computed live, there is no roster table:
+     students whose enrollment matches the class's
+     section + school year AND who have that subject in
+     tbl_enrollment_subject.  ALL enrollment statuses are included
+     (enrolled / dropped / transferred / completed) so history is
+     never lost; non-enrolled ones get a status badge.
+  [R] components of the quarter, existing scores, existing final grades.
+
+Add a component (quiz/activity/exam)   action=component_add
+  [W] INSERT tbl_grade_component (class, quarter Q1-Q4, type, title,
+      max score, optional date).
+  Remove a component -> [DEL] component_remarks = 0 (scores kept).
+
+Enter / change a score   action=score_save   (blur in the grid)
+  1. Score must be 0..max score.
+  2. [R] existing score for (component, student).
+  3. FIRST entry, or same value  -> [W] just save, no reason needed.
+     CHANGING an already-recorded value -> a REASON is required
+     (the grid pops up a prompt; the server refuses without one).
+  4. [W] upsert tbl_grade (one row per component + student)
+  5. On a real change: [W] INSERT tbl_grade_edit_log
+     (old, new, reason, teacher id/name, timestamp).
+
+Final grade   action=final_grade_save   (same rules as scores)
+  Typed by the teacher per student per quarter.  It is NOT calculated
+  from the quiz/exam scores - the scores are reference only.
+  [W] upsert tbl_final_grade; changes to a released value require a
+  reason and are logged in tbl_final_grade_edit_log.
+
+Student side (read only, always scoped to the logged-in student's
+own ref_id):
+  My Subjects  [R] all of the student's enrollments (any status) and
+               their subjects; joins tbl_class to find the teacher.
+               Current year first, then past years newest-first.
+  My Grades    [R] components + the student's own scores + final
+               grades for ONE class.  Server first proves the class
+               belongs to one of the student's enrollments, otherwise
+               "Not authorized".
+  Completed/dropped years stay viewable (fixed: they used to vanish
+  once a year was completed).
+
+
+=====================================================================
+9. ANNOUNCEMENTS AND THE UNREAD BADGE
+=====================================================================
+Post (admin)  config/announcement.php action=add
+  [W] tbl_announcement (title, content, audience all/teachers/students,
+      admin name frozen) + [W] tbl_announcement_photo per uploaded
+      photo (files saved in assets/img/announcements/).
+  Edit / delete a photo / delete the post work on the same tables
+  (post delete is a soft delete).
+Feed (all roles)  action=load
+  [R] posts visible to that role (admin sees all; teachers see
+  all+teachers; students see all+students), newest first, with the
+  poster's CURRENT photo (not frozen).
+Unread badge (red number on the sidebar item)
+  unread_count : [R] tbl_announcement_view.last_viewed_at for this
+                 user, then counts visible posts created after it.
+                 (Never viewed = counts everything visible.)
+  mark_viewed  : runs when the user opens the Announcements page:
+                 [W] upsert tbl_announcement_view (role + account id)
+                 -> badge disappears.  It is one "last visited"
+                 timestamp per user, not per-post read receipts.
+
+
+=====================================================================
+10. ATTENDANCE
+=====================================================================
+Gate kiosk (attendance_kiosk.html, no login)  config/attendance.php
+action=scan
+  1. Enter/scan the LRN.
+  2. [R] tbl_student by LRN (unknown LRN -> error)
+  3. [R] this student's latest scan TODAY in tbl_attendance_log
+  4. Decides automatically:  no scan today, or last was 'out'  -> 'in';
+     last was 'in' -> 'out'.
+  5. [W] INSERT tbl_attendance_log (student, LRN, name frozen, type,
+     time, source='manual').  'rfid' is reserved for a future reader.
+In-app Attendance page (admin): [R] one student's log history.
+Dashboard "Attendance today" = number of DIFFERENT students with any
+scan today.
+
+
+=====================================================================
+11. SCHOOL CALENDAR
+=====================================================================
+config/event.php
+  load ....... [R] events overlapping the visible date range (the
+               month grid fetches the whole grid, including the
+               greyed days of the neighbouring months).
+  upcoming ... [R] next events from today (Dashboard widget).
+  add/edit ... admin only.  [W] tbl_event: title, type
+               (Holiday/Exam/Meeting/Deadline/Other), start date,
+               optional end date (multi-day), description, admin.
+  delete ..... admin only, [DEL] event_remarks = 0.
+Teachers and students can view but never see add/edit/delete.
+
+
+=====================================================================
+12. ADMIN DASHBOARD  (read only)
+=====================================================================
+config/dashboard.php action=stats (admin only) - one call, all [R]:
+  Enrolled ........ COUNT of 'enrolled' rows, ACTIVE year
+  Collected ....... SUM of payments of enrollments in the ACTIVE year
+  Outstanding ..... SUM(tuition of enrolled) - SUM(paid), ACTIVE year
+  Attendance today  distinct students scanned today
+  Recent payments / enrollments / announcements (latest 5/5/3)
+  Upcoming events   next 5 from tbl_event
+Because it is scoped to the active year, switching years resets these
+numbers; older years are still visible through Payments/Enrollment.
+
+
+=====================================================================
+13. THE WHOLE YEAR-END CYCLE  (how it all chains together)
+=====================================================================
+  Settings > School Year: add the new year and ACTIVATE it
+     -> all still-enrolled students of the old year become
+        'completed' automatically (history kept)
+  Enrollment: enroll each student again
+     -> NEW tbl_enrollment + tbl_enrollment_subject (+ optional
+        downpayment) with a FRESH balance; the old year is untouched
+  Settings > Assignments: assign teachers again for the new year
+     -> NEW tbl_class rows (the old classes and their grades remain,
+        tied to the old year)
+  Teacher: adds components, enters scores and final grades per quarter
+     -> tbl_grade_component / tbl_grade / tbl_final_grade (+ edit logs
+        when values change)
+  Student: My Subjects / My Grades / Payment History show current AND
+     past years.
+
+
+=====================================================================
+13A. BACKUP AND RESTORE  (Settings > Backup & Restore)
+=====================================================================
+Files: config/backup_lib.php (engine), config/backup.php (screen),
+cron/weekly_backup.php (scheduled), backups/ (the dump files).
+A backup = a mysqldump of the whole database saved as
+  backups/jetms_<type>_<date>_<time>.sql
+Types: weekly (cron) | manual | pre_activate | pre_restore.
+The backups/ folder has an .htaccess that blocks all web access.
+
+Weekly (cron, Sundays 2 AM - see DEPLOYMENT.md to install it)
+  1. weekly_backup.php runs from the command line only (403 in a browser).
+  2. create_backup('weekly'), then keeps only the newest 12 weekly files
+     (about 3 months); manual / pre_activate / pre_restore files are
+     never auto-deleted.
+  3. [W] tbl_audit_log: 'backup' entry by "Scheduled task" (also on failure).
+
+Manual backup (Backup Now)  - password required
+  admin re-enters password -> create_backup('manual') -> audit entry.
+
+Restore - password AND typing the word RESTORE required
+  1. Checks: file name matches the backup pattern (path tricks like
+     ../../etc/passwd are rejected), file exists and looks like a dump.
+  2. Takes a 'pre_restore' safety backup of the CURRENT data first.
+  3. Sets aside the current audit + login log rows.
+  4. Drops every table except the two log tables, then loads the
+     backup - so the database becomes EXACTLY the backup (a table that
+     did not exist then disappears).
+  5. If loading fails, the safety backup is loaded back automatically
+     and the error is reported.
+  6. Puts the newer log rows back (a restore can never erase its own
+     trail), writes 'restore' to the audit log, destroys the admin's
+     session (log in again - the restored data may not contain them).
+  Everything entered after the chosen backup is lost.
+Download: admin-only, logged as 'backup_download'.
+Uploaded photos (assets/img) are NOT part of a backup.
+
+=====================================================================
+13B. SECURITY LOGS  (Settings > Security Logs, admin only)
+=====================================================================
+Login records (tbl_login_log)  written by config/auth_login.php and
+  config/logout.php: event (login / failed login / logout), role,
+  username typed, reason (failures), IP, browser, time.
+Change log (tbl_audit_log)  written by audit_log() in config/security.php,
+  called from every endpoint that writes data.  One row = who
+  (role, id, name), what action, which table/row, a readable summary,
+  IP and time, plus JSON details:
+     edit    -> only the fields that changed, {from, to}
+     create  -> the recorded values
+     remove  -> the values as they were
+  Passwords are never captured.  Edits that change nothing are skipped.
+  Actions logged: create, update, archive, delete, activate,
+  activate_failed, backup, backup_download, restore(_start/_failed),
+  password_reset, password_change, auth_failed (wrong password on a
+  confirmation), denied (a non-admin hit an admin action), scan
+  (gate kiosk; actor shows as "Not logged in").
+  Payment and grade edits also keep their reason in the entry.
+Two more protections that come from this work:
+  * Wrong password on backup / restore / activation is itself logged,
+    and 5 misses in 15 minutes locks these confirmations for 15 min.
+  * Neither log has an edit or delete screen.
+
+=====================================================================
+14. TABLE MAP  (who writes what)
+=====================================================================
+  tbl_admin, tbl_teacher_account, tbl_student_account
+        <- Settings>Users, auto-created by Add Teacher / Add Student
+  tbl_teacher, tbl_student ............ <- Add Teacher / Add Student
+  tbl_office, tbl_position ............ <- Settings
+  tbl_schoolyear ...................... <- Settings>School Year
+  tbl_level, tbl_section, tbl_subject . <- Settings>Levels
+  tbl_class ........................... <- Settings>Assignments
+  tbl_enrollment, tbl_enrollment_subject <- Enrollment
+  tbl_payment ......................... <- Enrollment (add), Payments (edit)
+  tbl_payment_edit_log ................ <- Payments edit (audit only)
+  tbl_grade_component, tbl_grade, tbl_final_grade <- Teacher gradebook
+  tbl_grade_edit_log, tbl_final_grade_edit_log   <- Teacher edits
+  tbl_announcement, tbl_announcement_photo <- Announcements
+  tbl_announcement_view ............... <- opening the Announcements page
+  tbl_attendance_log .................. <- Attendance kiosk
+  tbl_audit_log ....................... <- every endpoint that writes data
+  tbl_login_log ....................... <- login / logout
+  tbl_event ........................... <- School Calendar
+  refregion / refprovince / refcitymun / refbrgy  <- read-only PSGC data
+
+
+=====================================================================
+15. PATTERNS WORTH KNOWING
+=====================================================================
+  * "Frozen names": enrollment, class, payment, announcement and
+    attendance rows copy names at creation time, so renaming a level,
+    subject or person later never rewrites history.  (Only the
+    announcement poster's PHOTO is live.)
+  * Soft delete: most "Delete" buttons only flip a *_remarks flag or a
+    status.  Data stays in the database.
+  * Edit-with-reason: payments, scores and final grades cannot be
+    changed without a written reason, and every change is logged.
+  * Nothing carries over automatically between school years except the
+    'completed' status flip.  Enrollments, balances and teacher
+    assignments are created fresh each year.
+  * Everything that writes data is audit-logged (who, what, before/after),
+    and every login attempt is recorded - see 13B.  Any NEW endpoint must
+    start with require_admin() (or another explicit check) and call
+    audit_log() on its writes.
+  * Default passwords are 'admin' for every auto-created account; there
+    is no forced change on first login.
+=====================================================================

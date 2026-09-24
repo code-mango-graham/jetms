@@ -1,5 +1,9 @@
 <?php
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+include 'enrollment_lib.php';
+require_admin();
 
 header('Content-Type: application/json');
 
@@ -100,6 +104,7 @@ switch ($action) {
 
         $subjectCodeValue = ($subject_code === '') ? null : $subject_code;
 
+        $auditOld = empty($subject_id) ? null : audit_snapshot($conn, 'tbl_subject', 'subject_id', $subject_id);
         if (empty($subject_id)) {
             $save = mysqli_prepare($conn, "INSERT INTO tbl_subject (level_id, subject_name, subject_code) VALUES (?, ?, ?)");
             mysqli_stmt_bind_param($save, "iss", $level_id, $subject_name, $subjectCodeValue);
@@ -119,9 +124,15 @@ switch ($action) {
 
         mysqli_stmt_close($save);
 
+        $auditId = empty($subject_id) ? mysqli_insert_id($conn) : $subject_id;
+        // A subject added to a fixed-curriculum level also goes to students already enrolled in it.
+        $attached = enrollment_sync_fixed_subjects($conn);
+        $auditNew = audit_snapshot($conn, 'tbl_subject', 'subject_id', $auditId);
+        audit_log($conn, empty($subject_id) ? 'create' : 'update', 'tbl_subject', $auditId, 'Subject: ' . ($auditNew['subject_name'] ?? ''), $auditOld, $auditNew);
+
         echo json_encode([
             "status" => "success",
-            "message" => "Subject saved successfully"
+            "message" => "Subject saved successfully" . ($attached > 0 ? " and added to $attached already-enrolled student(s)." : "")
         ]);
         break;
     }
@@ -140,12 +151,14 @@ switch ($action) {
             break;
         }
 
+        $auditOld = audit_snapshot($conn, 'tbl_subject', 'subject_id', $subject_id);
         $stmt = mysqli_prepare($conn, "UPDATE tbl_subject SET subject_remarks = 0 WHERE subject_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $subject_id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'archive', 'tbl_subject', $subject_id, 'Subject archived: ' . ($auditOld['subject_name'] ?? ''), $auditOld);
             echo json_encode([
                 "status" => "success",
                 "message" => "Subject removed successfully"

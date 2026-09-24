@@ -38,9 +38,9 @@ $(document).ready(function () {
 
                 $('#currentEnrollmentBody').html(`
                     <div class="row g-2">
-                        <div class="col-md-3"><div class="label-muted">School Year</div><div class="value-strong">${e.schoolyear_name}</div></div>
-                        <div class="col-md-3"><div class="label-muted">Level</div><div class="value-strong">${e.level_name}</div></div>
-                        <div class="col-md-3"><div class="label-muted">Section</div><div class="value-strong">${e.section_name}</div></div>
+                        <div class="col-md-3"><div class="label-muted">School Year</div><div class="value-strong">${esc(e.schoolyear_name)}</div></div>
+                        <div class="col-md-3"><div class="label-muted">Level</div><div class="value-strong">${esc(e.level_name)}</div></div>
+                        <div class="col-md-3"><div class="label-muted">Section</div><div class="value-strong">${esc(e.section_name)}</div></div>
                         <div class="col-md-3"><div class="label-muted">Status</div><div class="value-strong">${badge}</div></div>
                         <div class="col-md-4"><div class="label-muted">Tuition</div><div class="value-strong">${money(e.tuition_fee)}</div></div>
                         <div class="col-md-4"><div class="label-muted">Paid</div><div class="value-strong text-success">${money(e.total_paid)}</div></div>

@@ -1,5 +1,8 @@
 <?php
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+require_admin();
 
 header('Content-Type: application/json');
 
@@ -97,6 +100,7 @@ switch ($action) {
 
         mysqli_stmt_close($check);
 
+        $auditOld = empty($section_id) ? null : audit_snapshot($conn, 'tbl_section', 'section_id', $section_id);
         if (empty($section_id)) {
             $save = mysqli_prepare($conn, "INSERT INTO tbl_section (level_id, section_name) VALUES (?, ?)");
             mysqli_stmt_bind_param($save, "is", $level_id, $section_name);
@@ -115,6 +119,10 @@ switch ($action) {
         }
 
         mysqli_stmt_close($save);
+
+        $auditId = empty($section_id) ? mysqli_insert_id($conn) : $section_id;
+        $auditNew = audit_snapshot($conn, 'tbl_section', 'section_id', $auditId);
+        audit_log($conn, empty($section_id) ? 'create' : 'update', 'tbl_section', $auditId, 'Section: ' . ($auditNew['section_name'] ?? ''), $auditOld, $auditNew);
 
         echo json_encode([
             "status" => "success",
@@ -137,12 +145,14 @@ switch ($action) {
             break;
         }
 
+        $auditOld = audit_snapshot($conn, 'tbl_section', 'section_id', $section_id);
         $stmt = mysqli_prepare($conn, "UPDATE tbl_section SET section_remarks = 0 WHERE section_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $section_id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'archive', 'tbl_section', $section_id, 'Section archived: ' . ($auditOld['section_name'] ?? ''), $auditOld);
             echo json_encode([
                 "status" => "success",
                 "message" => "Section removed successfully"

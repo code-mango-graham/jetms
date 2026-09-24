@@ -19,13 +19,13 @@ try {
     
     $stmt = $conn->prepare($sql);
     if (!$stmt) {
-        throw new Exception('Prepare failed: ' . $conn->error);
+        throw new Exception(db_fail('Prepare: ' . $conn->error));
     }
 
     $stmt->bind_param("s", $provCode);
     
     if (!$stmt->execute()) {
-        throw new Exception('Execute failed: ' . $stmt->error);
+        throw new Exception(db_fail('Execute: ' . $stmt->error));
     }
 
     $result = $stmt->get_result();

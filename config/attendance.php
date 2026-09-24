@@ -1,9 +1,23 @@
 <?php
+require_once __DIR__ . '/session_boot.php';
 include '../config.php';
+include 'security.php';
+require_admin(['scan', 'load']);
 
 header('Content-Type: application/json');
 
 $action = isset($_POST['action']) ? $_POST['action'] : '';
+
+// The gate kiosk is public by design, so it gets its own guards:
+//  1) optional IP allow-list (KIOSK_ALLOWED_IPS in config.local.php - the school's public IP)
+//  2) a signed-in admin always passes (for the in-app "Open Gate Kiosk" button)
+if (in_array($action, ['scan', 'load'], true) && KIOSK_ALLOWED_IPS
+    && !(isset($_SESSION['auth']) && $_SESSION['auth']['role'] === 'admin')
+    && !in_array(sec_client_ip(), KIOSK_ALLOWED_IPS, true)) {
+    http_response_code(403);
+    echo json_encode(["status" => "error", "message" => "The gate kiosk is not available from this location."]);
+    exit;
+}
 
 switch ($action) {
 
@@ -12,10 +26,27 @@ switch ($action) {
     // =======================
     case 'scan': {
         $lrn = isset($_POST['lrn']) ? trim($_POST['lrn']) : '';
-        $source = isset($_POST['source']) ? trim($_POST['source']) : 'manual';
+        $source = (isset($_POST['source']) && $_POST['source'] === 'rfid') ? 'rfid' : 'manual';
 
         if ($lrn === '') {
             echo json_encode(["status" => "error", "message" => "Please scan or enter an LRN"]);
+            break;
+        }
+        if (!preg_match('/^[A-Za-z0-9]{5,20}$/', $lrn)) {
+            echo json_encode(["status" => "error", "message" => "That does not look like a valid LRN"]);
+            break;
+        }
+
+        // Anyone can reach this page, so slow down guessing: at most 30 scan attempts a minute per address.
+        $recent = mysqli_prepare($conn, "SELECT COUNT(*) FROM tbl_audit_log WHERE action IN ('scan', 'scan_failed') AND ip_address = ? AND created_at > (NOW() - INTERVAL 1 MINUTE)");
+        $scanIp = sec_client_ip();
+        mysqli_stmt_bind_param($recent, "s", $scanIp);
+        mysqli_stmt_execute($recent);
+        $recentCount = (int) mysqli_fetch_row(mysqli_stmt_get_result($recent))[0];
+        mysqli_stmt_close($recent);
+        if ($recentCount >= 30) {
+            http_response_code(429);
+            echo json_encode(["status" => "error", "message" => "Too many scans. Please wait a moment."]);
             break;
         }
 
@@ -26,7 +57,8 @@ switch ($action) {
         mysqli_stmt_close($stmt);
 
         if (!$student) {
-            echo json_encode(["status" => "error", "message" => "No student found with LRN: {$lrn}"]);
+            audit_log($conn, 'scan_failed', 'tbl_attendance_log', null, 'Gate scan with an unknown LRN');
+            echo json_encode(["status" => "error", "message" => "No student found with that LRN"]);
             break;
         }
 
@@ -57,7 +89,9 @@ switch ($action) {
             echo json_encode(["status" => "error", "message" => "Failed to log attendance"]);
             break;
         }
+        $newLogId = mysqli_insert_id($conn);
         mysqli_stmt_close($insert);
+        audit_log($conn, 'scan', 'tbl_attendance_log', $newLogId, 'Gate scan (' . $logType . '): ' . $studentName . ' [LRN ' . $lrn . ']', null, null, ['source' => $source]);
 
         echo json_encode([
             "status" => "success",
@@ -130,12 +164,14 @@ switch ($action) {
     case 'delete': {
         $log_id = isset($_POST['log_id']) ? (int) $_POST['log_id'] : 0;
 
+        $auditOld = audit_snapshot($conn, 'tbl_attendance_log', 'log_id', $log_id);
         $stmt = mysqli_prepare($conn, "DELETE FROM tbl_attendance_log WHERE log_id = ?");
         mysqli_stmt_bind_param($stmt, "i", $log_id);
         mysqli_stmt_execute($stmt);
 
         if (mysqli_stmt_affected_rows($stmt) > 0) {
             mysqli_stmt_close($stmt);
+            audit_log($conn, 'delete', 'tbl_attendance_log', $log_id, 'Attendance entry deleted: ' . ($auditOld['student_name'] ?? '') . ' (' . ($auditOld['log_type'] ?? '') . ')', $auditOld);
             echo json_encode(["status" => "success", "message" => "Log entry removed"]);
             break;
         }
